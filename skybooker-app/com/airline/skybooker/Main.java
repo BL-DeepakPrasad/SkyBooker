@@ -62,6 +62,15 @@ public class Main {
                 System.out.println("Cheapest Outbound Flight: $" + f.getBasePrice())
             );
 
+            System.out.print("\nEnter Flight Number to view full details (or press Enter to skip): ");
+            String fNumber = scanner.nextLine().trim();
+            if (!fNumber.isEmpty()) {
+                flightManager.getFlightByNumber(fNumber).ifPresentOrElse(
+                    flight -> System.out.println(flight.getFullDetails()),
+                    () -> System.out.println("Flight not found.")
+                );
+            }
+
         } catch (FlightNotFoundException e) {
             System.out.println("ERROR: " + e.getMessage());
         } catch (Exception e) {

@@ -16,6 +16,8 @@ public class Flight implements Comparable<Flight> {
     private LocalDateTime departureTime;
     private double basePrice;
     private int availableSeats;
+    private String baggageRules;
+    private String cancellationPolicy;
 
     /**
      * Constructs a new Flight schedule.
@@ -28,8 +30,10 @@ public class Flight implements Comparable<Flight> {
      * @param destination    the arrival airport
      * @param basePrice      the base fare price for this flight
      * @param availableSeats the total number of seats currently available for booking
+     * @param baggageRules   the baggage policy
+     * @param cancellationPolicy the cancellation rules
      */
-    public Flight(int flightId, String flightNumber, Airline airline, Airport origin, Airport destination, double basePrice, int availableSeats) {
+    public Flight(int flightId, String flightNumber, Airline airline, Airport origin, Airport destination, double basePrice, int availableSeats, String baggageRules, String cancellationPolicy) {
         this.flightId = flightId;
         this.flightNumber = flightNumber;
         this.airline = airline;
@@ -37,6 +41,8 @@ public class Flight implements Comparable<Flight> {
         this.destination = destination;
         this.basePrice = basePrice;
         this.availableSeats = availableSeats;
+        this.baggageRules = baggageRules;
+        this.cancellationPolicy = cancellationPolicy;
         this.departureTime = LocalDateTime.now().plusDays(1);
     }
 
@@ -100,10 +106,30 @@ public class Flight implements Comparable<Flight> {
         return Double.compare(this.basePrice, other.basePrice);
     }
 
-    @Override
     public String toString() {
         return airline.getName() + " " + flightNumber + " | " +
                 origin.getIataCode() + " -> " + destination.getIataCode() +
                 " | Price: $" + basePrice + " | Seats: " + availableSeats;
+    }
+
+    /**
+     * Returns a beautifully formatted string containing the full itinerary,
+     * baggage rules, and cancellation policies (UC 4).
+     *
+     * @return formatted flight details
+     */
+    public String getFullDetails() {
+        return "\n============================================\n" +
+               "           FLIGHT ITINERARY DETAILS          \n" +
+               "============================================\n" +
+               "Flight: " + airline.getName() + " (" + flightNumber + ")\n" +
+               "Origin: " + origin.getName() + " (" + origin.getIataCode() + ")\n" +
+               "Destination: " + destination.getName() + " (" + destination.getIataCode() + ")\n" +
+               "Departure: " + departureTime.toString().replace("T", " ") + "\n" +
+               "Base Fare: $" + basePrice + "\n" +
+               "--------------------------------------------\n" +
+               "Baggage Policy:\n  " + baggageRules + "\n" +
+               "Cancellation Policy:\n  " + cancellationPolicy + "\n" +
+               "============================================";
     }
 }

@@ -56,9 +56,9 @@ public class FlightManager implements Searchable {
         Airport bom = new Airport(2, "Chhatrapati Shivaji", "BOM", "Mumbai", "India");
         Airport blr = new Airport(3, "Kempegowda Int", "BLR", "Bengaluru", "India");
 
-        flightDatabase.add(new Flight(1, "AI-101", airIndia, del, bom, 120.50, 50));
-        flightDatabase.add(new Flight(2, "IG-202", indigo, del, bom, 95.00, 10));
-        flightDatabase.add(new Flight(3, "AI-303", airIndia, bom, blr, 150.00, 5));
+        flightDatabase.add(new Flight(1, "AI-101", airIndia, del, bom, 120.50, 50, "1 Cabin (7kg), 1 Checked (15kg)", "Free cancellation up to 24 hrs before departure."));
+        flightDatabase.add(new Flight(2, "IG-202", indigo, del, bom, 95.00, 10, "1 Cabin (7kg) only. Checked bag extra.", "Non-refundable. Date change fee applies."));
+        flightDatabase.add(new Flight(3, "AI-303", airIndia, bom, blr, 150.00, 5, "1 Cabin (7kg), 2 Checked (20kg total)", "Free cancellation up to 48 hrs before departure."));
 
         this.searchCache = new ConcurrentHashMap<>();
         this.routeIndex = flightDatabase.stream().collect(
@@ -169,5 +169,17 @@ public class FlightManager implements Searchable {
         return indexedFlights.stream()
                 .filter(f -> f.getAvailableSeats() > 0)
                 .collect(Collectors.minBy(Comparator.comparingDouble(Flight::getBasePrice)));
+    }
+
+    /**
+     * Retrieves a specific flight by its flight number.
+     *
+     * @param flightNumber the flight number (e.g., AI-101)
+     * @return an Optional containing the flight if found
+     */
+    public Optional<Flight> getFlightByNumber(String flightNumber) {
+        return flightDatabase.stream()
+                .filter(f -> f.getFlightNumber().equalsIgnoreCase(flightNumber))
+                .findFirst();
     }
 }
