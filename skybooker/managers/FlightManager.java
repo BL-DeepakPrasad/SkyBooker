@@ -10,13 +10,42 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 
-
+/**
+ * The FlightManager acts as a centralized service for managing flight inventories,
+ * search operations, and route indexing.
+ * <p>
+ * It follows the Singleton design pattern to ensure a single instance is utilized
+ * across the application. It heavily utilizes the Java Streams API for data manipulation
+ * and ConcurrentHashMap for thread-safe caching.
+ * </p>
+ */
 public class FlightManager implements Searchable {
+
+    /**
+     * The volatile singleton instance ensuring thread-safe publication.
+     */
     private static volatile FlightManager instance;
+
+    /**
+     * The primary database mimicking persistent storage of all scheduled flights.
+     */
     private List<Flight> flightDatabase;
+
+    /**
+     * An in-memory cache to store frequent search queries for improved performance.
+     */
     private Map<String, List<Flight>> searchCache;
+
+    /**
+     * A highly optimized index grouping flights by their route (Origin-Destination)
+     * for O(1) lookup speeds prior to filtering.
+     */
     private Map<String, List<Flight>> routeIndex;
 
+    /**
+     * Private constructor to prevent external instantiation.
+     * Initializes the mock database, routing indexes, and caching layers.
+     */
     private FlightManager() {
         this.flightDatabase = new ArrayList<>();
 
@@ -37,6 +66,12 @@ public class FlightManager implements Searchable {
         );
     }
 
+    /**
+     * Retrieves the globally unique instance of the FlightManager.
+     * Utilizes double-checked locking for thread safety and performance optimization.
+     *
+     * @return the {@link FlightManager} instance
+     */
     public static FlightManager getInstance() {
         if (instance == null) {
             synchronized (FlightManager.class) {
@@ -48,9 +83,21 @@ public class FlightManager implements Searchable {
         return instance;
     }
 
+    /**
+     * Searches for available one-way flights between two designated airports.
+     * This method utilizes caching to bypass expensive stream operations on identical queries.
+     * If the cache misses, it queries the route index, filters by availability,
+     * and sorts the result by base price.
+     *
+     * @param originCode      the IATA code of the departure airport
+     * @param destinationCode the IATA code of the arrival airport
+     * @return an ordered list of {@link Flight} objects sorted by price
+     * @throws FlightNotFoundException if no flights exist or all seats are booked
+     */
     @Override
     public List<Flight> searchFlights(String originCode, String destinationCode) {
         String cacheKey = originCode.toUpperCase() + "-" + destinationCode.toUpperCase();
+        
         if (searchCache.containsKey(cacheKey)) {
             System.out.println("[CACHE HIT] Returning results from cache.");
             List<Flight> cachedResults = searchCache.get(cacheKey).stream()
@@ -78,6 +125,12 @@ public class FlightManager implements Searchable {
         return results;
     }
 
+    /**
+     * Groups and retrieves all scheduled flights managed by a specific airline.
+     *
+     * @param airlineId the unique identifier of the target airline
+     * @return a list of associated {@link Flight} instances
+     */
     @Override
     public List<Flight> getFlightsByAirline(int airlineId) {
         Map<Integer, List<Flight>> groupedFlights =
@@ -89,6 +142,13 @@ public class FlightManager implements Searchable {
         return groupedFlights.getOrDefault(airlineId, Collections.emptyList());
     }
 
+    /**
+     * Calculates the mean base fare for a given route using Stream aggregations.
+     *
+     * @param originCode      the departure airport IATA code
+     * @param destinationCode the arrival airport IATA code
+     * @return the average base price, or 0.0 if the route does not exist
+     */
     public double getAverageFare(String originCode, String destinationCode) {
         String routeKey = originCode.toUpperCase() + "-" + destinationCode.toUpperCase();
         List<Flight> indexedFlights = routeIndex.getOrDefault(routeKey, Collections.emptyList());
@@ -96,6 +156,13 @@ public class FlightManager implements Searchable {
                 .collect(Collectors.averagingDouble(Flight::getBasePrice));
     }
 
+    /**
+     * Identifies the absolute most economical active flight for a route.
+     *
+     * @param originCode      the departure airport IATA code
+     * @param destinationCode the arrival airport IATA code
+     * @return an {@link Optional} containing the cheapest Flight, or empty if none exist
+     */
     public Optional<Flight> getCheapestFlight(String originCode, String destinationCode) {
         String routeKey = originCode.toUpperCase() + "-" + destinationCode.toUpperCase();
         List<Flight> indexedFlights = routeIndex.getOrDefault(routeKey, Collections.emptyList());
