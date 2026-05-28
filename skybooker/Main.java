@@ -28,22 +28,40 @@ public class Main {
         System.out.println("=== SKYBOOKER FLIGHT SEARCH ===");
 
         try {
+            System.out.println("\nSelect Trip Type:");
+            System.out.println("1. One-Way");
+            System.out.println("2. Round-Trip");
+            System.out.print("Enter choice (1/2): ");
+            String tripChoice = scanner.nextLine();
+            boolean isRoundTrip = tripChoice.equals("2");
+
             System.out.print("Enter Origin IATA Code (e.g. DEL): ");
             String origin = scanner.nextLine().toUpperCase();
 
             System.out.print("Enter Destination IATA Code (e.g. BOM): ");
             String destination = scanner.nextLine().toUpperCase();
 
-            List<Flight> flights = flightManager.searchFlights(origin, destination);
-
-            System.out.println("\n--- Available Flights ---");
-            for (int i = 0; i < flights.size(); i++) {
-                System.out.println((i + 1) + ". " + flights.get(i));
+            System.out.println("\n--- OUTBOUND FLIGHTS (" + origin + " -> " + destination + ") ---");
+            List<Flight> outboundFlights = flightManager.searchFlights(origin, destination);
+            for (int i = 0; i < outboundFlights.size(); i++) {
+                System.out.println((i + 1) + ". " + outboundFlights.get(i));
+            }
+            
+            if (isRoundTrip) {
+                System.out.println("\n--- RETURN FLIGHTS (" + destination + " -> " + origin + ") ---");
+                try {
+                    List<Flight> returnFlights = flightManager.searchFlights(destination, origin);
+                    for (int i = 0; i < returnFlights.size(); i++) {
+                        System.out.println((i + 1) + ". " + returnFlights.get(i));
+                    }
+                } catch (FlightNotFoundException e) {
+                    System.out.println("No return flights available for this route.");
+                }
             }
 
             System.out.printf("\nAverage Fare for %s-%s: $%.2f%n", origin, destination, flightManager.getAverageFare(origin, destination));
             flightManager.getCheapestFlight(origin, destination).ifPresent(f ->
-                System.out.println("Cheapest Flight available: $" + f.getBasePrice())
+                System.out.println("Cheapest Outbound Flight available: $" + f.getBasePrice())
             );
 
         } catch (FlightNotFoundException e) {
