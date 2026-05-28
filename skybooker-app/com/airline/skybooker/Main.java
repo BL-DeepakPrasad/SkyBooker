@@ -3,6 +3,8 @@ package com.airline.skybooker;
 import com.airline.skybooker.exception.FlightNotFoundException;
 import com.airline.skybooker.managers.FlightManager;
 import com.airline.skybooker.models.Flight;
+import com.airline.skybooker.services.SeatService;
+import com.airline.skybooker.exception.SeatLockException;
 import com.airline.skybooker.filters.FlightFilterService;
 import com.airline.skybooker.filters.PriceCriteria;
 import com.airline.skybooker.filters.AirlineCriteria;
@@ -17,11 +19,13 @@ public class Main {
     private final Scanner scanner;
     private final FlightManager flightManager;
     private final FlightFilterService filterService;
+    private final SeatService seatService;
 
     public Main() {
         this.scanner = new Scanner(System.in);
         this.flightManager = FlightManager.getInstance();
         this.filterService = new FlightFilterService();
+        this.seatService = new SeatService();
     }
 
     /**
@@ -66,7 +70,24 @@ public class Main {
             String fNumber = scanner.nextLine().trim();
             if (!fNumber.isEmpty()) {
                 flightManager.getFlightByNumber(fNumber).ifPresentOrElse(
-                    flight -> System.out.println(flight.getFullDetails()),
+                    flight -> {
+                        System.out.println(flight.getFullDetails());
+                        
+                        // Use Case 5: Select Seats
+                        System.out.print("\nDo you want to select a seat for this flight? (y/n): ");
+                        if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                            seatService.displaySeatMap(flight.getFlightNumber());
+                            System.out.print("\nEnter Seat Number to lock (e.g. 1B): ");
+                            String seatNum = scanner.nextLine().trim();
+                            try {
+                                if (seatService.lockSeat(flight.getFlightNumber(), seatNum)) {
+                                    System.out.println(" SUCCESS: Seat " + seatNum + " has been locked for you for 10 minutes.");
+                                }
+                            } catch (SeatLockException ex) {
+                                System.out.println(" FAILED: " + ex.getMessage());
+                            }
+                        }
+                    },
                     () -> System.out.println("Flight not found.")
                 );
             }
