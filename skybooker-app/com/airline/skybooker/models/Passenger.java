@@ -25,7 +25,7 @@ public class Passenger extends User {
         System.out.println("\n=== PASSENGER DASHBOARD ===");
         System.out.println("Welcome, " + getFullName() + "!");
         System.out.println("1. View Full Profile");
-        System.out.println("2. View My Bookings");
+        System.out.println("2. View / Cancel Bookings");
         System.out.println("3. Update Profile");
     }
 }

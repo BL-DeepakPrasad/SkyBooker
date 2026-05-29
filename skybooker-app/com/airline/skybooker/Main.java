@@ -8,6 +8,7 @@ import com.airline.skybooker.ui.AuthUI;
 import com.airline.skybooker.ui.ProfileUI;
 import com.airline.skybooker.ui.FlightSearchUI;
 import com.airline.skybooker.ui.BookingUI;
+import com.airline.skybooker.ui.BookingManagementUI;
 
 import java.util.Scanner;
 
@@ -23,6 +24,7 @@ public class Main {
     private final AuthUI authUI;
     private final ProfileUI profileUI;
     private final FlightSearchUI searchUI;
+    private final BookingManagementUI bookingManagementUI;
 
     public Main() {
         this.scanner = new Scanner(System.in);
@@ -34,6 +36,7 @@ public class Main {
         SeatService seatService = new SeatService();
         BookingUI bookingUI = new BookingUI(scanner, seatService);
         this.searchUI = new FlightSearchUI(scanner, bookingUI);
+        this.bookingManagementUI = new BookingManagementUI(scanner);
     }
 
     /**
@@ -45,31 +48,37 @@ public class Main {
         // 1. Authentication Phase
         authUI.displayAuthMenu();
 
-        // 2. Polymorphic Dashboard Phase
+        // 2. Main Application Loop
         if (authManager.getCurrentUser().isPresent()) {
             User user = authManager.getCurrentUser().get();
-            boolean inDashboard = true;
+            boolean running = true;
             
-            while (inDashboard) {
+            while (running) {
                 user.displayDashboard();
-                System.out.println("4. Continue to Flight Search");
+                System.out.println("4. Search Flights (Book a Ticket)");
+                System.out.println("5. Exit Application");
                 System.out.print("Enter choice: ");
                 String dashChoice = scanner.nextLine().trim();
 
                 if (dashChoice.equals("1") && user instanceof Passenger) {
                     profileUI.handleViewProfile((Passenger) user);
+                } else if (dashChoice.equals("2") && user instanceof Passenger) {
+                    bookingManagementUI.displayMyBookings((Passenger) user);
                 } else if (dashChoice.equals("3") && user instanceof Passenger) {
                     profileUI.handleProfileUpdate((Passenger) user);
                 } else if (dashChoice.equals("4")) {
-                    inDashboard = false;
+                    searchUI.startSearchFlow();
+                } else if (dashChoice.equals("5")) {
+                    System.out.println("Thank you for using SkyBooker! Goodbye.");
+                    running = false;
                 } else {
-                    System.out.println("Feature coming soon!");
+                    System.out.println("Invalid choice or Feature coming soon!");
                 }
             }
+        } else {
+            // Guest Flow
+            searchUI.startSearchFlow();
         }
-
-        // 3. Flight Search Phase
-        searchUI.startSearchFlow();
     }
 
     public static void main(String[] args) {

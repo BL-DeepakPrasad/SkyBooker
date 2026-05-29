@@ -5,6 +5,8 @@ import com.airline.skybooker.models.Booking;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -45,5 +47,14 @@ public class BookingManager {
 
     public Optional<Booking> getBooking(String bookingId) {
         return Optional.ofNullable(bookingDatabase.get(bookingId));
+    }
+
+    /**
+     * Retrieves all bookings for a specific user using Java Streams.
+     */
+    public List<Booking> getBookingsForUser(int userId) {
+        return bookingDatabase.values().stream()
+                .filter(b -> b.getUserId() == userId)
+                .collect(Collectors.toList());
     }
 }
