@@ -1,6 +1,7 @@
 package com.airline.skybooker.models;
 
 import java.time.LocalDateTime;
+import com.airline.skybooker.enums.FlightStatus;
 
 /**
  * Represents a scheduled flight between an origin and destination airport.
@@ -16,8 +17,12 @@ public class Flight implements Comparable<Flight> {
     private LocalDateTime departureTime;
     private double basePrice;
     private int availableSeats;
+    private int totalCapacity;
     private String baggageRules;
     private String cancellationPolicy;
+    private String aircraftType;
+    private FlightStatus flightStatus;
+    private String amenities;
 
     /**
      * Private constructor used by the Builder.
@@ -30,9 +35,13 @@ public class Flight implements Comparable<Flight> {
         this.destination = builder.destination;
         this.basePrice = builder.basePrice;
         this.availableSeats = builder.availableSeats;
+        this.totalCapacity = builder.totalCapacity != 0 ? builder.totalCapacity : builder.availableSeats;
         this.baggageRules = builder.baggageRules;
         this.cancellationPolicy = builder.cancellationPolicy;
-        this.departureTime = LocalDateTime.now().plusDays(1);
+        this.aircraftType = builder.aircraftType != null ? builder.aircraftType : "Boeing 737";
+        this.flightStatus = builder.flightStatus != null ? builder.flightStatus : FlightStatus.SCHEDULED;
+        this.amenities = builder.amenities != null ? builder.amenities : "Standard";
+        this.departureTime = builder.departureTime != null ? builder.departureTime : LocalDateTime.now().plusDays(1);
     }
 
     /**
@@ -46,8 +55,13 @@ public class Flight implements Comparable<Flight> {
         private Airport destination;
         private double basePrice;
         private int availableSeats;
+        private int totalCapacity;
         private String baggageRules;
         private String cancellationPolicy;
+        private String aircraftType;
+        private FlightStatus flightStatus;
+        private String amenities;
+        private LocalDateTime departureTime;
 
         public Builder setFlightId(int flightId) {
             this.flightId = flightId;
@@ -81,6 +95,12 @@ public class Flight implements Comparable<Flight> {
 
         public Builder setAvailableSeats(int availableSeats) {
             this.availableSeats = availableSeats;
+            this.totalCapacity = availableSeats; // default assumption unless overridden
+            return this;
+        }
+
+        public Builder setTotalCapacity(int totalCapacity) {
+            this.totalCapacity = totalCapacity;
             return this;
         }
 
@@ -91,6 +111,26 @@ public class Flight implements Comparable<Flight> {
 
         public Builder setCancellationPolicy(String cancellationPolicy) {
             this.cancellationPolicy = cancellationPolicy;
+            return this;
+        }
+
+        public Builder setAircraftType(String aircraftType) {
+            this.aircraftType = aircraftType;
+            return this;
+        }
+
+        public Builder setFlightStatus(FlightStatus flightStatus) {
+            this.flightStatus = flightStatus;
+            return this;
+        }
+
+        public Builder setAmenities(String amenities) {
+            this.amenities = amenities;
+            return this;
+        }
+
+        public Builder setDepartureTime(LocalDateTime departureTime) {
+            this.departureTime = departureTime;
             return this;
         }
 
@@ -141,6 +181,16 @@ public class Flight implements Comparable<Flight> {
      * @return the number of seats available
      */
     public int getAvailableSeats() { return availableSeats; }
+    public int getTotalCapacity() { return totalCapacity; }
+    
+    /**
+     * Module 8.3: Calculates the current occupancy rate of the flight.
+     */
+    public double getOccupancyRate() {
+        if (totalCapacity == 0) return 0.0;
+        int booked = totalCapacity - availableSeats;
+        return ((double) booked / totalCapacity) * 100.0;
+    }
 
     /**
      * Gets the alphanumeric flight number.
@@ -148,12 +198,29 @@ public class Flight implements Comparable<Flight> {
      * @return the flight number
      */
     public String getFlightNumber() { return flightNumber; }
+    public String getAircraftType() { return aircraftType; }
+    public FlightStatus getFlightStatus() { return flightStatus; }
+    public String getAmenities() { return amenities; }
 
     /**
      * Decrements the available seat count by one in a thread-safe manner.
      * This method must be synchronized to prevent race conditions during concurrent bookings.
      */
     public synchronized void decrementSeats() { this.availableSeats--; }
+    
+    // Mutators for Module 8.2 (Admin Edit)
+    public void setFlightStatus(FlightStatus status) { this.flightStatus = status; }
+    public void setDepartureTime(LocalDateTime time) { this.departureTime = time; }
+    public void setBasePrice(double price) { this.basePrice = price; }
+    
+    /**
+     * Module 8.2: Modifies the base fare dynamically based on demand/season.
+     * @param percentage Increase or decrease percentage (e.g., 20.0 for +20%)
+     */
+    public void applyDynamicPricing(double percentage) {
+        double multiplier = 1.0 + (percentage / 100.0);
+        this.basePrice = this.basePrice * multiplier;
+    }
     
     /**
      * Compares this flight with another flight based on the base price.
@@ -188,6 +255,8 @@ public class Flight implements Comparable<Flight> {
                "Destination: " + destination.getName() + " (" + destination.getIataCode() + ")\n" +
                "Departure: " + departureTime.toString().replace("T", " ") + "\n" +
                "Base Fare: $" + basePrice + "\n" +
+               "Aircraft: " + aircraftType + " | Status: " + flightStatus + "\n" +
+               "Amenities: " + amenities + "\n" +
                "--------------------------------------------\n" +
                "Baggage Policy:\n  " + baggageRules + "\n" +
                "Cancellation Policy:\n  " + cancellationPolicy + "\n" +

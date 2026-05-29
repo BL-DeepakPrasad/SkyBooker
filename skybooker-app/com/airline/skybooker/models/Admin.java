@@ -16,8 +16,9 @@ public class Admin extends User {
     public void displayDashboard() {
         System.out.println("\n=== SYSTEM ADMIN DASHBOARD ===");
         System.out.println("Welcome, Administrator " + getFullName() + "!");
-        System.out.println("1. Manage Users");
-        System.out.println("2. View All Bookings");
-        System.out.println("3. Platform Analytics");
+        System.out.println("1. Manage Flights (Module 8)");
+        System.out.println("2. Manage Users");
+        System.out.println("3. View All Bookings");
+        System.out.println("4. Platform Analytics");
     }
 }

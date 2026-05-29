@@ -63,6 +63,7 @@ public class FlightManager implements Searchable {
                 .setOrigin(del)
                 .setDestination(bom)
                 .setBasePrice(120.50)
+                .setTotalCapacity(60)
                 .setAvailableSeats(50)
                 .setBaggageRules("1 Cabin (7kg), 1 Checked (15kg)")
                 .setCancellationPolicy("Free cancellation up to 24 hrs before departure.")
@@ -75,6 +76,7 @@ public class FlightManager implements Searchable {
                 .setOrigin(del)
                 .setDestination(bom)
                 .setBasePrice(95.00)
+                .setTotalCapacity(60)
                 .setAvailableSeats(10)
                 .setBaggageRules("1 Cabin (7kg) only. Checked bag extra.")
                 .setCancellationPolicy("Non-refundable. Date change fee applies.")
@@ -87,6 +89,7 @@ public class FlightManager implements Searchable {
                 .setOrigin(bom)
                 .setDestination(blr)
                 .setBasePrice(150.00)
+                .setTotalCapacity(60)
                 .setAvailableSeats(5)
                 .setBaggageRules("1 Cabin (7kg), 2 Checked (20kg total)")
                 .setCancellationPolicy("Free cancellation up to 48 hrs before departure.")
@@ -133,7 +136,7 @@ public class FlightManager implements Searchable {
         if (searchCache.containsKey(cacheKey)) {
             System.out.println("[CACHE HIT] Returning results from cache.");
             List<Flight> cachedResults = searchCache.get(cacheKey).stream()
-                    .filter(f -> f.getAvailableSeats() > 0)
+                    .filter(f -> f.getAvailableSeats() > 0 && f.getFlightStatus() != com.airline.skybooker.enums.FlightStatus.CANCELLED)
                     .collect(Collectors.toList());
             if (cachedResults.isEmpty()) {
                 throw new FlightNotFoundException(originCode, destinationCode);
@@ -145,7 +148,7 @@ public class FlightManager implements Searchable {
 
         List<Flight> results = indexedFlights
                 .stream()
-                .filter(f -> f.getAvailableSeats() > 0)
+                .filter(f -> f.getAvailableSeats() > 0 && f.getFlightStatus() != com.airline.skybooker.enums.FlightStatus.CANCELLED)
                 .sorted(Comparator.comparingDouble(Flight::getBasePrice))
                 .collect(Collectors.toList());
 
@@ -203,15 +206,39 @@ public class FlightManager implements Searchable {
                 .collect(Collectors.minBy(Comparator.comparingDouble(Flight::getBasePrice)));
     }
 
-    /**
-     * Retrieves a specific flight by its flight number.
-     *
-     * @param flightNumber the flight number (e.g., AI-101)
-     * @return an Optional containing the flight if found
-     */
     public Optional<Flight> getFlightByNumber(String flightNumber) {
         return flightDatabase.stream()
                 .filter(f -> f.getFlightNumber().equalsIgnoreCase(flightNumber))
                 .findFirst();
+    }
+
+    /**
+     * Module 8.1: Adds a dynamically created flight to the database.
+     * Updates the route index and clears the cache to ensure consistency.
+     */
+    public synchronized void addFlight(Flight flight) {
+        flightDatabase.add(flight);
+        
+        // Update Route Index
+        String cacheKey = flight.getOrigin().getIataCode().toUpperCase() + "-" + flight.getDestination().getIataCode().toUpperCase();
+        routeIndex.computeIfAbsent(cacheKey, k -> new ArrayList<>()).add(flight);
+        
+        // Clear Cache to prevent stale search results
+        searchCache.clear();
+        System.out.println("[DB] Flight " + flight.getFlightNumber() + " successfully inserted.");
+    }
+
+    /**
+     * Retrieves all flights in the system (for Admin/Staff dashboards).
+     */
+    public List<Flight> getAllFlights() {
+        return new ArrayList<>(flightDatabase);
+    }
+
+    /**
+     * Clears the search cache. Called when flight details (like price or status) are modified by an Admin.
+     */
+    public synchronized void clearCache() {
+        searchCache.clear();
     }
 }

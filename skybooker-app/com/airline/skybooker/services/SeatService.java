@@ -40,6 +40,31 @@ public class SeatService {
     }
 
     /**
+     * Module 8.1: Dynamically generates a seat map for a newly created flight based on capacity.
+     */
+    public void initializeAircraftLayout(String flightNumber, int totalSeats) {
+        List<Seat> seats = new ArrayList<>();
+        int rows = totalSeats / 6;
+        if (rows == 0 && totalSeats > 0) rows = 1;
+
+        for (int i = 1; i <= rows; i++) {
+            seats.add(new Seat(i + "A", SeatType.WINDOW));
+            if (seats.size() >= totalSeats) break;
+            seats.add(new Seat(i + "B", SeatType.MIDDLE));
+            if (seats.size() >= totalSeats) break;
+            seats.add(new Seat(i + "C", SeatType.AISLE));
+            if (seats.size() >= totalSeats) break;
+            seats.add(new Seat(i + "D", SeatType.AISLE));
+            if (seats.size() >= totalSeats) break;
+            seats.add(new Seat(i + "E", SeatType.MIDDLE));
+            if (seats.size() >= totalSeats) break;
+            seats.add(new Seat(i + "F", SeatType.WINDOW));
+            if (seats.size() >= totalSeats) break;
+        }
+        flightSeats.put(flightNumber, seats);
+    }
+
+    /**
      * Displays a text-based grid map of the seats for a specific flight.
      */
     public void displaySeatMap(String flightNumber) {

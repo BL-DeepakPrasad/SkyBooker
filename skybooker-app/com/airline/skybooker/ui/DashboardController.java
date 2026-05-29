@@ -2,6 +2,8 @@ package com.airline.skybooker.ui;
 
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.Passenger;
+import com.airline.skybooker.models.AirlineStaff;
+import com.airline.skybooker.models.Admin;
 import com.airline.skybooker.managers.PriorityBookingManager;
 import java.util.Scanner;
 
@@ -16,12 +18,14 @@ public class DashboardController {
     private final ProfileUI profileUI;
     private final BookingManagementUI bookingManagementUI;
     private final FlightSearchUI searchUI;
+    private final AdminFlightUI adminFlightUI;
 
-    public DashboardController(Scanner scanner, ProfileUI profileUI, BookingManagementUI bookingManagementUI, FlightSearchUI searchUI) {
+    public DashboardController(Scanner scanner, ProfileUI profileUI, BookingManagementUI bookingManagementUI, FlightSearchUI searchUI, AdminFlightUI adminFlightUI) {
         this.scanner = scanner;
         this.profileUI = profileUI;
         this.bookingManagementUI = bookingManagementUI;
         this.searchUI = searchUI;
+        this.adminFlightUI = adminFlightUI;
     }
 
     public void startLoop(User user) {
@@ -29,9 +33,15 @@ public class DashboardController {
         
         while (running) {
             user.displayDashboard();
-            System.out.println("4. Search Flights (Book a Ticket)");
-            System.out.println("5. Exit Application");
-            System.out.println("9. [ADMIN] Generate Processing Report");
+            
+            if (user instanceof Passenger) {
+                System.out.println("4. Search Flights (Book a Ticket)");
+            }
+            if (user instanceof Admin) {
+                System.out.println("9. Generate Processing Report");
+            }
+            
+            System.out.println("0. Logout / Exit");
             System.out.print("Enter choice: ");
             String choice = scanner.nextLine().trim();
 
@@ -40,32 +50,38 @@ public class DashboardController {
     }
 
     private boolean routeChoice(String choice, User user) {
-        // If not a passenger, they can only search flights or exit for now
         boolean isPassenger = user instanceof Passenger;
+        boolean isStaff = user instanceof AirlineStaff;
+        boolean isAdmin = user instanceof Admin;
         Passenger passenger = isPassenger ? (Passenger) user : null;
 
         switch (choice) {
             case "1":
                 if (isPassenger) profileUI.handleViewProfile(passenger);
-                else System.out.println("Feature coming soon!");
+                else if (isStaff || isAdmin) adminFlightUI.startAdminFlow();
                 return true;
             case "2":
                 if (isPassenger) bookingManagementUI.displayMyBookings(passenger);
+                else if (isAdmin) System.out.println("User Management coming soon!");
                 else System.out.println("Feature coming soon!");
                 return true;
             case "3":
                 if (isPassenger) profileUI.handleProfileUpdate(passenger);
+                else if (isAdmin) System.out.println("View Bookings coming soon!");
                 else System.out.println("Feature coming soon!");
                 return true;
             case "4":
-                searchUI.startSearchFlow();
+                if (isPassenger) searchUI.startSearchFlow();
+                else if (isAdmin) System.out.println("Platform Analytics coming soon!");
+                else System.out.println("Invalid choice.");
                 return true;
-            case "5":
-                System.out.println("Thank you for using SkyBooker! Goodbye.");
-                return false;
             case "9":
-                PriorityBookingManager.getInstance().generateProcessingReport();
+                if (isAdmin) PriorityBookingManager.getInstance().generateProcessingReport();
+                else System.out.println("Invalid choice.");
                 return true;
+            case "0":
+                System.out.println("Logging out... Goodbye!");
+                return false;
             default:
                 System.out.println("Invalid choice. Please try again.");
                 return true;
