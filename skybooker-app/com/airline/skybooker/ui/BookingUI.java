@@ -33,48 +33,28 @@ public class BookingUI {
         System.out.print("\nDo you want to book this flight? (y/n): ");
         if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
             Booking booking = bookingManager.initiateBooking(passenger.getUserId(), flight.getFlightId());
-            
-            // Transition: INITIATED -> PASSENGER_DETAILS
             booking.nextState();
+            
             System.out.println("[State: " + booking.getStatus() + "] Please confirm passenger details.");
             System.out.println("Name: " + passenger.getFullName() + ", Passport: " + passenger.getPassportNumber());
             
-            // Transition: PASSENGER_DETAILS -> SEAT_SELECTED
-            booking.nextState();
             System.out.println("\n[State: " + booking.getStatus() + "] Time to select your seat!");
             seatService.displaySeatMap(flight.getFlightNumber());
             System.out.print("Enter Seat Number to lock (e.g. 1B): ");
             String seatNum = scanner.nextLine().trim();
-            try {
-                if (seatService.lockSeat(flight.getFlightNumber(), seatNum)) {
-                    System.out.println("SUCCESS: Seat " + seatNum + " has been locked.");
-                    // Transition: SEAT_SELECTED -> PAYMENT_PENDING
-                    booking.nextState();
-                    System.out.println("\n[State: " + booking.getStatus() + "] Proceed to payment terminal.");
-                    handlePaymentPhase(booking, flight.getBasePrice());
-                }
-            } catch (SeatLockException ex) {
-                System.out.println("FAILED: " + ex.getMessage());
-                booking.cancel();
-                System.out.println("[State: " + booking.getStatus() + "]");
-            }
+            
+            handlePaymentPhase(booking, flight.getFlightNumber(), seatNum, flight.getBasePrice());
         }
     }
 
-    private void handlePaymentPhase(Booking booking, double amount) {
-        double finalAmount = amount;
-        
+    private void handlePaymentPhase(Booking booking, String flightNumber, String seatNum, double amount) {
         System.out.println("\n[UPGRADE OPPORTUNITY]");
         System.out.print("Opt for EXPRESS Booking for an additional $25 fee? (Faster Processing) (y/n): ");
-        if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
-            booking.setPriority(BookingPriority.EXPRESS);
-            finalAmount += 25.0;
-            System.out.println("SUCCESS: Upgraded to EXPRESS priority.");
-        } else {
-            booking.setPriority(BookingPriority.REGULAR);
-        }
+        boolean isExpress = scanner.nextLine().trim().equalsIgnoreCase("y");
 
-        System.out.println("Total Fare: $" + finalAmount);
+        double displayAmount = amount + (isExpress ? 25.0 : 0.0);
+        System.out.printf("%n[BILLING] Total Fare to be charged: $%.2f%n", displayAmount);
+
         System.out.println("Select Payment Strategy:");
         System.out.println("1. Credit/Debit Card");
         System.out.println("2. UPI / NetBanking");
@@ -97,20 +77,27 @@ public class BookingUI {
             strategy = new UPIPayment(upi);
         } else {
             System.out.println("Invalid payment method.");
-            booking.cancel();
+            bookingManager.cancelBooking(booking);
             return;
         }
 
-        boolean success = paymentManager.processTransaction(strategy, finalAmount);
-        if (success) {
-            booking.nextState(); // Transitions to CONFIRMED
-            System.out.println("\n E-TICKET GENERATED! PNR: " + booking.getPnrCode());
-            System.out.println("[State: " + booking.getStatus() + "]");
-
-            priorityManager.enqueueBooking(booking);
-            priorityManager.processQueue();
-        } else {
-            booking.cancel();
+        try {
+            boolean success = bookingManager.processPaymentAndConfirm(booking, flightNumber, seatNum, isExpress, strategy, amount, seatService);
+            if (success) {
+                System.out.println("\n====================================");
+                System.out.println("          E-TICKET GENERATED        ");
+                System.out.println("====================================");
+                System.out.println("PNR:          " + booking.getPnrCode());
+                System.out.println("Status:       " + booking.getStatus());
+                System.out.printf("Total Paid:   $%.2f%n", booking.getTotalFare());
+                System.out.println("====================================");
+            } else {
+                System.out.println("Payment failed. Booking cancelled.");
+                System.out.println("[State: " + booking.getStatus() + "]");
+            }
+        } catch (SeatLockException ex) {
+            System.out.println("FAILED: " + ex.getMessage());
+            bookingManager.cancelBooking(booking);
             System.out.println("[State: " + booking.getStatus() + "]");
         }
     }

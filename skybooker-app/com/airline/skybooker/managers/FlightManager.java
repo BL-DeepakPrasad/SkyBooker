@@ -9,6 +9,9 @@ import com.airline.skybooker.models.Flight;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
+import java.time.LocalDateTime;
+import com.airline.skybooker.enums.FlightStatus;
+import com.airline.skybooker.managers.AirportManager;
 
 /**
  * The FlightManager acts as a centralized service for managing flight inventories,
@@ -48,13 +51,22 @@ public class FlightManager implements Searchable {
      */
     private FlightManager() {
         this.flightDatabase = new ArrayList<>();
+        initializeMockData();
+        
+        this.searchCache = new ConcurrentHashMap<>();
+        this.routeIndex = flightDatabase.stream().collect(
+            Collectors.groupingBy(f -> f.getOrigin().getIataCode().toUpperCase() + "-" + f.getDestination().getIataCode().toUpperCase())
+        );
+    }
 
+    private void initializeMockData() {
         Airline airIndia = new Airline(100, "Air India", "AI", "AIC");
         Airline indigo = new Airline(101, "IndiGo", "6E", "IGO");
 
-        Airport del = new Airport(1, "Indira Gandhi Int", "DEL", "New Delhi", "India");
-        Airport bom = new Airport(2, "Chhatrapati Shivaji", "BOM", "Mumbai", "India");
-        Airport blr = new Airport(3, "Kempegowda Int", "BLR", "Bengaluru", "India");
+        AirportManager am = AirportManager.getInstance();
+        Airport del = am.getAirportByCode("DEL").orElse(new Airport.Builder().setAirportId(1).setName("Fallback").setIataCode("DEL").setCity("City").setCountry("Country").build());
+        Airport bom = am.getAirportByCode("BOM").orElse(new Airport.Builder().setAirportId(2).setName("Fallback").setIataCode("BOM").setCity("City").setCountry("Country").build());
+        Airport blr = am.getAirportByCode("BLR").orElse(new Airport.Builder().setAirportId(3).setName("Fallback").setIataCode("BLR").setCity("City").setCountry("Country").build());
 
         flightDatabase.add(new Flight.Builder()
                 .setFlightId(1)
@@ -229,14 +241,93 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Retrieves all flights in the system (for Admin/Staff dashboards).
+     * Retrieves all flights in the system.
      */
     public List<Flight> getAllFlights() {
         return new ArrayList<>(flightDatabase);
     }
 
     /**
-     * Clears the search cache. Called when flight details (like price or status) are modified by an Admin.
+     * Service method to validate inputs and create a Flight.
+     */
+    public void createFlight(String airlineName, String airlineCode, String flightNumber, String aircraftType, 
+                             String originCode, String destCode, int capacity, double baseFare, 
+                             String baggage, String cancelPolicy, String amenities, 
+                             com.airline.skybooker.services.SeatService seatService) {
+        
+        AirportManager am = AirportManager.getInstance();
+        Airport origin = am.getAirportByCode(originCode).orElseThrow(() -> new IllegalArgumentException("Origin Airport not found"));
+        Airport dest = am.getAirportByCode(destCode).orElseThrow(() -> new IllegalArgumentException("Destination Airport not found"));
+        
+        Airline airline = new Airline((int)(Math.random() * 10000), airlineName, airlineCode, airlineCode + "C");
+
+        Flight newFlight = new Flight.Builder()
+                .setFlightId((int) (Math.random() * 10000))
+                .setFlightNumber(flightNumber)
+                .setAirline(airline)
+                .setOrigin(origin)
+                .setDestination(dest)
+                .setBasePrice(baseFare)
+                .setAvailableSeats(capacity)
+                .setTotalCapacity(capacity)
+                .setBaggageRules(baggage)
+                .setCancellationPolicy(cancelPolicy)
+                .setAircraftType(aircraftType)
+                .setFlightStatus(FlightStatus.SCHEDULED)
+                .setAmenities(amenities)
+                .setDepartureTime(LocalDateTime.now().plusDays(7))
+                .build();
+                
+        addFlight(newFlight);
+        
+        // Dynamically generate the seat map internally in the service layer
+        seatService.initializeAircraftLayout(flightNumber, capacity);
+    }
+
+    /**
+     * Service methods to modify flight data.
+     */
+    public void updateFlightDeparture(String flightNum, int daysDelay) {
+        Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
+        f.setDepartureTime(LocalDateTime.now().plusDays(daysDelay));
+        clearCache();
+    }
+
+    public void updateFlightFare(String flightNum, double newFare) {
+        Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
+        f.setBasePrice(newFare);
+        clearCache();
+    }
+
+    public void applyDynamicPricing(String flightNum, double percentage) {
+        Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
+        f.applyDynamicPricing(percentage);
+        clearCache();
+    }
+
+    public void updateFlightStatus(String flightNum, FlightStatus status) {
+        Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
+        f.setFlightStatus(status);
+        clearCache();
+    }
+
+    /**
+     * Service method to generate occupancy reports via Stream filters.
+     */
+    public List<Flight> getFilteredFlights(String airlineCode, String route, String statusStr) {
+        return flightDatabase.stream()
+            .filter(f -> airlineCode.isEmpty() || f.getAirline().getIataCode().equalsIgnoreCase(airlineCode))
+            .filter(f -> {
+                if (route.isEmpty()) return true;
+                String fRoute = f.getOrigin().getIataCode() + "-" + f.getDestination().getIataCode();
+                return fRoute.equalsIgnoreCase(route);
+            })
+            .filter(f -> statusStr.isEmpty() || f.getFlightStatus().name().equalsIgnoreCase(statusStr))
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Clears the search cache.
      */
     public synchronized void clearCache() {
         searchCache.clear();

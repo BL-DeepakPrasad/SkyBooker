@@ -31,10 +31,10 @@ public class AdminFlightUI {
     public void startAdminFlow() {
         while (true) {
             System.out.println("\n=== FLIGHT MANAGEMENT (ADMIN/STAFF) ===");
-            System.out.println("1. Create New Flight (8.1)");
+            System.out.println("1. Create New Flight");
             System.out.println("2. View All Flights");
-            System.out.println("3. Edit Existing Flight (8.2)");
-            System.out.println("4. Generate Occupancy Reports (8.3)");
+            System.out.println("3. Edit Existing Flight");
+            System.out.println("4. Generate Occupancy Reports");
             System.out.println("0. Return to Dashboard");
             System.out.print("Enter choice: ");
             String choice = scanner.nextLine().trim();
@@ -56,13 +56,12 @@ public class AdminFlightUI {
     }
 
     private void handleFlightCreation() {
-        System.out.println("\n--- 8.1 FLIGHT CREATION WIZARD ---");
+        System.out.println("\n--- FLIGHT CREATION WIZARD ---");
         try {
             System.out.print("Enter Airline Name (e.g., Air India): ");
             String airlineName = scanner.nextLine().trim();
             System.out.print("Enter Airline Code (e.g., AI): ");
             String airlineCode = scanner.nextLine().trim();
-            Airline airline = new Airline(999, airlineName, airlineCode, airlineCode + "C");
 
             System.out.print("Enter Flight Number (e.g., AI-999): ");
             String flightNumber = scanner.nextLine().trim().toUpperCase();
@@ -70,13 +69,11 @@ public class AdminFlightUI {
             System.out.print("Enter Aircraft Type (e.g., Boeing 777): ");
             String aircraftType = scanner.nextLine().trim();
 
-            System.out.print("Enter Origin Airport Code (e.g., DEL): ");
+            System.out.print("Enter Origin Airport Code (e.g. DEL): ");
             String originCode = scanner.nextLine().trim().toUpperCase();
-            Airport origin = new Airport(98, "Origin Airport", originCode, "City", "Country");
 
-            System.out.print("Enter Destination Airport Code (e.g., JFK): ");
+            System.out.print("Enter Destination Airport Code (e.g. BOM): ");
             String destCode = scanner.nextLine().trim().toUpperCase();
-            Airport dest = new Airport(99, "Dest Airport", destCode, "City", "Country");
 
             System.out.print("Enter Seat Capacity (e.g., 60): ");
             int capacity = Integer.parseInt(scanner.nextLine().trim());
@@ -93,28 +90,7 @@ public class AdminFlightUI {
             System.out.print("Enter Amenities (e.g., Wi-Fi, Meals): ");
             String amenities = scanner.nextLine().trim();
 
-            // Builder Pattern  to construct complex object
-            Flight newFlight = new Flight.Builder()
-                    .setFlightId((int) (Math.random() * 10000))
-                    .setFlightNumber(flightNumber)
-                    .setAirline(airline)
-                    .setOrigin(origin)
-                    .setDestination(dest)
-                    .setBasePrice(baseFare)
-                    .setAvailableSeats(capacity)
-                    .setBaggageRules(baggage)
-                    .setCancellationPolicy(cancelPolicy)
-                    .setAircraftType(aircraftType)
-                    .setFlightStatus(FlightStatus.SCHEDULED)
-                    .setAmenities(amenities)
-                    .setDepartureTime(LocalDateTime.now().plusDays(7)) // Default to a week from now
-                    .build();
-
-            // Persist to manager
-            flightManager.addFlight(newFlight);
-
-            // Dynamically generate the seat map for the aircraft
-            seatService.initializeAircraftLayout(flightNumber, capacity);
+            flightManager.createFlight(airlineName, airlineCode, flightNumber, aircraftType, originCode, destCode, capacity, baseFare, baggage, cancelPolicy, amenities, seatService);
 
             System.out.println("[SUCCESS] Flight " + flightNumber + " created and published successfully!");
 
@@ -131,7 +107,7 @@ public class AdminFlightUI {
     }
 
     private void handleFlightEdit() {
-        System.out.println("\n--- 8.2 FLIGHT INFORMATION MANAGEMENT ---");
+        System.out.println("\n--- FLIGHT INFORMATION MANAGEMENT ---");
         System.out.print("Enter Flight Number to Edit (e.g. AI-101): ");
         String flightNum = scanner.nextLine().trim();
 
@@ -140,9 +116,7 @@ public class AdminFlightUI {
             System.out.println("[FAILED] Flight not found.");
             return;
         }
-        Flight flight = flightOpt.get();
-
-        System.out.println("Editing Flight: " + flight.getFlightNumber());
+        System.out.println("Editing Flight: " + flightNum);
         System.out.println("1. Update Departure Time");
         System.out.println("2. Change Base Fare");
         System.out.println("3. Apply Dynamic Pricing (Demand Surge/Drop)");
@@ -155,20 +129,20 @@ public class AdminFlightUI {
                 case "1":
                     System.out.print("Enter extra days to delay departure: ");
                     int days = Integer.parseInt(scanner.nextLine().trim());
-                    flight.setDepartureTime(LocalDateTime.now().plusDays(days));
+                    flightManager.updateFlightDeparture(flightNum, days);
                     System.out.println("[SUCCESS] Departure time updated.");
                     break;
                 case "2":
                     System.out.print("Enter new base fare: ");
                     double fare = Double.parseDouble(scanner.nextLine().trim());
-                    flight.setBasePrice(fare);
+                    flightManager.updateFlightFare(flightNum, fare);
                     System.out.println("[SUCCESS] Base fare updated to $" + fare);
                     break;
                 case "3":
                     System.out.print("Enter percentage change (e.g. 20 for +20%, -10 for -10%): ");
                     double pct = Double.parseDouble(scanner.nextLine().trim());
-                    flight.applyDynamicPricing(pct);
-                    System.out.println("[SUCCESS] Dynamic pricing applied. New Base Fare: $" + flight.getBasePrice());
+                    flightManager.applyDynamicPricing(flightNum, pct);
+                    System.out.println("[SUCCESS] Dynamic pricing applied.");
                     break;
                 case "4":
                     System.out.println("1. SCHEDULED");
@@ -177,32 +151,28 @@ public class AdminFlightUI {
                     System.out.print("Select Status: ");
                     String sChoice = scanner.nextLine().trim();
                     if (sChoice.equals("2")) {
-                        flight.setFlightStatus(FlightStatus.DELAYED);
+                        flightManager.updateFlightStatus(flightNum, FlightStatus.DELAYED);
                         System.out.println("[SUCCESS] Status changed to DELAYED.");
-                        System.out.println("\n[BROADCAST] Notification published to all booked passengers: Flight " + flight.getFlightNumber() + " is currently DELAYED.");
+                        System.out.println("\n[BROADCAST] Notification published to all booked passengers.");
                     } else if (sChoice.equals("3")) {
-                        flight.setFlightStatus(FlightStatus.CANCELLED);
+                        flightManager.updateFlightStatus(flightNum, FlightStatus.CANCELLED);
                         System.out.println("[SUCCESS] Status changed to CANCELLED.");
                     } else {
-                        flight.setFlightStatus(FlightStatus.SCHEDULED);
+                        flightManager.updateFlightStatus(flightNum, FlightStatus.SCHEDULED);
                         System.out.println("[SUCCESS] Status changed to SCHEDULED.");
                     }
                     break;
                 default:
                     System.out.println("Invalid option.");
-                    return; // Don't clear cache if invalid
+                    return; 
             }
-            
-            // Clear cache so passengers see updated times/prices/status instantly
-            flightManager.clearCache();
-            
         } catch (Exception e) {
             System.out.println("[FAILED] Error updating flight: " + e.getMessage());
         }
     }
 
     private void handleGenerateReport() {
-        System.out.println("\n--- 8.3 FLIGHT SEARCH & OCCUPANCY REPORT ---");
+        System.out.println("\n--- FLIGHT SEARCH & OCCUPANCY REPORT ---");
         System.out.println("Apply filters (press Enter to skip any filter):");
         
         System.out.print("Filter by Airline Code (e.g. AI): ");
@@ -214,18 +184,7 @@ public class AdminFlightUI {
         System.out.print("Filter by Status (SCHEDULED, DELAYED, CANCELLED): ");
         String statusStr = scanner.nextLine().trim().toUpperCase();
 
-        List<Flight> allFlights = flightManager.getAllFlights();
-
-        // 8.3: Stream filtering based on optional Admin inputs
-        List<Flight> filteredFlights = allFlights.stream()
-            .filter(f -> airlineCode.isEmpty() || f.getAirline().getIataCode().equalsIgnoreCase(airlineCode))
-            .filter(f -> {
-                if (route.isEmpty()) return true;
-                String fRoute = f.getOrigin().getIataCode() + "-" + f.getDestination().getIataCode();
-                return fRoute.equalsIgnoreCase(route);
-            })
-            .filter(f -> statusStr.isEmpty() || f.getFlightStatus().name().equalsIgnoreCase(statusStr))
-            .collect(Collectors.toList());
+        List<Flight> filteredFlights = flightManager.getFilteredFlights(airlineCode, route, statusStr);
 
         System.out.println("\n--- REPORT RESULTS ---");
         System.out.printf("%-10s | %-10s | %-12s | %-10s | %-15s%n", "FLIGHT", "ROUTE", "STATUS", "CAPACITY", "OCCUPANCY (%)");
