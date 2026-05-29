@@ -10,6 +10,7 @@ import com.airline.skybooker.ui.BookingUI;
 import com.airline.skybooker.ui.BookingManagementUI;
 import com.airline.skybooker.ui.DashboardController;
 import com.airline.skybooker.ui.AdminFlightUI;
+import com.airline.skybooker.ui.AdminAirportUI;
 
 import java.util.Scanner;
 
@@ -37,8 +38,9 @@ public class Main {
         this.searchUI = new FlightSearchUI(scanner, bookingUI);
         BookingManagementUI bookingManagementUI = new BookingManagementUI(scanner);
         AdminFlightUI adminFlightUI = new AdminFlightUI(scanner, seatService);
+        AdminAirportUI adminAirportUI = new AdminAirportUI(scanner);
         
-        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI, adminFlightUI);
+        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI, adminFlightUI, adminAirportUI);
     }
 
     /**
@@ -47,16 +49,23 @@ public class Main {
     public void start() {
         System.out.println("=== WELCOME TO SKYBOOKER ===");
         
-        // authentication
-        authUI.displayAuthMenu();
+        while (true) {
+            // authentication
+            if (!authUI.displayAuthMenu()) {
+                System.out.println("Exiting Skybooker. Goodbye!");
+                break;
+            }
 
-        // register user
-        if (authManager.getCurrentUser().isPresent()) {
-            User user = authManager.getCurrentUser().get();
-            dashboardController.startLoop(user);
-        } else {
-           // Guest
-            searchUI.startSearchFlow();
+            // run dashboard or guest flow
+            if (authManager.getCurrentUser().isPresent()) {
+                User user = authManager.getCurrentUser().get();
+                dashboardController.startLoop(user);
+                // Clear session when dashboard loop exits
+                authManager.logout();
+            } else {
+               // Guest
+                searchUI.startSearchFlow();
+            }
         }
     }
 

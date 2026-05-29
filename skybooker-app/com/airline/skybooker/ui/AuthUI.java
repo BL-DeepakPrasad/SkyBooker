@@ -12,12 +12,13 @@ public class AuthUI {
         this.authManager = AuthenticationManager.getInstance();
     }
 
-    public void displayAuthMenu() {
+    public boolean displayAuthMenu() {
         while (authManager.getCurrentUser().isEmpty()) {
             System.out.println("\n1. Login");
             System.out.println("2. Register as Passenger");
             System.out.println("3. Continue as Guest");
-            System.out.print("Enter choice (1-3): ");
+            System.out.println("4. Exit Application");
+            System.out.print("Enter choice (1-4): ");
             String choice = scanner.nextLine().trim();
 
             if (choice.equals("1")) {
@@ -25,9 +26,12 @@ public class AuthUI {
             } else if (choice.equals("2")) {
                 handleRegistration();
             } else if (choice.equals("3")) {
-                break;
+                return true;
+            } else if (choice.equals("4")) {
+                return false;
             }
         }
+        return true;
     }
 
     private void handleLogin() {

@@ -1,9 +1,11 @@
 package com.airline.skybooker.ui;
 
 import com.airline.skybooker.managers.FlightManager;
+import com.airline.skybooker.managers.AirportManager;
 import com.airline.skybooker.managers.AuthenticationManager;
 import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.Passenger;
+import com.airline.skybooker.models.Airport;
 import com.airline.skybooker.filters.FlightFilterService;
 import com.airline.skybooker.filters.PriceCriteria;
 import com.airline.skybooker.filters.AirlineCriteria;
@@ -19,12 +21,14 @@ public class FlightSearchUI {
     private final FlightFilterService filterService;
     private final BookingUI bookingUI;
     private final AuthenticationManager authManager;
+    private final AirportManager airportManager;
 
     public FlightSearchUI(Scanner scanner, BookingUI bookingUI) {
         this.scanner = scanner;
         this.flightManager = FlightManager.getInstance();
         this.filterService = new FlightFilterService();
         this.authManager = AuthenticationManager.getInstance();
+        this.airportManager = AirportManager.getInstance();
         this.bookingUI = bookingUI;
     }
 
@@ -38,7 +42,21 @@ public class FlightSearchUI {
             String tripChoice = scanner.nextLine().trim();
             TripType tripType = tripChoice.equals("2") ? TripType.ROUND_TRIP : TripType.ONE_WAY;
 
-            System.out.print("Enter Origin IATA Code (e.g. DEL): ");
+            System.out.println("\n[Auto-Suggest] Type a city or airport name to search (or press Enter if you know the code): ");
+            String query = scanner.nextLine().trim();
+            if (!query.isEmpty()) {
+                List<Airport> suggestions = airportManager.searchAirports(query);
+                if (suggestions.isEmpty()) {
+                    System.out.println("No airports found matching '" + query + "'.");
+                } else {
+                    System.out.println("Suggested Airports:");
+                    for (Airport a : suggestions) {
+                        System.out.println("- " + a);
+                    }
+                }
+            }
+
+            System.out.print("\nEnter Origin IATA Code (e.g. DEL): ");
             String origin = scanner.nextLine().trim().toUpperCase();
 
             System.out.print("Enter Destination IATA Code (e.g. BOM): ");
