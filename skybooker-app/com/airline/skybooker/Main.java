@@ -3,9 +3,11 @@ package com.airline.skybooker;
 import com.airline.skybooker.exception.FlightNotFoundException;
 import com.airline.skybooker.managers.FlightManager;
 import com.airline.skybooker.managers.AuthenticationManager;
+import com.airline.skybooker.managers.BookingManager;
 import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.Passenger;
+import com.airline.skybooker.models.Booking;
 import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.exception.SeatLockException;
 import com.airline.skybooker.filters.FlightFilterService;
@@ -24,6 +26,7 @@ public class Main {
     private final FlightFilterService filterService;
     private final SeatService seatService;
     private final AuthenticationManager authManager;
+    private final BookingManager bookingManager;
 
     public Main() {
         this.scanner = new Scanner(System.in);
@@ -31,6 +34,7 @@ public class Main {
         this.filterService = new FlightFilterService();
         this.seatService = new SeatService();
         this.authManager = AuthenticationManager.getInstance();
+        this.bookingManager = BookingManager.getInstance();
     }
 
     /**
@@ -119,19 +123,39 @@ public class Main {
                     flight -> {
                         System.out.println(flight.getFullDetails());
                         
-                        // Use Case 5: Select Seats
-                        System.out.print("\nDo you want to select a seat for this flight? (y/n): ");
-                        if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
-                            seatService.displaySeatMap(flight.getFlightNumber());
-                            System.out.print("\nEnter Seat Number to lock (e.g. 1B): ");
-                            String seatNum = scanner.nextLine().trim();
-                            try {
-                                if (seatService.lockSeat(flight.getFlightNumber(), seatNum)) {
-                                    System.out.println(" SUCCESS: Seat " + seatNum + " has been locked for you for 10 minutes.");
+                        if (authManager.getCurrentUser().isPresent() && authManager.getCurrentUser().get() instanceof Passenger) {
+                            Passenger currentPassenger = (Passenger) authManager.getCurrentUser().get();
+                            
+                            System.out.print("\nDo you want to book this flight? (y/n): ");
+                            if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                                Booking booking = bookingManager.initiateBooking(currentPassenger.getUserId(), flight.getFlightId());
+                                
+                                // Transition: INITIATED -> PASSENGER_DETAILS
+                                booking.nextState();
+                                System.out.println("[State: " + booking.getStatus() + "] Please confirm passenger details.");
+                                System.out.println("Name: " + currentPassenger.getFullName() + ", Passport: " + currentPassenger.getPassportNumber());
+                                
+                                // Transition: PASSENGER_DETAILS -> SEAT_SELECTED
+                                booking.nextState();
+                                System.out.println("\n[State: " + booking.getStatus() + "] Time to select your seat!");
+                                seatService.displaySeatMap(flight.getFlightNumber());
+                                System.out.print("Enter Seat Number to lock (e.g. 1B): ");
+                                String seatNum = scanner.nextLine().trim();
+                                try {
+                                    if (seatService.lockSeat(flight.getFlightNumber(), seatNum)) {
+                                        System.out.println("SUCCESS: Seat " + seatNum + " has been locked.");
+                                        // Transition: SEAT_SELECTED -> PAYMENT_PENDING
+                                        booking.nextState();
+                                        System.out.println("[State: " + booking.getStatus() + "] Proceed to payment terminal.");
+                                    }
+                                } catch (SeatLockException ex) {
+                                    System.out.println(" FAILED: " + ex.getMessage());
+                                    booking.cancel();
+                                    System.out.println("[State: " + booking.getStatus() + "]");
                                 }
-                            } catch (SeatLockException ex) {
-                                System.out.println(" FAILED: " + ex.getMessage());
                             }
+                        } else {
+                            System.out.println("\n(You must be logged in as a Passenger to book this flight.)");
                         }
                     },
                     () -> System.out.println("Flight not found.")

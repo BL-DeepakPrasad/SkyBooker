@@ -47,6 +47,13 @@ public class Flight implements Comparable<Flight> {
     }
 
     /**
+     * Gets the unique identifier for the flight.
+     *
+     * @return the flight ID
+     */
+    public int getFlightId() { return flightId; }
+
+    /**
      * Gets the airline operating the flight.
      *
      * @return the {@link Airline} instance
