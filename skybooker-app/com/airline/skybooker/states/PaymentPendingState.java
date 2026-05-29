@@ -6,9 +6,9 @@ public class PaymentPendingState implements BookingState {
 
     @Override
     public void nextState(Booking booking) {
-        System.out.println("Payment successful! Booking is now CONFIRMED.");
+        System.out.println("Payment successful! Transitioning to CONFIRMED...");
         booking.setPnrCode("PNR" + (int)(Math.random() * 10000));
-        // We will transition to ConfirmedState in a future UC, but for now we'll just leave it here or make a ConfirmedState.
+        booking.setState(new ConfirmedState());
     }
 
     @Override

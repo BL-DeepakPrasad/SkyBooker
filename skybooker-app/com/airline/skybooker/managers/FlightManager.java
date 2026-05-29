@@ -56,9 +56,41 @@ public class FlightManager implements Searchable {
         Airport bom = new Airport(2, "Chhatrapati Shivaji", "BOM", "Mumbai", "India");
         Airport blr = new Airport(3, "Kempegowda Int", "BLR", "Bengaluru", "India");
 
-        flightDatabase.add(new Flight(1, "AI-101", airIndia, del, bom, 120.50, 50, "1 Cabin (7kg), 1 Checked (15kg)", "Free cancellation up to 24 hrs before departure."));
-        flightDatabase.add(new Flight(2, "IG-202", indigo, del, bom, 95.00, 10, "1 Cabin (7kg) only. Checked bag extra.", "Non-refundable. Date change fee applies."));
-        flightDatabase.add(new Flight(3, "AI-303", airIndia, bom, blr, 150.00, 5, "1 Cabin (7kg), 2 Checked (20kg total)", "Free cancellation up to 48 hrs before departure."));
+        flightDatabase.add(new Flight.Builder()
+                .setFlightId(1)
+                .setFlightNumber("AI-101")
+                .setAirline(airIndia)
+                .setOrigin(del)
+                .setDestination(bom)
+                .setBasePrice(120.50)
+                .setAvailableSeats(50)
+                .setBaggageRules("1 Cabin (7kg), 1 Checked (15kg)")
+                .setCancellationPolicy("Free cancellation up to 24 hrs before departure.")
+                .build());
+
+        flightDatabase.add(new Flight.Builder()
+                .setFlightId(2)
+                .setFlightNumber("IG-202")
+                .setAirline(indigo)
+                .setOrigin(del)
+                .setDestination(bom)
+                .setBasePrice(95.00)
+                .setAvailableSeats(10)
+                .setBaggageRules("1 Cabin (7kg) only. Checked bag extra.")
+                .setCancellationPolicy("Non-refundable. Date change fee applies.")
+                .build());
+
+        flightDatabase.add(new Flight.Builder()
+                .setFlightId(3)
+                .setFlightNumber("AI-303")
+                .setAirline(airIndia)
+                .setOrigin(bom)
+                .setDestination(blr)
+                .setBasePrice(150.00)
+                .setAvailableSeats(5)
+                .setBaggageRules("1 Cabin (7kg), 2 Checked (20kg total)")
+                .setCancellationPolicy("Free cancellation up to 48 hrs before departure.")
+                .build());
 
         this.searchCache = new ConcurrentHashMap<>();
         this.routeIndex = flightDatabase.stream().collect(

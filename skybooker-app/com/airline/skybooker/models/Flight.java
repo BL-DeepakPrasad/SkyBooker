@@ -20,30 +20,84 @@ public class Flight implements Comparable<Flight> {
     private String cancellationPolicy;
 
     /**
-     * Constructs a new Flight schedule.
-     * The departure time is automatically set to one day from the current time for demonstration purposes.
-     *
-     * @param flightId       the unique identifier for the flight
-     * @param flightNumber   the alphanumeric flight number (e.g., AI-101)
-     * @param airline        the airline operating this flight
-     * @param origin         the departure airport
-     * @param destination    the arrival airport
-     * @param basePrice      the base fare price for this flight
-     * @param availableSeats the total number of seats currently available for booking
-     * @param baggageRules   the baggage policy
-     * @param cancellationPolicy the cancellation rules
+     * Private constructor used by the Builder.
      */
-    public Flight(int flightId, String flightNumber, Airline airline, Airport origin, Airport destination, double basePrice, int availableSeats, String baggageRules, String cancellationPolicy) {
-        this.flightId = flightId;
-        this.flightNumber = flightNumber;
-        this.airline = airline;
-        this.origin = origin;
-        this.destination = destination;
-        this.basePrice = basePrice;
-        this.availableSeats = availableSeats;
-        this.baggageRules = baggageRules;
-        this.cancellationPolicy = cancellationPolicy;
+    private Flight(Builder builder) {
+        this.flightId = builder.flightId;
+        this.flightNumber = builder.flightNumber;
+        this.airline = builder.airline;
+        this.origin = builder.origin;
+        this.destination = builder.destination;
+        this.basePrice = builder.basePrice;
+        this.availableSeats = builder.availableSeats;
+        this.baggageRules = builder.baggageRules;
+        this.cancellationPolicy = builder.cancellationPolicy;
         this.departureTime = LocalDateTime.now().plusDays(1);
+    }
+
+    /**
+     * The Builder Pattern implementation for Flight.
+     */
+    public static class Builder {
+        private int flightId;
+        private String flightNumber;
+        private Airline airline;
+        private Airport origin;
+        private Airport destination;
+        private double basePrice;
+        private int availableSeats;
+        private String baggageRules;
+        private String cancellationPolicy;
+
+        public Builder setFlightId(int flightId) {
+            this.flightId = flightId;
+            return this;
+        }
+
+        public Builder setFlightNumber(String flightNumber) {
+            this.flightNumber = flightNumber;
+            return this;
+        }
+
+        public Builder setAirline(Airline airline) {
+            this.airline = airline;
+            return this;
+        }
+
+        public Builder setOrigin(Airport origin) {
+            this.origin = origin;
+            return this;
+        }
+
+        public Builder setDestination(Airport destination) {
+            this.destination = destination;
+            return this;
+        }
+
+        public Builder setBasePrice(double basePrice) {
+            this.basePrice = basePrice;
+            return this;
+        }
+
+        public Builder setAvailableSeats(int availableSeats) {
+            this.availableSeats = availableSeats;
+            return this;
+        }
+
+        public Builder setBaggageRules(String baggageRules) {
+            this.baggageRules = baggageRules;
+            return this;
+        }
+
+        public Builder setCancellationPolicy(String cancellationPolicy) {
+            this.cancellationPolicy = cancellationPolicy;
+            return this;
+        }
+
+        public Flight build() {
+            // Optional: Add pre-flight validation here (e.g. if origin == destination throw exception)
+            return new Flight(this);
+        }
     }
 
     /**
