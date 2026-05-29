@@ -5,6 +5,7 @@ import com.airline.skybooker.managers.FlightManager;
 import com.airline.skybooker.managers.AuthenticationManager;
 import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.User;
+import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.exception.SeatLockException;
 import com.airline.skybooker.filters.FlightFilterService;
@@ -54,10 +55,29 @@ public class Main {
             }
         }
 
-        // Polymorphic Dashboard Display
-        authManager.getCurrentUser().ifPresent(User::displayDashboard);
+        // Polymorphic Dashboard Display & Interaction
+        if (authManager.getCurrentUser().isPresent()) {
+            User user = authManager.getCurrentUser().get();
+            boolean inDashboard = true;
+            while (inDashboard) {
+                user.displayDashboard();
+                System.out.println("4. Continue to Flight Search");
+                System.out.print("Enter choice: ");
+                String dashChoice = scanner.nextLine().trim();
 
-        // For now, continue to flight search regardless of role (to preserve old flow)
+                if (dashChoice.equals("1") && user instanceof Passenger) {
+                    handleViewProfile((Passenger) user);
+                } else if (dashChoice.equals("3") && user instanceof Passenger) {
+                    handleProfileUpdate((Passenger) user);
+                } else if (dashChoice.equals("4")) {
+                    inDashboard = false;
+                } else {
+                    System.out.println("Feature coming soon!");
+                }
+            }
+        }
+
+        // Flight Search Flow
         System.out.println("\n--- FLIGHT SEARCH ---");
 
         try {
@@ -158,6 +178,40 @@ public class Main {
         } catch (Exception e) {
             System.out.println("Registration Failed: " + e.getMessage());
         }
+    }
+
+    private void handleViewProfile(Passenger passenger) {
+        System.out.println("\n============================================");
+        System.out.println("               USER PROFILE                 ");
+        System.out.println("============================================");
+        System.out.println("Name:        " + passenger.getFullName());
+        System.out.println("Email:       " + passenger.getEmail());
+        System.out.println("Phone:       " + passenger.getPhone());
+        System.out.println("Nationality: " + passenger.getNationality());
+        System.out.println("Passport:    " + passenger.getPassportNumber());
+        System.out.println("Role:        " + passenger.getRole());
+        System.out.println("============================================");
+        System.out.println("Press Enter to return to Dashboard...");
+        scanner.nextLine();
+    }
+
+    private void handleProfileUpdate(Passenger passenger) {
+        System.out.println("\n--- UPDATE PROFILE ---");
+        System.out.println("Leave blank to keep current value.");
+        
+        System.out.print("New Phone Number [" + passenger.getPhone() + "]: ");
+        String phone = scanner.nextLine().trim();
+        if (!phone.isEmpty()) passenger.setPhone(phone);
+
+        System.out.print("New Passport Number [" + passenger.getPassportNumber() + "]: ");
+        String passport = scanner.nextLine().trim();
+        if (!passport.isEmpty()) passenger.setPassportNumber(passport);
+
+        System.out.print("New Nationality [" + passenger.getNationality() + "]: ");
+        String nationality = scanner.nextLine().trim();
+        if (!nationality.isEmpty()) passenger.setNationality(nationality);
+
+        System.out.println(" Profile updated successfully!");
     }
 
     private void displayAndFilter(List<Flight> flights) {

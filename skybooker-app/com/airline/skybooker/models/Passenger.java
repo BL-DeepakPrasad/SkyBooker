@@ -17,11 +17,14 @@ public class Passenger extends User {
     public String getPassportNumber() { return passportNumber; }
     public String getNationality() { return nationality; }
 
+    public void setPassportNumber(String passport) { this.passportNumber = passport; }
+    public void setNationality(String nationality) { this.nationality = nationality; }
+
     @Override
     public void displayDashboard() {
         System.out.println("\n=== PASSENGER DASHBOARD ===");
         System.out.println("Welcome, " + getFullName() + "!");
-        System.out.println("1. Search Flights");
+        System.out.println("1. View Full Profile");
         System.out.println("2. View My Bookings");
         System.out.println("3. Update Profile");
     }

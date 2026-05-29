@@ -33,6 +33,10 @@ public abstract class User {
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }
     public String getRole() { return role; }
+    public String getPhone() { return phone; }
+
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public void setPhone(String phone) { this.phone = phone; }
 
     /**
      * Polymorphic method to be overridden by subclasses.

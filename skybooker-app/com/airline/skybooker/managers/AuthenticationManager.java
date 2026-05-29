@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Singleton Manager responsible for User Authentication and Registration.
- * Matches Use Case 1.1 (User Registration and Authentication).
  */
 public class AuthenticationManager {
 
