@@ -2,13 +2,13 @@ package com.airline.skybooker;
 
 import com.airline.skybooker.managers.AuthenticationManager;
 import com.airline.skybooker.models.User;
-import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.ui.AuthUI;
 import com.airline.skybooker.ui.ProfileUI;
 import com.airline.skybooker.ui.FlightSearchUI;
 import com.airline.skybooker.ui.BookingUI;
 import com.airline.skybooker.ui.BookingManagementUI;
+import com.airline.skybooker.ui.DashboardController;
 
 import java.util.Scanner;
 
@@ -22,21 +22,21 @@ public class Main {
     
     // UI Modules
     private final AuthUI authUI;
-    private final ProfileUI profileUI;
     private final FlightSearchUI searchUI;
-    private final BookingManagementUI bookingManagementUI;
+    private final DashboardController dashboardController;
 
     public Main() {
         this.scanner = new Scanner(System.in);
         this.authManager = AuthenticationManager.getInstance();
-        
-        // Instantiate UI dependencies
+
         this.authUI = new AuthUI(scanner);
-        this.profileUI = new ProfileUI(scanner);
+        ProfileUI profileUI = new ProfileUI(scanner);
         SeatService seatService = new SeatService();
         BookingUI bookingUI = new BookingUI(scanner, seatService);
         this.searchUI = new FlightSearchUI(scanner, bookingUI);
-        this.bookingManagementUI = new BookingManagementUI(scanner);
+        BookingManagementUI bookingManagementUI = new BookingManagementUI(scanner);
+        
+        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI);
     }
 
     /**
@@ -45,38 +45,15 @@ public class Main {
     public void start() {
         System.out.println("=== WELCOME TO SKYBOOKER ===");
         
-        // 1. Authentication Phase
+        // authentication
         authUI.displayAuthMenu();
 
-        // 2. Main Application Loop
+        // register user
         if (authManager.getCurrentUser().isPresent()) {
             User user = authManager.getCurrentUser().get();
-            boolean running = true;
-            
-            while (running) {
-                user.displayDashboard();
-                System.out.println("4. Search Flights (Book a Ticket)");
-                System.out.println("5. Exit Application");
-                System.out.print("Enter choice: ");
-                String dashChoice = scanner.nextLine().trim();
-
-                if (dashChoice.equals("1") && user instanceof Passenger) {
-                    profileUI.handleViewProfile((Passenger) user);
-                } else if (dashChoice.equals("2") && user instanceof Passenger) {
-                    bookingManagementUI.displayMyBookings((Passenger) user);
-                } else if (dashChoice.equals("3") && user instanceof Passenger) {
-                    profileUI.handleProfileUpdate((Passenger) user);
-                } else if (dashChoice.equals("4")) {
-                    searchUI.startSearchFlow();
-                } else if (dashChoice.equals("5")) {
-                    System.out.println("Thank you for using SkyBooker! Goodbye.");
-                    running = false;
-                } else {
-                    System.out.println("Invalid choice or Feature coming soon!");
-                }
-            }
+            dashboardController.startLoop(user);
         } else {
-            // Guest Flow
+           // Guest
             searchUI.startSearchFlow();
         }
     }
