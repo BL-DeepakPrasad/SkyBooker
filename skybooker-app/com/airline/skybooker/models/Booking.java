@@ -2,14 +2,10 @@ package com.airline.skybooker.models;
 
 import com.airline.skybooker.states.BookingState;
 import com.airline.skybooker.states.InitiatedState;
-
+import com.airline.skybooker.enums.BookingPriority;
 import java.time.LocalDateTime;
 
-/**
- * Represents a flight booking.
- * This class acts as the Context in the State Design Pattern.
- */
-public class Booking {
+public class Booking implements Comparable<Booking> {
     private String bookingId;
     private int userId;
     private int flightId;
@@ -19,6 +15,8 @@ public class Booking {
     
     // State Pattern Context Variable
     private BookingState currentState;
+    private BookingPriority priority;
+    private long timestamp;
 
     public Booking(String bookingId, int userId, int flightId) {
         this.bookingId = bookingId;
@@ -28,6 +26,8 @@ public class Booking {
         
         // Initial state is always INITIATED
         this.currentState = new InitiatedState();
+        this.priority = BookingPriority.REGULAR; // Default
+        this.timestamp = System.currentTimeMillis();
     }
 
     // State Pattern Delegation Methods
@@ -47,6 +47,18 @@ public class Booking {
         this.currentState = state;
     }
 
+    @Override
+    public int compareTo(Booking other) {
+        // 1. Sort by Priority (EXPRESS comes before REGULAR)
+        if (this.priority != other.priority) {
+            // EXPRESS is defined first in Enum, so its ordinal is 0. 
+            // We want lower ordinal to come first.
+            return Integer.compare(this.priority.ordinal(), other.priority.ordinal());
+        }
+        // 2. If priorities are equal, sort by Timestamp (older requests processed first)
+        return Long.compare(this.timestamp, other.timestamp);
+    }
+
     // Getters and Setters
     public String getBookingId() { return bookingId; }
     public int getUserId() { return userId; }
@@ -56,4 +68,7 @@ public class Booking {
     public double getTotalFare() { return totalFare; }
     public void setTotalFare(double totalFare) { this.totalFare = totalFare; }
     public LocalDateTime getBookedAt() { return bookedAt; }
+    public void setPriority(BookingPriority priority) { this.priority = priority; }
+    public BookingPriority getPriority() { return priority; }
+    public long getTimestamp() { return timestamp; }
 }

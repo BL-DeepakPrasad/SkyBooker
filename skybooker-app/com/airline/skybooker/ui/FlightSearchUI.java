@@ -8,6 +8,7 @@ import com.airline.skybooker.filters.FlightFilterService;
 import com.airline.skybooker.filters.PriceCriteria;
 import com.airline.skybooker.filters.AirlineCriteria;
 import com.airline.skybooker.exception.FlightNotFoundException;
+import com.airline.skybooker.enums.TripType;
 
 import java.util.List;
 import java.util.Scanner;
@@ -34,7 +35,8 @@ public class FlightSearchUI {
             System.out.println("1. One-Way");
             System.out.println("2. Round-Trip");
             System.out.print("Enter choice (1/2): ");
-            boolean isRoundTrip = scanner.nextLine().trim().equals("2");
+            String tripChoice = scanner.nextLine().trim();
+            TripType tripType = tripChoice.equals("2") ? TripType.ROUND_TRIP : TripType.ONE_WAY;
 
             System.out.print("Enter Origin IATA Code (e.g. DEL): ");
             String origin = scanner.nextLine().trim().toUpperCase();
@@ -46,7 +48,7 @@ public class FlightSearchUI {
             List<Flight> outboundFlights = flightManager.searchFlights(origin, destination);
             displayAndFilter(outboundFlights);
 
-            if (isRoundTrip) {
+            if (tripType == TripType.ROUND_TRIP) {
                 System.out.println("\n--- RETURN FLIGHTS (" + destination + " -> " + origin + ") ---");
                 try {
                     List<Flight> returnFlights = flightManager.searchFlights(destination, origin);

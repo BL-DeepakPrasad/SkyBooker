@@ -1,5 +1,7 @@
 package com.airline.skybooker.models;
 
+import com.airline.skybooker.enums.Role;
+
 /**
  * Passenger role extending User.
  * Demonstrates OOAD Inheritance.
@@ -9,7 +11,7 @@ public class Passenger extends User {
     private String nationality;
 
     public Passenger(int userId, String fullName, String email, String passwordHash, String phone, String passportNumber, String nationality) {
-        super(userId, fullName, email, passwordHash, phone, "PASSENGER");
+        super(userId, fullName, email, passwordHash, phone, Role.PASSENGER);
         this.passportNumber = passportNumber;
         this.nationality = nationality;
     }

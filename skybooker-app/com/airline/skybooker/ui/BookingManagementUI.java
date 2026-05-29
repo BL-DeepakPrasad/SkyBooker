@@ -65,7 +65,7 @@ public class BookingManagementUI {
         if (choice.equals("1")) {
             System.out.print("Are you sure you want to cancel this booking? (y/n): ");
             if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
-                booking.cancel(); // Leverages the State Pattern!
+                booking.cancel(); // change to cancel state
                 System.out.println("Cancellation request processed. Current Status: " + booking.getStatus());
             }
         }

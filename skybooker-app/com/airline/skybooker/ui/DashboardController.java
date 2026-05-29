@@ -2,6 +2,7 @@ package com.airline.skybooker.ui;
 
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.Passenger;
+import com.airline.skybooker.managers.PriorityBookingManager;
 import java.util.Scanner;
 
 /**
@@ -30,6 +31,7 @@ public class DashboardController {
             user.displayDashboard();
             System.out.println("4. Search Flights (Book a Ticket)");
             System.out.println("5. Exit Application");
+            System.out.println("9. [ADMIN] Generate Processing Report");
             System.out.print("Enter choice: ");
             String choice = scanner.nextLine().trim();
 
@@ -61,6 +63,9 @@ public class DashboardController {
             case "5":
                 System.out.println("Thank you for using SkyBooker! Goodbye.");
                 return false;
+            case "9":
+                PriorityBookingManager.getInstance().generateProcessingReport();
+                return true;
             default:
                 System.out.println("Invalid choice. Please try again.");
                 return true;

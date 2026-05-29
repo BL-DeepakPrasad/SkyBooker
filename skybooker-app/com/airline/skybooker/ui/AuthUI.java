@@ -25,7 +25,7 @@ public class AuthUI {
             } else if (choice.equals("2")) {
                 handleRegistration();
             } else if (choice.equals("3")) {
-                break; // Continue without login
+                break;
             }
         }
     }

@@ -2,6 +2,7 @@ package com.airline.skybooker.services;
 
 import com.airline.skybooker.exception.SeatLockException;
 import com.airline.skybooker.models.Seat;
+import com.airline.skybooker.enums.SeatType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +26,12 @@ public class SeatService {
 
     private void initializeMockSeats(String flightNumber) {
         List<Seat> seats = new ArrayList<>();
-        seats.add(new Seat("1A", true, false));  // Window
-        seats.add(new Seat("1B", false, false)); // Middle
-        seats.add(new Seat("1C", false, true));  // Aisle
-        seats.add(new Seat("1D", false, true));  // Aisle
-        seats.add(new Seat("1E", false, false)); // Middle
-        seats.add(new Seat("1F", true, false));  // Window
+        seats.add(new Seat("1A", SeatType.WINDOW));  
+        seats.add(new Seat("1B", SeatType.MIDDLE)); 
+        seats.add(new Seat("1C", SeatType.AISLE));  
+        seats.add(new Seat("1D", SeatType.AISLE));  
+        seats.add(new Seat("1E", SeatType.MIDDLE)); 
+        seats.add(new Seat("1F", SeatType.WINDOW)); 
         
         // Let's pretend 1A is already booked on all flights
         seats.get(0).setBooked(true);
@@ -52,8 +53,8 @@ public class SeatService {
         System.out.println("Legend: [ ] Available | [L] Locked | [X] Booked");
         for (Seat seat : seats) {
             String status = seat.isBooked() ? "[X]" : (seat.isLocked() ? "[L]" : "[ ]");
-            String type = seat.isWindow() ? "Window" : (seat.isAisle() ? "Aisle " : "Middle");
-            System.out.printf("%s %-3s (%s)%n", status, seat.getSeatNumber(), type);
+            String typeStr = seat.getType() == SeatType.WINDOW ? "Window" : (seat.getType() == SeatType.AISLE ? "Aisle " : "Middle");
+            System.out.printf("%s %-3s (%s)%n", status, seat.getSeatNumber(), typeStr);
         }
     }
 

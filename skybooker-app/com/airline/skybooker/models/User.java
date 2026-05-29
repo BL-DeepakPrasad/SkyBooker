@@ -1,6 +1,7 @@
 package com.airline.skybooker.models;
 
 import java.time.LocalDateTime;
+import com.airline.skybooker.enums.Role;
 
 /**
  * Abstract base class for all system users.
@@ -12,11 +13,11 @@ public abstract class User {
     protected String email;
     protected String passwordHash;
     protected String phone;
-    protected String role;
+    protected Role role;
     protected boolean isActive;
     protected LocalDateTime createdAt;
 
-    public User(int userId, String fullName, String email, String passwordHash, String phone, String role) {
+    public User(int userId, String fullName, String email, String passwordHash, String phone, Role role) {
         this.userId = userId;
         this.fullName = fullName;
         this.email = email;
@@ -32,7 +33,7 @@ public abstract class User {
     public String getFullName() { return fullName; }
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }
-    public String getRole() { return role; }
+    public Role getRole() { return role; }
     public String getPhone() { return phone; }
 
     public void setFullName(String fullName) { this.fullName = fullName; }

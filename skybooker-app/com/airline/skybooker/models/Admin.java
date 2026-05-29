@@ -1,5 +1,7 @@
 package com.airline.skybooker.models;
 
+import com.airline.skybooker.enums.Role;
+
 /**
  * Admin role extending User.
  * Demonstrates OOAD Inheritance and Polymorphism.
@@ -7,7 +9,7 @@ package com.airline.skybooker.models;
 public class Admin extends User {
 
     public Admin(int userId, String fullName, String email, String passwordHash, String phone) {
-        super(userId, fullName, email, passwordHash, phone, "ADMIN");
+        super(userId, fullName, email, passwordHash, phone, Role.ADMIN);
     }
 
     @Override
