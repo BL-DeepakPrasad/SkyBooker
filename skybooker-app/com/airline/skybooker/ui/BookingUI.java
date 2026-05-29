@@ -47,14 +47,14 @@ public class BookingUI {
             String seatNum = scanner.nextLine().trim();
             try {
                 if (seatService.lockSeat(flight.getFlightNumber(), seatNum)) {
-                    System.out.println("✅ SUCCESS: Seat " + seatNum + " has been locked.");
+                    System.out.println("SUCCESS: Seat " + seatNum + " has been locked.");
                     // Transition: SEAT_SELECTED -> PAYMENT_PENDING
                     booking.nextState();
                     System.out.println("\n[State: " + booking.getStatus() + "] Proceed to payment terminal.");
                     handlePaymentPhase(booking, flight.getBasePrice());
                 }
             } catch (SeatLockException ex) {
-                System.out.println("❌ FAILED: " + ex.getMessage());
+                System.out.println("FAILED: " + ex.getMessage());
                 booking.cancel();
                 System.out.println("[State: " + booking.getStatus() + "]");
             }
@@ -69,7 +69,7 @@ public class BookingUI {
         if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
             booking.setPriority(BookingPriority.EXPRESS);
             finalAmount += 25.0;
-            System.out.println("✅ Upgraded to EXPRESS priority.");
+            System.out.println("SUCCESS: Upgraded to EXPRESS priority.");
         } else {
             booking.setPriority(BookingPriority.REGULAR);
         }
@@ -104,7 +104,7 @@ public class BookingUI {
         boolean success = paymentManager.processTransaction(strategy, finalAmount);
         if (success) {
             booking.nextState(); // Transitions to CONFIRMED
-            System.out.println("\n🎉 E-TICKET GENERATED! PNR: " + booking.getPnrCode());
+            System.out.println("\n E-TICKET GENERATED! PNR: " + booking.getPnrCode());
             System.out.println("[State: " + booking.getStatus() + "]");
 
             priorityManager.enqueueBooking(booking);

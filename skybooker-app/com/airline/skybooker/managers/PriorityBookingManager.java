@@ -99,7 +99,7 @@ public class PriorityBookingManager {
             long processTime = System.currentTimeMillis() - startTime;
             updateMetrics(b.getPriority(), processTime);
             
-            System.out.println("   ✅ Finalized processing for " + b.getPriority() + " booking in " + processTime + "ms.");
+            System.out.println("   [SUCCESS] Finalized processing for " + b.getPriority() + " booking in " + processTime + "ms.");
         }
         System.out.println("--- QUEUE PROCESSING COMPLETE ---\n");
     }
