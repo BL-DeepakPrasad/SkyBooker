@@ -2,7 +2,9 @@ package com.airline.skybooker;
 
 import com.airline.skybooker.exception.FlightNotFoundException;
 import com.airline.skybooker.managers.FlightManager;
+import com.airline.skybooker.managers.AuthenticationManager;
 import com.airline.skybooker.models.Flight;
+import com.airline.skybooker.models.User;
 import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.exception.SeatLockException;
 import com.airline.skybooker.filters.FlightFilterService;
@@ -20,19 +22,43 @@ public class Main {
     private final FlightManager flightManager;
     private final FlightFilterService filterService;
     private final SeatService seatService;
+    private final AuthenticationManager authManager;
 
     public Main() {
         this.scanner = new Scanner(System.in);
         this.flightManager = FlightManager.getInstance();
         this.filterService = new FlightFilterService();
         this.seatService = new SeatService();
+        this.authManager = AuthenticationManager.getInstance();
     }
 
     /**
-     * Starts the interactive flight search session.
+     * Bootstraps the application.
      */
     public void start() {
-        System.out.println("=== SKYBOOKER FLIGHT SEARCH ===");
+        System.out.println("=== WELCOME TO SKYBOOKER ===");
+        
+        while (authManager.getCurrentUser().isEmpty()) {
+            System.out.println("\n1. Login");
+            System.out.println("2. Register as Passenger");
+            System.out.println("3. Continue as Guest");
+            System.out.print("Enter choice (1-3): ");
+            String choice = scanner.nextLine().trim();
+
+            if (choice.equals("1")) {
+                handleLogin();
+            } else if (choice.equals("2")) {
+                handleRegistration();
+            } else if (choice.equals("3")) {
+                break; // Continue without login
+            }
+        }
+
+        // Polymorphic Dashboard Display
+        authManager.getCurrentUser().ifPresent(User::displayDashboard);
+
+        // For now, continue to flight search regardless of role (to preserve old flow)
+        System.out.println("\n--- FLIGHT SEARCH ---");
 
         try {
             System.out.println("\nSelect Trip Type:");
@@ -95,7 +121,42 @@ public class Main {
         } catch (FlightNotFoundException e) {
             System.out.println("ERROR: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("An error occurred: " + e.getMessage());
+            System.out.println("An unexpected error occurred: " + e.getMessage());
+        }
+    }
+
+    private void handleLogin() {
+        System.out.print("Email: ");
+        String email = scanner.nextLine().trim();
+        System.out.print("Password: ");
+        String pass = scanner.nextLine().trim();
+        
+        if (authManager.login(email, pass)) {
+            System.out.println("Login Successful!");
+        } else {
+            System.out.println("Invalid credentials.");
+        }
+    }
+
+    private void handleRegistration() {
+        try {
+            System.out.print("Full Name: ");
+            String name = scanner.nextLine().trim();
+            System.out.print("Email: ");
+            String email = scanner.nextLine().trim();
+            System.out.print("Password: ");
+            String pass = scanner.nextLine().trim();
+            System.out.print("Phone: ");
+            String phone = scanner.nextLine().trim();
+            System.out.print("Passport Number: ");
+            String passport = scanner.nextLine().trim();
+            System.out.print("Nationality: ");
+            String nationality = scanner.nextLine().trim();
+
+            authManager.registerPassenger(name, email, pass, phone, passport, nationality);
+            System.out.println("Registration Successful! Please login.");
+        } catch (Exception e) {
+            System.out.println("Registration Failed: " + e.getMessage());
         }
     }
 
