@@ -21,10 +21,12 @@ public class DashboardController {
     private final AdminFlightUI adminFlightUI;
     private final AdminAirportUI adminAirportUI;
     private final AdminAnalyticsUI adminAnalyticsUI;
+    private final CheckInUI checkInUI;
 
     public DashboardController(Scanner scanner, ProfileUI profileUI, BookingManagementUI bookingManagementUI, 
                                FlightSearchUI searchUI, AdminFlightUI adminFlightUI, 
-                               AdminAirportUI adminAirportUI, AdminAnalyticsUI adminAnalyticsUI) {
+                               AdminAirportUI adminAirportUI, AdminAnalyticsUI adminAnalyticsUI,
+                               CheckInUI checkInUI) {
         this.scanner = scanner;
         this.profileUI = profileUI;
         this.bookingManagementUI = bookingManagementUI;
@@ -32,6 +34,7 @@ public class DashboardController {
         this.adminFlightUI = adminFlightUI;
         this.adminAirportUI = adminAirportUI;
         this.adminAnalyticsUI = adminAnalyticsUI;
+        this.checkInUI = checkInUI;
     }
 
     public void startLoop(User user) {
@@ -42,6 +45,7 @@ public class DashboardController {
             
             if (user instanceof Passenger) {
                 System.out.println("4. Search Flights or Book a Ticket ");
+                System.out.println("5. Web Check-in (Get Boarding Pass)");
             }
             if (user instanceof Admin) {
                 System.out.println("9. Generate Processing Report");
@@ -82,7 +86,8 @@ public class DashboardController {
                 else System.out.println("Invalid choice.");
                 return true;
             case "5":
-                if (isAdmin) adminAirportUI.startAirportFlow();
+                if (isPassenger) checkInUI.startCheckInFlow();
+                else if (isAdmin) adminAirportUI.startAirportFlow();
                 else System.out.println("Invalid choice.");
                 return true;
             case "9":

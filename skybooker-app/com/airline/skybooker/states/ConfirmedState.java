@@ -6,7 +6,8 @@ public class ConfirmedState implements BookingState {
 
     @Override
     public void nextState(Booking booking) {
-        System.out.println("Booking is already CONFIRMED. No further transitions available.");
+        System.out.println("Transitioning booking from CONFIRMED to CHECKED_IN...");
+        booking.setState(new CheckedInState());
     }
 
     @Override

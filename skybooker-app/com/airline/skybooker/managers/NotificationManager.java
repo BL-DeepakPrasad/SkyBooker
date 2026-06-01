@@ -109,4 +109,9 @@ public class NotificationManager {
         String smsBody = String.format("Skybooker: Refund of $%.2f for PNR %s is COMPLETED.", amount, booking.getPnrCode());
         new SMSNotification().send(user, smsBody);
     }
+
+    public void sendBoardingPass(User user, com.airline.skybooker.models.BoardingPass pass) {
+        String emailBody = "Your boarding pass is ready:\n\n" + pass.getFormattedPass();
+        new EmailNotification().send(user, emailBody);
+    }
 }

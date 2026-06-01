@@ -12,6 +12,7 @@ import com.airline.skybooker.ui.DashboardController;
 import com.airline.skybooker.ui.AdminFlightUI;
 import com.airline.skybooker.ui.AdminAirportUI;
 import com.airline.skybooker.ui.AdminAnalyticsUI;
+import com.airline.skybooker.ui.CheckInUI;
 
 import java.util.Scanner;
 
@@ -41,8 +42,9 @@ public class Main {
         AdminFlightUI adminFlightUI = new AdminFlightUI(scanner, seatService);
         AdminAirportUI adminAirportUI = new AdminAirportUI(scanner);
         AdminAnalyticsUI adminAnalyticsUI = new AdminAnalyticsUI(scanner);
+        CheckInUI checkInUI = new CheckInUI(scanner);
         
-        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI, adminFlightUI, adminAirportUI, adminAnalyticsUI);
+        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI, adminFlightUI, adminAirportUI, adminAnalyticsUI, checkInUI);
     }
 
     /**

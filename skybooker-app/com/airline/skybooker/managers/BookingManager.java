@@ -113,9 +113,9 @@ public class BookingManager {
                                             double baseFare, SeatService seatService, String promoCode) throws SeatLockException {
         // 1. Lock Seat
         if (!seatService.lockSeat(flightNumber, seatNum)) {
-            return false;
+            throw new SeatLockException("Seat " + seatNum + " is no longer available.");
         }
-        
+        booking.setSeatNumber(seatNum);
         // Transition: PASSENGER_DETAILS -> SEAT_SELECTED
         booking.nextState(); 
         

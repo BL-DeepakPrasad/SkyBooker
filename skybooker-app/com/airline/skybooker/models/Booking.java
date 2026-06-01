@@ -13,6 +13,7 @@ public class Booking implements Comparable<Booking> {
     private String pnrCode;
     private double totalFare;
     private LocalDateTime bookedAt;
+    private String seatNumber; // Added for Boarding Pass
     
     // State Pattern Context Variable
     private BookingState currentState;
@@ -75,4 +76,6 @@ public class Booking implements Comparable<Booking> {
     public long getTimestamp() { return timestamp; }
     public void setPaymentStrategy(PaymentStrategy strategy) { this.paymentStrategy = strategy; }
     public PaymentStrategy getPaymentStrategy() { return paymentStrategy; }
+    public String getSeatNumber() { return seatNumber; }
+    public void setSeatNumber(String seatNumber) { this.seatNumber = seatNumber; }
 }
