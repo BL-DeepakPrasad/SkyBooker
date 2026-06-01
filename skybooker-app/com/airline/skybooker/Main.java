@@ -56,7 +56,7 @@ public class Main {
                 break;
             }
 
-            // run dashboard or guest flow
+            // run the guest
             if (authManager.getCurrentUser().isPresent()) {
                 User user = authManager.getCurrentUser().get();
                 dashboardController.startLoop(user);

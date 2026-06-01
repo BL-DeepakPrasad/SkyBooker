@@ -34,7 +34,21 @@ public class PaymentManager {
         if (strategy == null) {
             throw new IllegalArgumentException("Payment strategy cannot be null");
         }
-        // Delegate the actual processing to the Strategy implementation
         return strategy.processPayment(amount);
+    }
+
+    /**
+     * Executes a refund through the provided payment strategy.
+     * 
+     * @param strategy The original payment strategy used
+     * @param amount The amount to refund
+     * @return true if refund succeeds
+     */
+    public boolean processRefund(PaymentStrategy strategy, double amount) {
+        if (strategy == null) {
+            System.out.println("[REFUND] Error: No original payment method found.");
+            return false;
+        }
+        return strategy.refund(amount);
     }
 }

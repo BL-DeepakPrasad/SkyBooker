@@ -3,6 +3,7 @@ package com.airline.skybooker.models;
 import com.airline.skybooker.states.BookingState;
 import com.airline.skybooker.states.InitiatedState;
 import com.airline.skybooker.enums.BookingPriority;
+import com.airline.skybooker.payments.PaymentStrategy;
 import java.time.LocalDateTime;
 
 public class Booking implements Comparable<Booking> {
@@ -17,6 +18,7 @@ public class Booking implements Comparable<Booking> {
     private BookingState currentState;
     private BookingPriority priority;
     private long timestamp;
+    private PaymentStrategy paymentStrategy;
 
     public Booking(String bookingId, int userId, int flightId) {
         this.bookingId = bookingId;
@@ -71,4 +73,6 @@ public class Booking implements Comparable<Booking> {
     public void setPriority(BookingPriority priority) { this.priority = priority; }
     public BookingPriority getPriority() { return priority; }
     public long getTimestamp() { return timestamp; }
+    public void setPaymentStrategy(PaymentStrategy strategy) { this.paymentStrategy = strategy; }
+    public PaymentStrategy getPaymentStrategy() { return paymentStrategy; }
 }

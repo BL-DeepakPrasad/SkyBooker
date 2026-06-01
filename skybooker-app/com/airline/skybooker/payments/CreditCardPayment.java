@@ -13,17 +13,37 @@ public class CreditCardPayment implements PaymentStrategy {
     }
 
     @Override
+    public boolean validate() {
+        if (cardNumber == null || cardNumber.replaceAll("\\s+", "").length() != 16) {
+            System.out.println("[PAYMENT GATEWAY] Error: Card number must be 16 digits.");
+            return false;
+        }
+        if (cvv == null || cvv.length() != 3) {
+            System.out.println("[PAYMENT GATEWAY] Error: CVV must be 3 digits.");
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public boolean processPayment(double amount) {
         System.out.println("\n[PAYMENT GATEWAY] Connecting to Credit Card network...");
         
-        // Basic Mock Validation
-        if (cardNumber == null || cardNumber.length() < 12) {
-            System.out.println("[PAYMENT GATEWAY] Error: Invalid card number length.");
+        if (!validate()) {
             return false;
         }
         
+        System.out.println("[3D SECURE] Sending OTP to registered mobile number...");
+        System.out.println("[3D SECURE] OTP Verified.");
         System.out.println("[PAYMENT GATEWAY] Charging $" + amount + " to card ending in " + cardNumber.substring(cardNumber.length() - 4));
         System.out.println("[PAYMENT GATEWAY] Transaction Approved.");
+        return true;
+    }
+
+    @Override
+    public boolean refund(double amount) {
+        System.out.println("[PAYMENT GATEWAY] Initiating refund of $" + amount + " to Credit Card ending in " + cardNumber.substring(cardNumber.length() - 4));
+        System.out.println("[PAYMENT GATEWAY] Refund Processed Successfully.");
         return true;
     }
 }

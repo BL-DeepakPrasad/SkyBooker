@@ -9,17 +9,32 @@ public class UPIPayment implements PaymentStrategy {
     }
 
     @Override
-    public boolean processPayment(double amount) {
-        System.out.println("\n[PAYMENT GATEWAY] Connecting to UPI network...");
-        
-        // Basic Mock Validation
+    public boolean validate() {
         if (upiId == null || !upiId.contains("@")) {
             System.out.println("[PAYMENT GATEWAY] Error: Invalid UPI ID format. Must contain '@'.");
             return false;
         }
+        return true;
+    }
+
+    @Override
+    public boolean processPayment(double amount) {
+        System.out.println("\n[PAYMENT GATEWAY] Connecting to UPI network...");
+        
+        if (!validate()) {
+            return false;
+        }
         
         System.out.println("[PAYMENT GATEWAY] Sending payment request to " + upiId + " for $" + amount);
+        System.out.println("[UPI APP] Please approve the request in your UPI App...");
         System.out.println("[PAYMENT GATEWAY] Transaction Approved.");
+        return true;
+    }
+
+    @Override
+    public boolean refund(double amount) {
+        System.out.println("[PAYMENT GATEWAY] Initiating refund of $" + amount + " to UPI ID: " + upiId);
+        System.out.println("[PAYMENT GATEWAY] Refund Processed Successfully.");
         return true;
     }
 }

@@ -11,8 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.airline.skybooker.payments.PaymentStrategy;
 import com.airline.skybooker.services.SeatService;
+import com.airline.skybooker.services.FareCalculatorService;
 import com.airline.skybooker.enums.BookingPriority;
 import com.airline.skybooker.exception.SeatLockException;
+import com.airline.skybooker.states.RefundedState;
 
 /**
  * Singleton Manager responsible for Booking lifecycle.
@@ -64,9 +66,27 @@ public class BookingManager {
     }
 
     /**
-     * Service method to cancel a booking.
+     * Service method to cancel a booking and process refund.
      */
     public void cancelBooking(Booking booking) {
+        if (booking.getStatus().equals("CONFIRMED")) {
+            System.out.println("\n[CANCELLATION] Processing cancellation for " + booking.getPnrCode());
+            
+            double[] refundData = FareCalculatorService.getInstance().calculateRefundAndPenalty(booking.getTotalFare());
+            double refundAmount = refundData[0];
+            double penalty = refundData[1];
+            
+            System.out.printf("[CANCELLATION] Total Fare: $%.2f | Penalty: $%.2f | Refund Amount: $%.2f%n", 
+                               booking.getTotalFare(), penalty, refundAmount);
+            
+            if (booking.getPaymentStrategy() != null) {
+                boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPaymentStrategy(), refundAmount);
+                if (refundSuccess) {
+                    booking.setState(new RefundedState());
+                    return;
+                }
+            }
+        }
         booking.cancel();
     }
 
@@ -75,7 +95,7 @@ public class BookingManager {
      */
     public boolean processPaymentAndConfirm(Booking booking, String flightNumber, String seatNum, 
                                             boolean isExpress, PaymentStrategy strategy, 
-                                            double baseFare, SeatService seatService) throws SeatLockException {
+                                            double baseFare, SeatService seatService, String promoCode) throws SeatLockException {
         // 1. Lock Seat
         if (!seatService.lockSeat(flightNumber, seatNum)) {
             return false;
@@ -87,15 +107,11 @@ public class BookingManager {
         // Transition: SEAT_SELECTED -> PAYMENT_PENDING
         booking.nextState();
         
-        // 2. Calculate Final Fare & Priority
-        double finalAmount = baseFare;
-        if (isExpress) {
-            booking.setPriority(BookingPriority.EXPRESS);
-            finalAmount += 25.0;
-        } else {
-            booking.setPriority(BookingPriority.REGULAR);
-        }
+        // 2. Calculate Final Fare & Priority via Service
+        double finalAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, baseFare, isExpress, promoCode);
         
+        // Save strategy for future refunds
+        booking.setPaymentStrategy(strategy);
         booking.setTotalFare(finalAmount);
 
         // 3. Process Payment

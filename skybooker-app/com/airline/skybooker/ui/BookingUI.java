@@ -6,6 +6,7 @@ import com.airline.skybooker.managers.PriorityBookingManager;
 import com.airline.skybooker.payments.PaymentStrategy;
 import com.airline.skybooker.payments.CreditCardPayment;
 import com.airline.skybooker.payments.UPIPayment;
+import com.airline.skybooker.payments.EMIPayment;
 import com.airline.skybooker.models.Booking;
 import com.airline.skybooker.enums.BookingPriority;
 import com.airline.skybooker.models.Flight;
@@ -53,12 +54,23 @@ public class BookingUI {
         boolean isExpress = scanner.nextLine().trim().equalsIgnoreCase("y");
 
         double displayAmount = amount + (isExpress ? 25.0 : 0.0);
+        
+        System.out.print("\nDo you have a Promotional Code? (Press Enter to skip): ");
+        String promo = scanner.nextLine().trim();
+        if (promo.equalsIgnoreCase("SKYBOOKER20")) {
+            System.out.println("[PROMO] Promo code SKYBOOKER20 applied! 20% Discount.");
+            displayAmount = displayAmount * 0.80;
+        } else if (!promo.isEmpty()) {
+            System.out.println("[PROMO] Invalid promo code.");
+        }
+
         System.out.printf("%n[BILLING] Total Fare to be charged: $%.2f%n", displayAmount);
 
         System.out.println("Select Payment Strategy:");
         System.out.println("1. Credit/Debit Card");
         System.out.println("2. UPI / NetBanking");
-        System.out.print("Enter choice (1/2): ");
+        System.out.println("3. EMI (Equated Monthly Installment)");
+        System.out.print("Enter choice (1/2/3): ");
         String choice = scanner.nextLine().trim();
 
         PaymentStrategy strategy = null;
@@ -68,13 +80,24 @@ public class BookingUI {
             String card = scanner.nextLine().trim();
             System.out.print("Enter Cardholder Name: ");
             String name = scanner.nextLine().trim();
-            System.out.print("Enter CVV: ");
+            System.out.print("Enter 3-digit CVV: ");
             String cvv = scanner.nextLine().trim();
             strategy = new CreditCardPayment(card, name, cvv);
         } else if (choice.equals("2")) {
             System.out.print("Enter UPI ID (e.g., name@bank): ");
             String upi = scanner.nextLine().trim();
             strategy = new UPIPayment(upi);
+        } else if (choice.equals("3")) {
+            System.out.print("Enter 16-digit Card Number for EMI: ");
+            String card = scanner.nextLine().trim();
+            System.out.print("Enter Tenure (3, 6, or 12 months): ");
+            int months = 3;
+            try {
+                months = Integer.parseInt(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                // fall back to validation failing
+            }
+            strategy = new EMIPayment(card, months);
         } else {
             System.out.println("Invalid payment method.");
             bookingManager.cancelBooking(booking);
@@ -82,7 +105,7 @@ public class BookingUI {
         }
 
         try {
-            boolean success = bookingManager.processPaymentAndConfirm(booking, flightNumber, seatNum, isExpress, strategy, amount, seatService);
+            boolean success = bookingManager.processPaymentAndConfirm(booking, flightNumber, seatNum, isExpress, strategy, amount, seatService, promo);
             if (success) {
                 System.out.println("\n====================================");
                 System.out.println("          E-TICKET GENERATED        ");
