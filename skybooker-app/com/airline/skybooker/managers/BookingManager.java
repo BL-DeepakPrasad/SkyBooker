@@ -9,12 +9,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.payments.PaymentStrategy;
 import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.services.FareCalculatorService;
 import com.airline.skybooker.enums.BookingPriority;
 import com.airline.skybooker.exception.SeatLockException;
 import com.airline.skybooker.states.RefundedState;
+import com.airline.skybooker.models.User;
+import com.airline.skybooker.managers.NotificationManager;
+import com.airline.skybooker.managers.AuthenticationManager;
+import java.util.ArrayList;
 
 /**
  * Singleton Manager responsible for Booking lifecycle.
@@ -56,6 +61,10 @@ public class BookingManager {
         return Optional.ofNullable(bookingDatabase.get(bookingId));
     }
 
+    public List<Booking> getAllBookings() {
+        return new ArrayList<>(bookingDatabase.values());
+    }
+
     /**
      * Retrieves all bookings for a specific user using Java Streams.
      */
@@ -83,6 +92,12 @@ public class BookingManager {
                 boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPaymentStrategy(), refundAmount);
                 if (refundSuccess) {
                     booking.setState(new RefundedState());
+                    
+                    // Notify passenger of refund
+                    User passenger = AuthenticationManager.getInstance().getCurrentUser().orElse(null);
+                    if (passenger != null) {
+                        NotificationManager.getInstance().sendRefundLifecycle(passenger, booking, refundAmount);
+                    }
                     return;
                 }
             }
@@ -118,10 +133,23 @@ public class BookingManager {
         boolean success = PaymentManager.getInstance().processTransaction(strategy, finalAmount);
         
         if (success) {
-            // 4. Confirm Booking
+            // 4. Confirm Booking: PAYMENT_PENDING -> CONFIRMED
             booking.nextState(); 
             
-            // 5. Route to Priority Queue
+            // Notify passenger of confirmation
+            User passenger = AuthenticationManager.getInstance().getCurrentUser().orElse(null);
+            if (passenger != null) {
+                Flight f = FlightManager.getInstance().getFlightByNumber(flightNumber).orElse(null);
+                if (f != null) {
+                    NotificationManager.getInstance().sendBookingConfirmation(passenger, booking, f);
+                    
+                    // Simulate Scheduled Reminders (12.2)
+                    NotificationManager.getInstance().sendTravelReminder(passenger, booking, "Check-in opens in 24 Hours!");
+                    NotificationManager.getInstance().sendTravelReminder(passenger, booking, "Boarding starts in 3 Hours!");
+                }
+            }
+            
+            // 5. Add to Priority Processing Queue
             PriorityBookingManager.getInstance().enqueueBooking(booking);
             PriorityBookingManager.getInstance().processQueue();
             return true;

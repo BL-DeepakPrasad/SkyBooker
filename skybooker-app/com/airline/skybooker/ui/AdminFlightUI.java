@@ -119,8 +119,10 @@ public class AdminFlightUI {
         System.out.println("Editing Flight: " + flightNum);
         System.out.println("1. Update Departure Time");
         System.out.println("2. Change Base Fare");
-        System.out.println("3. Apply Dynamic Pricing (Demand Surge/Drop)");
-        System.out.println("4. Update Flight Status (Delay/Cancel)");
+        System.out.println("4. Update Flight Status");
+        System.out.println("5. Change Departure Gate");
+        System.out.println("6. Apply Dynamic Pricing (Increase %)");
+        System.out.println("0. Go Back");
         System.out.print("Enter choice: ");
         
         String choice = scanner.nextLine().trim();
@@ -138,8 +140,14 @@ public class AdminFlightUI {
                     flightManager.updateFlightFare(flightNum, fare);
                     System.out.println("[SUCCESS] Base fare updated to $" + fare);
                     break;
-                case "3":
-                    System.out.print("Enter percentage change (e.g. 20 for +20%, -10 for -10%): ");
+                case "5":
+                    System.out.print("Enter new Departure Gate: ");
+                    String newGate = scanner.nextLine().trim();
+                    flightManager.updateFlightGate(flightNum, newGate);
+                    System.out.println("Flight gate updated successfully!");
+                    break;
+                case "6":
+                    System.out.print("Enter percentage to increase (e.g. 10 for 10%): ");
                     double pct = Double.parseDouble(scanner.nextLine().trim());
                     flightManager.applyDynamicPricing(flightNum, pct);
                     System.out.println("[SUCCESS] Dynamic pricing applied.");

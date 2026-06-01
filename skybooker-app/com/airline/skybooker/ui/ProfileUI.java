@@ -20,7 +20,31 @@ public class ProfileUI {
         System.out.println("Nationality: " + passenger.getNationality());
         System.out.println("Passport:    " + passenger.getPassportNumber());
         System.out.println("Role:        " + passenger.getRole());
+        System.out.println("WhatsApp:    " + (passenger.isWhatsappOptIn() ? "Enabled" : "Disabled"));
         System.out.println("============================================");
+        System.out.println("1. Update Phone");
+        System.out.println("2. Update Passport");
+        System.out.println("3. Update Password");
+        System.out.println("4. Toggle WhatsApp Alerts");
+        System.out.println("0. Cancel");
+        System.out.print("Enter choice: ");
+        String choice = scanner.nextLine().trim();
+
+        if (choice.equals("1")) {
+            System.out.print("Enter new phone number: ");
+            passenger.setPhone(scanner.nextLine().trim());
+            System.out.println("Phone updated successfully!");
+        } else if (choice.equals("2")) {
+            System.out.print("Enter new passport number: ");
+            passenger.setPassportNumber(scanner.nextLine().trim());
+            System.out.println("Passport updated successfully!");
+        } else if (choice.equals("3")) {
+            System.out.println("Password update flow coming soon.");
+        } else if (choice.equals("4")) {
+            boolean current = passenger.isWhatsappOptIn();
+            passenger.setWhatsappOptIn(!current);
+            System.out.println("WhatsApp Alerts are now " + (!current ? "ON" : "OFF") + ".");
+        }
         System.out.println("Press Enter to return to Dashboard...");
         scanner.nextLine();
     }

@@ -5,7 +5,11 @@ import com.airline.skybooker.interfaces.Searchable;
 import com.airline.skybooker.models.Airline;
 import com.airline.skybooker.models.Airport;
 import com.airline.skybooker.models.Flight;
-
+import com.airline.skybooker.services.SeatService;
+import com.airline.skybooker.models.User;
+import com.airline.skybooker.models.Passenger;
+import com.airline.skybooker.managers.NotificationManager;
+import com.airline.skybooker.managers.AuthenticationManager;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
@@ -309,6 +313,31 @@ public class FlightManager implements Searchable {
         Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
         f.setFlightStatus(status);
         clearCache();
+        
+        if (status == FlightStatus.DELAYED || status == FlightStatus.CANCELLED) {
+            System.out.println("\n[FLIGHT MANAGER] Broadcast Notification triggered for flight: " + flightNum);
+            
+            // In a real system, we would fetch all bookings for this flight and notify.
+            // For now, we mock broadcast to the currently logged in user if they are a passenger.
+            User currentUser = AuthenticationManager.getInstance().getCurrentUser().orElse(null);
+            if (currentUser instanceof Passenger) {
+                NotificationManager.getInstance().sendFlightAlert(currentUser, f, status.name(), "Please check dashboard for updates.");
+            }
+        }
+    }
+
+    public void updateFlightGate(String flightNum, String newGate) {
+        Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
+        f.setDepartureGate(newGate);
+        clearCache();
+        
+        System.out.println("\n[FLIGHT MANAGER] Broadcast Notification triggered for GATE CHANGE: " + flightNum);
+        
+        // Mocking broadcast to current user
+        User currentUser = AuthenticationManager.getInstance().getCurrentUser().orElse(null);
+        if (currentUser instanceof Passenger) {
+            NotificationManager.getInstance().sendFlightAlert(currentUser, f, "GATE CHANGED", "New Gate is: " + newGate);
+        }
     }
 
     /**

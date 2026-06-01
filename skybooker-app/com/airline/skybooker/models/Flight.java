@@ -23,6 +23,7 @@ public class Flight implements Comparable<Flight> {
     private String aircraftType;
     private FlightStatus flightStatus;
     private String amenities;
+    private String departureGate;
 
     /**
      * Private constructor used by the Builder.
@@ -42,6 +43,7 @@ public class Flight implements Comparable<Flight> {
         this.flightStatus = builder.flightStatus != null ? builder.flightStatus : FlightStatus.SCHEDULED;
         this.amenities = builder.amenities != null ? builder.amenities : "Standard";
         this.departureTime = builder.departureTime != null ? builder.departureTime : LocalDateTime.now().plusDays(1);
+        this.departureGate = builder.departureGate != null ? builder.departureGate : "TBD";
     }
 
     /**
@@ -62,6 +64,7 @@ public class Flight implements Comparable<Flight> {
         private FlightStatus flightStatus;
         private String amenities;
         private LocalDateTime departureTime;
+        private String departureGate;
 
         public Builder setFlightId(int flightId) {
             this.flightId = flightId;
@@ -133,6 +136,11 @@ public class Flight implements Comparable<Flight> {
             this.departureTime = departureTime;
             return this;
         }
+        
+        public Builder setDepartureGate(String gate) {
+            this.departureGate = gate;
+            return this;
+        }
 
         public Flight build() {
             // Optional: Add pre-flight validation here (e.g. if origin == destination throw exception)
@@ -201,6 +209,8 @@ public class Flight implements Comparable<Flight> {
     public String getAircraftType() { return aircraftType; }
     public FlightStatus getFlightStatus() { return flightStatus; }
     public String getAmenities() { return amenities; }
+    public String getDepartureGate() { return departureGate; }
+    public LocalDateTime getDepartureTime() { return departureTime; }
 
     /**
      * Decrements the available seat count by one in a thread-safe manner.
@@ -212,6 +222,7 @@ public class Flight implements Comparable<Flight> {
     public void setFlightStatus(FlightStatus status) { this.flightStatus = status; }
     public void setDepartureTime(LocalDateTime time) { this.departureTime = time; }
     public void setBasePrice(double price) { this.basePrice = price; }
+    public void setDepartureGate(String gate) { this.departureGate = gate; }
     
     /**
      * Module 8.2: Modifies the base fare dynamically based on demand/season.
