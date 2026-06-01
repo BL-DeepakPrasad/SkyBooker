@@ -58,9 +58,16 @@ public class FlightSearchUI {
 
             System.out.print("\nEnter Origin IATA Code (e.g. DEL): ");
             String origin = scanner.nextLine().trim().toUpperCase();
+            suggestAlternatives(origin);
 
             System.out.print("Enter Destination IATA Code (e.g. BOM): ");
             String destination = scanner.nextLine().trim().toUpperCase();
+            suggestAlternatives(destination);
+
+            System.out.print("\nAre your dates flexible? (y/n) to view ±3 Days Price Calendar: ");
+            if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                showPriceCalendar(origin, destination);
+            }
 
             System.out.println("\n--- OUTBOUND FLIGHTS (" + origin + " -> " + destination + ") ---");
             List<Flight> outboundFlights = flightManager.searchFlights(origin, destination);
@@ -107,8 +114,20 @@ public class FlightSearchUI {
     }
 
     private void displayAndFilter(List<Flight> flights) {
-        for (int i = 0; i < flights.size(); i++) {
-            System.out.println((i + 1) + ". " + flights.get(i));
+        int pageSize = 3;
+        int current = 0;
+        
+        while (current < flights.size()) {
+            for (int i = current; i < Math.min(current + pageSize, flights.size()); i++) {
+                System.out.println((i + 1) + ". " + flights.get(i));
+            }
+            current += pageSize;
+            if (current < flights.size()) {
+                System.out.print("\n[Next Page (n) / Stop (Enter)]: ");
+                if (!scanner.nextLine().trim().equalsIgnoreCase("n")) {
+                    break;
+                }
+            }
         }
 
         System.out.print("\nDo you want to apply filters? (y/n): ");
@@ -133,6 +152,29 @@ public class FlightSearchUI {
                 for (int i = 0; i < filtered.size(); i++) {
                     System.out.println((i + 1) + ". " + filtered.get(i));
                 }
+            }
+        }
+    }
+    private void showPriceCalendar(String origin, String destination) {
+        double avgFare = flightManager.getAverageFare(origin, destination);
+        if (avgFare == 0.0) return;
+
+        System.out.println("\n[Price Trend Calendar for " + origin + " -> " + destination + "]");
+        System.out.printf("  -3 Days: $%.2f%n", avgFare * 1.15);
+        System.out.printf("  -2 Days: $%.2f%n", avgFare * 1.05);
+        System.out.printf("  -1 Day : $%.2f%n", avgFare * 0.90);
+        System.out.printf("   Target: $%.2f  <-- Current Average%n", avgFare);
+        System.out.printf("  +1 Day : $%.2f%n", avgFare * 0.85);
+        System.out.printf("  +2 Days: $%.2f%n", avgFare * 0.95);
+        System.out.printf("  +3 Days: $%.2f%n", avgFare * 1.10);
+    }
+
+    private void suggestAlternatives(String iataCode) {
+        List<Airport> alternatives = airportManager.getAlternativeAirports(iataCode);
+        if (!alternatives.isEmpty()) {
+            System.out.println("  [Tip] Alternative nearby airports in the same city: ");
+            for (Airport a : alternatives) {
+                System.out.println("   -> " + a.getIataCode() + " (" + a.getName() + ")");
             }
         }
     }

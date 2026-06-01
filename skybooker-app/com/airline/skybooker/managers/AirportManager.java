@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 /**
  * Singleton repository for managing Airport geographic data.
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 public class AirportManager {
     private static AirportManager instance;
     private final Map<String, Airport> airportCache = new ConcurrentHashMap<>();
+    private final Map<String, List<Airport>> cityIndex = new ConcurrentHashMap<>();
 
     private AirportManager() {
         initializeMockData();
@@ -56,6 +58,8 @@ public class AirportManager {
      */
     public void addAirport(Airport airport) {
         airportCache.put(airport.getIataCode().toUpperCase(), airport);
+        // Add to city index for O(1) alternative airport lookups
+        cityIndex.computeIfAbsent(airport.getCity().toLowerCase(), k -> new ArrayList<>()).add(airport);
     }
 
     /**
@@ -121,6 +125,21 @@ public class AirportManager {
                 .filter(a -> a.getIataCode().toLowerCase().contains(lowerQuery) || 
                              a.getCity().toLowerCase().contains(lowerQuery) || 
                              a.getName().toLowerCase().contains(lowerQuery))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Recommends alternative nearby airports in the same city.
+     */
+    public List<Airport> getAlternativeAirports(String iataCode) {
+        Optional<Airport> opt = getAirportByCode(iataCode);
+        if (!opt.isPresent()) return Collections.emptyList();
+        
+        Airport original = opt.get();
+        List<Airport> inCity = cityIndex.getOrDefault(original.getCity().toLowerCase(), Collections.emptyList());
+        
+        return inCity.stream()
+                .filter(a -> !a.getIataCode().equalsIgnoreCase(iataCode))
                 .collect(Collectors.toList());
     }
 }
