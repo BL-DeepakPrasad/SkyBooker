@@ -1,6 +1,6 @@
 package com.airline.skybooker.payments;
 
-public class CreditCardPayment implements PaymentStrategy {
+public class CreditCardPayment extends AbstractPayment {
     
     private final String cardNumber;
     private final String cardHolderName;

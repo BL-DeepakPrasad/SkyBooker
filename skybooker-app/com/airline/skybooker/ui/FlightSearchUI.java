@@ -12,6 +12,7 @@ import com.airline.skybooker.filters.AirlineCriteria;
 import com.airline.skybooker.exception.FlightNotFoundException;
 import com.airline.skybooker.enums.TripType;
 import com.airline.skybooker.utils.ValidationUtils;
+import com.airline.skybooker.utils.InputReader;
 import com.airline.skybooker.utils.ErrorLogger;
 
 import java.util.List;
@@ -133,16 +134,7 @@ public class FlightSearchUI {
     }
 
     private String getValidAirportCode(String prompt) {
-        while (true) {
-            System.out.print("\n" + prompt);
-            String code = scanner.nextLine().trim().toUpperCase();
-            try {
-                ValidationUtils.validateAirportCode(code);
-                return code;
-            } catch (IllegalArgumentException e) {
-                System.out.println("ERROR: " + e.getMessage());
-            }
-        }
+        return InputReader.readString(scanner, "\n" + prompt, ValidationUtils::validateAirportCode).toUpperCase();
     }
 
     private void displayAndFilter(List<Flight> flights) {

@@ -1,6 +1,6 @@
 package com.airline.skybooker.managers;
 
-import com.airline.skybooker.payments.PaymentStrategy;
+import com.airline.skybooker.interfaces.Payable;
 import com.airline.skybooker.exception.NetworkTimeoutException;
 import com.airline.skybooker.exception.PaymentFailureException;
 
@@ -29,7 +29,7 @@ public class PaymentManager {
     /**
      * Executes a payment through the provided strategy.
      */
-    public boolean processTransaction(PaymentStrategy strategy, double amount) throws NetworkTimeoutException, PaymentFailureException {
+    public boolean processTransaction(Payable strategy, double amount) throws NetworkTimeoutException, PaymentFailureException {
         if (strategy == null) {
             throw new IllegalArgumentException("Payment strategy cannot be null");
         }
@@ -58,7 +58,7 @@ public class PaymentManager {
     /**
      * Re-routes a refund through the original payment strategy.
      */
-    public boolean processRefund(PaymentStrategy strategy, double amount) {
+    public boolean processRefund(Payable strategy, double amount) {
         if (strategy == null) {
             System.out.println("[PAYMENT GATEWAY] ERROR: Original payment strategy not found for refund.");
             failedTransactions++;

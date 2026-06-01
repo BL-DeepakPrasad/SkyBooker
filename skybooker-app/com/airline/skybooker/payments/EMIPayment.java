@@ -1,6 +1,6 @@
 package com.airline.skybooker.payments;
 
-public class EMIPayment implements PaymentStrategy {
+public class EMIPayment extends AbstractPayment {
     
     private final String cardNumber;
     private final int months;

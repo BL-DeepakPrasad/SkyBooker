@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.airline.skybooker.models.Flight;
-import com.airline.skybooker.payments.PaymentStrategy;
+import com.airline.skybooker.interfaces.Payable;
 import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.services.FareCalculatorService;
 import com.airline.skybooker.enums.BookingPriority;
@@ -91,8 +91,8 @@ public class BookingManager {
             System.out.printf("[CANCELLATION] Total Fare: INR %.2f | Penalty: INR %.2f | Refund Amount: INR %.2f%n", 
                                 booking.getTotalFare(), penalty, refundAmount);
             
-            if (booking.getPaymentStrategy() != null) {
-                boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPaymentStrategy(), refundAmount);
+            if (booking.getPayable() != null) {
+                boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPayable(), refundAmount);
                 if (refundSuccess) {
                     booking.setState(new RefundedState());
                     
@@ -128,8 +128,8 @@ public class BookingManager {
         System.out.printf("[PARTIAL CANCELLATION] %s | Penalty: INR %.2f | Refund: INR %.2f%n", 
                           bp.getFullName(), penalty, refundAmount);
                           
-        if (booking.getPaymentStrategy() != null) {
-            boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPaymentStrategy(), refundAmount);
+        if (booking.getPayable() != null) {
+            boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPayable(), refundAmount);
             if (refundSuccess) {
                 bp.setCancelled(true);
                 seatService.releaseSeat(flight.getFlightNumber(), bp.getSeatNumber());
@@ -170,7 +170,7 @@ public class BookingManager {
      * God Method to orchestrate locking, pricing, payment, and priority routing.
      */
     public boolean processPaymentAndConfirm(Booking booking, Flight flight, 
-                                            boolean isExpress, PaymentStrategy strategy, 
+                                            boolean isExpress, Payable payable, 
                                             SeatService seatService, String promoCode) throws SeatLockException, NetworkTimeoutException, PaymentFailureException {
         // 1. Lock Seats for all passengers
         for (com.airline.skybooker.models.BookingPassenger bp : booking.getPassengers()) {
@@ -191,13 +191,13 @@ public class BookingManager {
         double finalAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promoCode, isDomestic);
         
         // Save strategy for future refunds
-        booking.setPaymentStrategy(strategy);
+        booking.setPayable(payable);
         booking.setTotalFare(finalAmount);
 
         // 3. Process Payment
-        boolean success = PaymentManager.getInstance().processTransaction(strategy, finalAmount);
+        boolean paymentSuccess = PaymentManager.getInstance().processTransaction(payable, finalAmount);
         
-        if (success) {
+        if (paymentSuccess) {
             // Confirm seats permanently
             for (com.airline.skybooker.models.BookingPassenger bp : booking.getPassengers()) {
                 seatService.confirmSeat(flight.getFlightNumber(), bp.getSeatNumber());

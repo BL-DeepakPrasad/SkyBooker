@@ -1,6 +1,6 @@
 package com.airline.skybooker.payments;
 
-public class UPIPayment implements PaymentStrategy {
+public class UPIPayment extends AbstractPayment {
 
     private final String upiId;
 

@@ -3,10 +3,12 @@ package com.airline.skybooker.models;
 import com.airline.skybooker.states.BookingState;
 import com.airline.skybooker.states.InitiatedState;
 import com.airline.skybooker.enums.BookingPriority;
-import com.airline.skybooker.payments.PaymentStrategy;
+import com.airline.skybooker.interfaces.Payable;
+import com.airline.skybooker.interfaces.Bookable;
+import com.airline.skybooker.interfaces.Cancellable;
 import java.time.LocalDateTime;
 
-public class Booking implements Comparable<Booking> {
+public class Booking implements Comparable<Booking>, Bookable, Cancellable {
     private String bookingId;
     private int userId;
     private int flightId;
@@ -20,7 +22,7 @@ public class Booking implements Comparable<Booking> {
     private BookingState currentState;
     private BookingPriority priority;
     private long timestamp;
-    private PaymentStrategy paymentStrategy;
+    private Payable payable;
 
     public Booking(String bookingId, int userId, int flightId) {
         this.bookingId = bookingId;
@@ -41,8 +43,16 @@ public class Booking implements Comparable<Booking> {
         currentState.nextState(this);
     }
 
-    public void cancel() {
+    @Override
+    public boolean cancel() {
         currentState.cancel(this);
+        return true;
+    }
+
+    @Override
+    public void confirm() {
+        // Confirmation logic is typically handled by PaymentPendingState -> ConfirmedState
+        // This is added to fulfill the Bookable interface requirement.
     }
 
     public String getStatus() {
@@ -79,7 +89,7 @@ public class Booking implements Comparable<Booking> {
     public void setPriority(BookingPriority priority) { this.priority = priority; }
     public BookingPriority getPriority() { return priority; }
     public long getTimestamp() { return timestamp; }
-    public void setPaymentStrategy(PaymentStrategy strategy) { this.paymentStrategy = strategy; }
-    public PaymentStrategy getPaymentStrategy() { return paymentStrategy; }
+    public void setPayable(Payable payable) { this.payable = payable; }
+    public Payable getPayable() { return payable; }
     public java.util.List<BookingPassenger> getPassengers() { return passengers; }
 }

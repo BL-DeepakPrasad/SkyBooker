@@ -2,6 +2,7 @@ package com.airline.skybooker.ui;
 
 import com.airline.skybooker.managers.AuthenticationManager;
 import com.airline.skybooker.utils.ValidationUtils;
+import com.airline.skybooker.utils.InputReader;
 import java.util.Scanner;
 
 public class AuthUI {
@@ -50,45 +51,11 @@ public class AuthUI {
 
     private void handleRegistration() {
         try {
-            String name;
-            while (true) {
-                System.out.print("Full Name: ");
-                name = scanner.nextLine().trim();
-                try { ValidationUtils.validateName(name); break; }
-                catch (Exception e) { System.out.println("Error: " + e.getMessage()); }
-            }
-            
-            String email;
-            while (true) {
-                System.out.print("Email: ");
-                email = scanner.nextLine().trim();
-                try { ValidationUtils.validateEmail(email); break; }
-                catch (Exception e) { System.out.println("Error: " + e.getMessage()); }
-            }
-            
-            String pass;
-            while (true) {
-                System.out.print("Password: ");
-                pass = scanner.nextLine().trim();
-                try { ValidationUtils.validatePassword(pass); break; }
-                catch (Exception e) { System.out.println("Error: " + e.getMessage()); }
-            }
-            
-            String phone;
-            while (true) {
-                System.out.print("Phone: ");
-                phone = scanner.nextLine().trim();
-                try { ValidationUtils.validatePhone(phone); break; }
-                catch (Exception e) { System.out.println("Error: " + e.getMessage()); }
-            }
-            
-            String passport;
-            while (true) {
-                System.out.print("Passport Number: ");
-                passport = scanner.nextLine().trim();
-                try { ValidationUtils.validatePassport(passport); break; }
-                catch (Exception e) { System.out.println("Error: " + e.getMessage()); }
-            }
+            String name = InputReader.readString(scanner, "Full Name: ", ValidationUtils::validateName);
+            String email = InputReader.readString(scanner, "Email: ", ValidationUtils::validateEmail);
+            String pass = InputReader.readString(scanner, "Password: ", ValidationUtils::validatePassword);
+            String phone = InputReader.readString(scanner, "Phone: ", ValidationUtils::validatePhone);
+            String passport = InputReader.readString(scanner, "Passport Number: ", ValidationUtils::validatePassport);
             
             System.out.print("Nationality: ");
             String nationality = scanner.nextLine().trim();

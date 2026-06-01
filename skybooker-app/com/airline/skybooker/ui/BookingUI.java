@@ -3,7 +3,7 @@ package com.airline.skybooker.ui;
 import com.airline.skybooker.managers.BookingManager;
 import com.airline.skybooker.managers.PaymentManager;
 import com.airline.skybooker.managers.PriorityBookingManager;
-import com.airline.skybooker.payments.PaymentStrategy;
+import com.airline.skybooker.interfaces.Payable;
 import com.airline.skybooker.payments.CreditCardPayment;
 import com.airline.skybooker.payments.UPIPayment;
 import com.airline.skybooker.payments.EMIPayment;
@@ -16,6 +16,7 @@ import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.exception.SeatLockException;
 import com.airline.skybooker.exception.PaymentFailureException;
 import com.airline.skybooker.utils.ValidationUtils;
+import com.airline.skybooker.utils.InputReader;
 import com.airline.skybooker.utils.ErrorLogger;
 import java.util.Scanner;
 import java.time.LocalDateTime;
@@ -44,17 +45,7 @@ public class BookingUI {
         System.out.print("\nDo you want to book this flight? (y/n): ");
         if (!scanner.nextLine().trim().equalsIgnoreCase("y")) return;
 
-        int numPassengers = 0;
-        while (true) {
-            System.out.print("Enter number of passengers (Max 6): ");
-            try {
-                numPassengers = Integer.parseInt(scanner.nextLine().trim());
-                ValidationUtils.validatePassengerCount(numPassengers);
-                break;
-            } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
-            }
-        }
+        int numPassengers = InputReader.readInt(scanner, "Enter number of passengers (Max 6): ", ValidationUtils::validatePassengerCount);
 
         Booking booking = bookingManager.initiateBooking(passenger.getUserId(), flight.getFlightId());
         booking.nextState();
@@ -65,40 +56,16 @@ public class BookingUI {
 
         for (int i = 0; i < numPassengers; i++) {
             System.out.println("\n--- Passenger " + (i + 1) + " ---");
-            String name;
-            while (true) {
-                System.out.print("Full Name: ");
-                name = scanner.nextLine().trim();
-                try {
-                    ValidationUtils.validateName(name);
-                    break;
-                } catch (IllegalArgumentException e) {
-                    System.out.println("ERROR: " + e.getMessage());
+            String name = InputReader.readString(scanner, "Full Name: ", ValidationUtils::validateName);
+            String passport = InputReader.readOptionalString(scanner, "Passport Number (Enter to skip): ", ValidationUtils::validatePassport);
+            
+            String ageCat = InputReader.readString(scanner, "Age Category (Adult/Child/Infant): ", 
+                input -> {
+                    if (!input.equalsIgnoreCase("Adult") && !input.equalsIgnoreCase("Child") && !input.equalsIgnoreCase("Infant")) {
+                        throw new IllegalArgumentException("Please enter Adult, Child, or Infant.");
+                    }
                 }
-            }
-
-            String passport;
-            while (true) {
-                System.out.print("Passport Number (Enter to skip): ");
-                passport = scanner.nextLine().trim();
-                if (passport.isEmpty()) break;
-                try {
-                    ValidationUtils.validatePassport(passport);
-                    break;
-                } catch (IllegalArgumentException e) {
-                    System.out.println("ERROR: " + e.getMessage());
-                }
-            }
-
-            String ageCat;
-            while (true) {
-                System.out.print("Age Category (Adult/Child/Infant): ");
-                ageCat = scanner.nextLine().trim();
-                if (ageCat.equalsIgnoreCase("Adult") || ageCat.equalsIgnoreCase("Child") || ageCat.equalsIgnoreCase("Infant")) {
-                    break;
-                }
-                System.out.println("ERROR: Please enter Adult, Child, or Infant.");
-            }
+            );
             
             if (ageCat.equalsIgnoreCase("Adult")) adultCount++;
             else if (ageCat.equalsIgnoreCase("Infant")) infantCount++;
@@ -193,65 +160,30 @@ public class BookingUI {
         System.out.print("Enter choice (1/2/3): ");
         String choice = scanner.nextLine().trim();
 
-        PaymentStrategy strategy = null;
+        Payable payable = null;
 
         if (choice.equals("1")) {
-            String card;
-            while (true) {
-                System.out.print("Enter 16-digit Card Number: ");
-                card = scanner.nextLine().trim();
-                try {
-                    ValidationUtils.validateCardNumber(card);
-                    break;
-                } catch (IllegalArgumentException e) {
-                    System.out.println("ERROR: " + e.getMessage());
-                }
-            }
+            String card = InputReader.readString(scanner, "Enter 16-digit Card Number: ", ValidationUtils::validateCardNumber);
             System.out.print("Enter Cardholder Name: ");
             String name = scanner.nextLine().trim();
-            
-            String cvv;
-            while (true) {
-                System.out.print("Enter 3-digit CVV: ");
-                cvv = scanner.nextLine().trim();
-                try {
-                    ValidationUtils.validateCvv(cvv);
-                    break;
-                } catch (IllegalArgumentException e) {
-                    System.out.println("ERROR: " + e.getMessage());
-                }
-            }
-            strategy = new CreditCardPayment(card, name, cvv);
+            String cvv = InputReader.readString(scanner, "Enter 3-digit CVV: ", ValidationUtils::validateCvv);
+            payable = new CreditCardPayment(card, name, cvv);
         } else if (choice.equals("2")) {
-            String upi;
-            while (true) {
-                System.out.print("Enter UPI ID (e.g., name@bank): ");
-                upi = scanner.nextLine().trim();
-                try {
-                    ValidationUtils.validateUpiId(upi);
-                    break;
-                } catch (IllegalArgumentException e) {
-                    System.out.println("ERROR: " + e.getMessage());
-                }
-            }
-            strategy = new UPIPayment(upi);
+            String upi = InputReader.readString(scanner, "Enter UPI ID (e.g. user@okicici): ", ValidationUtils::validateUpiId);
+            payable = new UPIPayment(upi);
         } else if (choice.equals("3")) {
-            System.out.print("Enter 16-digit Card Number for EMI: ");
-            String card = scanner.nextLine().trim();
-            System.out.print("Enter Tenure (3, 6, or 12 months): ");
-            int months = 3;
-            try {
-                months = Integer.parseInt(scanner.nextLine().trim());
-            } catch (NumberFormatException e) {}
-            strategy = new EMIPayment(card, months);
-        } else {
-            System.out.println("Invalid payment method.");
-            bookingManager.cancelBooking(booking, flight, seatService);
+            String card = InputReader.readString(scanner, "Enter 16-digit Card Number: ", null);
+            int months = InputReader.readInt(scanner, "Enter EMI Months (3/6/9/12): ", null);
+            payable = new EMIPayment(card, months);
+        }
+
+        if (payable == null || !payable.validate()) {
+            System.out.println("Invalid Payment Details. Booking Cancelled.");
             return;
         }
 
         try {
-            boolean success = bookingManager.processPaymentAndConfirm(booking, flight, isExpress, strategy, seatService, promo);
+            boolean success = bookingManager.processPaymentAndConfirm(booking, flight, isExpress, payable, seatService, promo);
             if (success) {
                 System.out.println("\n====================================");
                 System.out.println("          E-TICKET GENERATED        ");
