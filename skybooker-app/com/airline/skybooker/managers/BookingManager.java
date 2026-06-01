@@ -108,22 +108,26 @@ public class BookingManager {
     /**
      * God Method to orchestrate locking, pricing, payment, and priority routing.
      */
-    public boolean processPaymentAndConfirm(Booking booking, String flightNumber, String seatNum, 
+    public boolean processPaymentAndConfirm(Booking booking, Flight flight, 
                                             boolean isExpress, PaymentStrategy strategy, 
-                                            double baseFare, SeatService seatService, String promoCode) throws SeatLockException {
-        // 1. Lock Seat
-        if (!seatService.lockSeat(flightNumber, seatNum)) {
-            throw new SeatLockException("Seat " + seatNum + " is no longer available.");
+                                            SeatService seatService, String promoCode) throws SeatLockException {
+        // 1. Lock Seats for all passengers
+        for (com.airline.skybooker.models.BookingPassenger bp : booking.getPassengers()) {
+            if (!seatService.lockSeat(flight.getFlightNumber(), bp.getSeatNumber())) {
+                throw new SeatLockException("Seat " + bp.getSeatNumber() + " is no longer available.");
+            }
         }
-        booking.setSeatNumber(seatNum);
+        
         // Transition: PASSENGER_DETAILS -> SEAT_SELECTED
         booking.nextState(); 
         
         // Transition: SEAT_SELECTED -> PAYMENT_PENDING
         booking.nextState();
         
+        boolean isDomestic = flight.getOrigin().getCountry().equalsIgnoreCase(flight.getDestination().getCountry());
+        
         // 2. Calculate Final Fare & Priority via Service
-        double finalAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, baseFare, isExpress, promoCode);
+        double finalAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promoCode, isDomestic);
         
         // Save strategy for future refunds
         booking.setPaymentStrategy(strategy);
@@ -139,14 +143,11 @@ public class BookingManager {
             // Notify passenger of confirmation
             User passenger = AuthenticationManager.getInstance().getCurrentUser().orElse(null);
             if (passenger != null) {
-                Flight f = FlightManager.getInstance().getFlightByNumber(flightNumber).orElse(null);
-                if (f != null) {
-                    NotificationManager.getInstance().sendBookingConfirmation(passenger, booking, f);
+                NotificationManager.getInstance().sendBookingConfirmation(passenger, booking, flight);
                     
-                    // Simulate Scheduled Reminders (12.2)
-                    NotificationManager.getInstance().sendTravelReminder(passenger, booking, "Check-in opens in 24 Hours!");
-                    NotificationManager.getInstance().sendTravelReminder(passenger, booking, "Boarding starts in 3 Hours!");
-                }
+                // Simulate Scheduled Reminders (12.2)
+                NotificationManager.getInstance().sendTravelReminder(passenger, booking, "Check-in opens in 24 Hours!");
+                NotificationManager.getInstance().sendTravelReminder(passenger, booking, "Boarding starts in 3 Hours!");
             }
             
             // 5. Add to Priority Processing Queue

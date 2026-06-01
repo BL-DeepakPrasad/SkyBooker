@@ -76,32 +76,22 @@ public class CheckInManager {
         return booking;
     }
 
-    public BoardingPass completeCheckIn(Booking booking, Flight flight, User user, String finalSeat, String baggage, boolean specialAssistance) {
-        Passenger passenger = (Passenger) user;
-        
-        // Finalize seat if it changed
-        if (!booking.getSeatNumber().equals(finalSeat)) {
-            // We assume SeatService unlocked old seat and locked new seat in UI layer
-            booking.setSeatNumber(finalSeat);
-        }
-
-        // Generate Boarding Pass
-        BoardingPass pass = new BoardingPass(
+    public BoardingPass createBoardingPass(Booking booking, Flight flight, com.airline.skybooker.models.BookingPassenger bp, String baggage, boolean specialAssistance) {
+        return new BoardingPass(
             booking.getPnrCode(),
-            passenger.getFullName(),
+            bp.getFullName(),
             flight.getFlightNumber(),
             flight.getOrigin().getCity(),
             flight.getDestination().getCity(),
             flight.getDepartureTime().toString(),
-            booking.getSeatNumber(),
+            bp.getSeatNumber(),
             flight.getDepartureGate(),
             baggage,
             specialAssistance
         );
+    }
 
-        // Transition State
+    public void finalizeCheckInState(Booking booking) {
         booking.nextState(); // Moves from CONFIRMED -> CHECKED_IN
-
-        return pass;
     }
 }
