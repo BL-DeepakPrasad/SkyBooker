@@ -5,8 +5,10 @@ import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.BoardingPass;
+import com.airline.skybooker.models.BoardingPass;
 import com.airline.skybooker.states.ConfirmedState;
 import com.airline.skybooker.services.SeatService;
+import com.airline.skybooker.exception.BookingNotFoundException;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -40,7 +42,7 @@ public class CheckInManager {
         Booking booking = BookingManager.getInstance().getAllBookings().stream()
                 .filter(b -> b.getPnrCode() != null && b.getPnrCode().equalsIgnoreCase(pnr))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Booking not found."));
+                .orElseThrow(() -> new BookingNotFoundException("Booking with PNR " + pnr + " not found."));
 
         if (booking.getUserId() != currentUser.getUserId()) {
             throw new IllegalStateException("Unauthorized access. Booking does not belong to you.");

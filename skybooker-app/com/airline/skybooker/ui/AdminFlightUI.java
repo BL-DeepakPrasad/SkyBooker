@@ -138,7 +138,7 @@ public class AdminFlightUI {
                     System.out.print("Enter new base fare: ");
                     double fare = Double.parseDouble(scanner.nextLine().trim());
                     flightManager.updateFlightFare(flightNum, fare);
-                    System.out.println("[SUCCESS] Base fare updated to $" + fare);
+                    System.out.println("[SUCCESS] Base fare updated to INR " + fare);
                     break;
                 case "5":
                     System.out.print("Enter new Departure Gate: ");

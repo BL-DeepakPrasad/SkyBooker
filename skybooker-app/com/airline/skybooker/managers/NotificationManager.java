@@ -63,7 +63,7 @@ public class NotificationManager {
         
         // Detailed E-Ticket via Email
         String emailBody = String.format(
-            "Booking CONFIRMED!\nPNR: %s\nFlight: %s (%s -> %s)\nDeparture: %s\nTotal Paid: $%.2f (Receipt Attached)",
+            "Booking CONFIRMED!\nPNR: %s\nFlight: %s (%s -> %s)\nDeparture: %s\nTotal Paid: INR %.2f (Receipt Attached)",
             booking.getPnrCode(), flight.getFlightNumber(), flight.getOrigin().getIataCode(), 
             flight.getDestination().getIataCode(), flight.getDepartureTime(), booking.getTotalFare()
         );
@@ -102,11 +102,11 @@ public class NotificationManager {
         if (user == null) return;
         
         // Email for Initiation
-        String emailBody = String.format("Cancellation Confirmed for PNR: %s.\nA refund of $%.2f has been INITIATED to your original payment method.", booking.getPnrCode(), amount);
+        String emailBody = String.format("Cancellation Confirmed for PNR: %s.\nA refund of INR %.2f has been INITIATED to your original payment method.", booking.getPnrCode(), amount);
         new EmailNotification().send(user, emailBody);
         
         // SMS for Completion
-        String smsBody = String.format("Skybooker: Refund of $%.2f for PNR %s is COMPLETED.", amount, booking.getPnrCode());
+        String smsBody = String.format("Skybooker: Refund of INR %.2f for PNR %s is COMPLETED.", amount, booking.getPnrCode());
         new SMSNotification().send(user, smsBody);
     }
 

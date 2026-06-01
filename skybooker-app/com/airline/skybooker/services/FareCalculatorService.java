@@ -42,7 +42,7 @@ public class FareCalculatorService {
                 passengerFare *= 0.10; // 90% off for infants
             }
             
-            // Baggage: $10 per kg over 15kg
+            // Baggage: INR 10 per kg over 15kg
             if (bp.getBaggageWeight() > 15.0) {
                 passengerFare += (bp.getBaggageWeight() - 15.0) * 10.0;
             }

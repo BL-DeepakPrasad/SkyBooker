@@ -32,7 +32,7 @@ public class EMIPayment implements PaymentStrategy {
         }
         
         double monthlyInstallment = amount / months;
-        System.out.printf("[PAYMENT GATEWAY] Processing EMI of $%.2f per month for %d months.%n", monthlyInstallment, months);
+        System.out.printf("[PAYMENT GATEWAY] Processing EMI of INR %.2f per month for %d months.%n", monthlyInstallment, months);
         System.out.println("[PAYMENT GATEWAY] Transaction Approved.");
         return true;
     }

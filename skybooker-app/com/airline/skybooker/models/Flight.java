@@ -248,7 +248,7 @@ public class Flight implements Comparable<Flight> {
     public String toString() {
         return airline.getName() + " " + flightNumber + " | " +
                 origin.getIataCode() + " -> " + destination.getIataCode() +
-                " | Price: $" + basePrice + " | Seats: " + availableSeats;
+                " | Price: INR " + basePrice + " | Seats: " + availableSeats;
     }
 
     /**
@@ -265,7 +265,7 @@ public class Flight implements Comparable<Flight> {
                "Origin: " + origin.getName() + " (" + origin.getIataCode() + ")\n" +
                "Destination: " + destination.getName() + " (" + destination.getIataCode() + ")\n" +
                "Departure: " + departureTime.toString().replace("T", " ") + "\n" +
-               "Base Fare: $" + basePrice + "\n" +
+               "Base Fare: INR " + basePrice + "\n" +
                "Aircraft: " + aircraftType + " | Status: " + flightStatus + "\n" +
                "Amenities: " + amenities + "\n" +
                "--------------------------------------------\n" +

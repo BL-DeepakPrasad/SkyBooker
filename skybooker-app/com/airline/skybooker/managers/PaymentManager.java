@@ -1,6 +1,8 @@
 package com.airline.skybooker.managers;
 
 import com.airline.skybooker.payments.PaymentStrategy;
+import com.airline.skybooker.exception.NetworkTimeoutException;
+import com.airline.skybooker.exception.PaymentFailureException;
 
 /**
  * Singleton managing payment processing and refunds.
@@ -27,11 +29,23 @@ public class PaymentManager {
     /**
      * Executes a payment through the provided strategy.
      */
-    public boolean processTransaction(PaymentStrategy strategy, double amount) {
+    public boolean processTransaction(PaymentStrategy strategy, double amount) throws NetworkTimeoutException, PaymentFailureException {
         if (strategy == null) {
             throw new IllegalArgumentException("Payment strategy cannot be null");
         }
-        System.out.println("[PAYMENT GATEWAY] Processing transaction of $" + amount + "...");
+        
+        // Simulate Network Timeout (5% chance)
+        if (Math.random() < 0.05) {
+            throw new NetworkTimeoutException("Payment Gateway Timeout. Please try again.");
+        }
+        
+        // Simulate Hard Payment Failure (5% chance)
+        if (Math.random() < 0.05) {
+            failedTransactions++;
+            throw new PaymentFailureException("Transaction declined by bank.");
+        }
+
+        System.out.println("[PAYMENT GATEWAY] Processing transaction of INR " + amount + "...");
         boolean success = strategy.processPayment(amount);
         if (success) {
             successfulTransactions++;
@@ -50,7 +64,7 @@ public class PaymentManager {
             failedTransactions++;
             return false;
         }
-        System.out.println("[PAYMENT GATEWAY] Processing refund of $" + amount + "...");
+        System.out.println("[PAYMENT GATEWAY] Processing refund of INR " + amount + "...");
         boolean success = strategy.refund(amount);
         if (success) {
             successfulTransactions++;

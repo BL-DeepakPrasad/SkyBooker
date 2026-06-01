@@ -1,6 +1,7 @@
 package com.airline.skybooker.ui;
 
 import com.airline.skybooker.managers.AuthenticationManager;
+import com.airline.skybooker.utils.ValidationUtils;
 import java.util.Scanner;
 
 public class AuthUI {
@@ -49,16 +50,46 @@ public class AuthUI {
 
     private void handleRegistration() {
         try {
-            System.out.print("Full Name: ");
-            String name = scanner.nextLine().trim();
-            System.out.print("Email: ");
-            String email = scanner.nextLine().trim();
-            System.out.print("Password: ");
-            String pass = scanner.nextLine().trim();
-            System.out.print("Phone: ");
-            String phone = scanner.nextLine().trim();
-            System.out.print("Passport Number: ");
-            String passport = scanner.nextLine().trim();
+            String name;
+            while (true) {
+                System.out.print("Full Name: ");
+                name = scanner.nextLine().trim();
+                try { ValidationUtils.validateName(name); break; }
+                catch (Exception e) { System.out.println("Error: " + e.getMessage()); }
+            }
+            
+            String email;
+            while (true) {
+                System.out.print("Email: ");
+                email = scanner.nextLine().trim();
+                try { ValidationUtils.validateEmail(email); break; }
+                catch (Exception e) { System.out.println("Error: " + e.getMessage()); }
+            }
+            
+            String pass;
+            while (true) {
+                System.out.print("Password: ");
+                pass = scanner.nextLine().trim();
+                try { ValidationUtils.validatePassword(pass); break; }
+                catch (Exception e) { System.out.println("Error: " + e.getMessage()); }
+            }
+            
+            String phone;
+            while (true) {
+                System.out.print("Phone: ");
+                phone = scanner.nextLine().trim();
+                try { ValidationUtils.validatePhone(phone); break; }
+                catch (Exception e) { System.out.println("Error: " + e.getMessage()); }
+            }
+            
+            String passport;
+            while (true) {
+                System.out.print("Passport Number: ");
+                passport = scanner.nextLine().trim();
+                try { ValidationUtils.validatePassport(passport); break; }
+                catch (Exception e) { System.out.println("Error: " + e.getMessage()); }
+            }
+            
             System.out.print("Nationality: ");
             String nationality = scanner.nextLine().trim();
 

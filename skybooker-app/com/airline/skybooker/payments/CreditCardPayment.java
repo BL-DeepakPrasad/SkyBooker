@@ -35,14 +35,14 @@ public class CreditCardPayment implements PaymentStrategy {
         
         System.out.println("[3D SECURE] Sending OTP to registered mobile number...");
         System.out.println("[3D SECURE] OTP Verified.");
-        System.out.println("[PAYMENT GATEWAY] Charging $" + amount + " to card ending in " + cardNumber.substring(cardNumber.length() - 4));
+        System.out.println("[PAYMENT GATEWAY] Charging INR " + amount + " to card ending in " + cardNumber.substring(cardNumber.length() - 4));
         System.out.println("[PAYMENT GATEWAY] Transaction Approved.");
         return true;
     }
 
     @Override
     public boolean refund(double amount) {
-        System.out.println("[PAYMENT GATEWAY] Initiating refund of $" + amount + " to Credit Card ending in " + cardNumber.substring(cardNumber.length() - 4));
+        System.out.println("[PAYMENT GATEWAY] Initiating refund of INR " + amount + " to Credit Card ending in " + cardNumber.substring(cardNumber.length() - 4));
         System.out.println("[PAYMENT GATEWAY] Refund Processed Successfully.");
         return true;
     }

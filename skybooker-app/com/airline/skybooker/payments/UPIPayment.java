@@ -25,7 +25,7 @@ public class UPIPayment implements PaymentStrategy {
             return false;
         }
         
-        System.out.println("[PAYMENT GATEWAY] Sending payment request to " + upiId + " for $" + amount);
+        System.out.println("[PAYMENT GATEWAY] Sending payment request to " + upiId + " for INR " + amount);
         System.out.println("[UPI APP] Please approve the request in your UPI App...");
         System.out.println("[PAYMENT GATEWAY] Transaction Approved.");
         return true;
@@ -33,7 +33,7 @@ public class UPIPayment implements PaymentStrategy {
 
     @Override
     public boolean refund(double amount) {
-        System.out.println("[PAYMENT GATEWAY] Initiating refund of $" + amount + " to UPI ID: " + upiId);
+        System.out.println("[PAYMENT GATEWAY] Initiating refund of INR " + amount + " to UPI ID: " + upiId);
         System.out.println("[PAYMENT GATEWAY] Refund Processed Successfully.");
         return true;
     }

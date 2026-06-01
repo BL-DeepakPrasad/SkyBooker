@@ -13,6 +13,8 @@ import com.airline.skybooker.ui.AdminFlightUI;
 import com.airline.skybooker.ui.AdminAirportUI;
 import com.airline.skybooker.ui.AdminAnalyticsUI;
 import com.airline.skybooker.ui.CheckInUI;
+import com.airline.skybooker.exception.DatabaseConnectionException;
+import com.airline.skybooker.utils.ErrorLogger;
 
 import java.util.Scanner;
 
@@ -52,6 +54,18 @@ public class Main {
      */
     public void start() {
         System.out.println("=== WELCOME TO SKYBOOKER ===");
+        
+        // Simulate Database Connection Attempt (5% chance of failure)
+        try {
+            if (Math.random() < 0.05) {
+                throw new DatabaseConnectionException("Failed to connect to primary RDS cluster.");
+            }
+            System.out.println("[SYSTEM] Database connected successfully.");
+        } catch (DatabaseConnectionException e) {
+            System.out.println("[SYSTEM FATAL] Cannot boot application: " + e.getMessage());
+            ErrorLogger.logError(e);
+            return;
+        }
         
         while (true) {
             // authentication

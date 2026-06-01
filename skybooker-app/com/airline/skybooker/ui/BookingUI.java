@@ -14,6 +14,9 @@ import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.exception.SeatLockException;
+import com.airline.skybooker.exception.PaymentFailureException;
+import com.airline.skybooker.utils.ValidationUtils;
+import com.airline.skybooker.utils.ErrorLogger;
 import java.util.Scanner;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -46,10 +49,10 @@ public class BookingUI {
             System.out.print("Enter number of passengers (Max 6): ");
             try {
                 numPassengers = Integer.parseInt(scanner.nextLine().trim());
-                if (numPassengers >= 1 && numPassengers <= 6) break;
-                System.out.println("Error: Must be between 1 and 6.");
+                ValidationUtils.validatePassengerCount(numPassengers);
+                break;
             } catch (Exception e) {
-                System.out.println("Invalid number.");
+                System.out.println("Error: " + e.getMessage());
             }
         }
 
@@ -82,7 +85,7 @@ public class BookingUI {
             } catch (Exception e) {}
 
             // Meal
-            System.out.print("Opt for Meal Upgrade (+$20)? (y/n): ");
+            System.out.print("Opt for Meal Upgrade (+INR 20)? (y/n): ");
             bp.setMealUpgrade(scanner.nextLine().trim().equalsIgnoreCase("y"));
 
             booking.getPassengers().add(bp);
@@ -110,7 +113,7 @@ public class BookingUI {
 
     private void handlePaymentPhase(Booking booking, Flight flight) {
         System.out.println("\n[UPGRADE OPPORTUNITY]");
-        System.out.print("Opt for EXPRESS Booking for an additional $25 fee? (Faster Processing) (y/n): ");
+        System.out.print("Opt for EXPRESS Booking for an additional INR 25 fee? (Faster Processing) (y/n): ");
         boolean isExpress = scanner.nextLine().trim().equalsIgnoreCase("y");
 
         System.out.print("\nDo you have a Promotional Code? (Press Enter to skip): ");
@@ -131,16 +134,44 @@ public class BookingUI {
         PaymentStrategy strategy = null;
 
         if (choice.equals("1")) {
-            System.out.print("Enter 16-digit Card Number: ");
-            String card = scanner.nextLine().trim();
+            String card;
+            while (true) {
+                System.out.print("Enter 16-digit Card Number: ");
+                card = scanner.nextLine().trim();
+                try {
+                    ValidationUtils.validateCardNumber(card);
+                    break;
+                } catch (IllegalArgumentException e) {
+                    System.out.println("ERROR: " + e.getMessage());
+                }
+            }
             System.out.print("Enter Cardholder Name: ");
             String name = scanner.nextLine().trim();
-            System.out.print("Enter 3-digit CVV: ");
-            String cvv = scanner.nextLine().trim();
+            
+            String cvv;
+            while (true) {
+                System.out.print("Enter 3-digit CVV: ");
+                cvv = scanner.nextLine().trim();
+                try {
+                    ValidationUtils.validateCvv(cvv);
+                    break;
+                } catch (IllegalArgumentException e) {
+                    System.out.println("ERROR: " + e.getMessage());
+                }
+            }
             strategy = new CreditCardPayment(card, name, cvv);
         } else if (choice.equals("2")) {
-            System.out.print("Enter UPI ID (e.g., name@bank): ");
-            String upi = scanner.nextLine().trim();
+            String upi;
+            while (true) {
+                System.out.print("Enter UPI ID (e.g., name@bank): ");
+                upi = scanner.nextLine().trim();
+                try {
+                    ValidationUtils.validateUpiId(upi);
+                    break;
+                } catch (IllegalArgumentException e) {
+                    System.out.println("ERROR: " + e.getMessage());
+                }
+            }
             strategy = new UPIPayment(upi);
         } else if (choice.equals("3")) {
             System.out.print("Enter 16-digit Card Number for EMI: ");
@@ -166,16 +197,21 @@ public class BookingUI {
                 System.out.println("PNR:          " + booking.getPnrCode());
                 System.out.println("Status:       " + booking.getStatus());
                 System.out.println("Passengers:   " + booking.getPassengers().size());
-                System.out.printf("Total Paid:   $%.2f%n", booking.getTotalFare());
+                System.out.printf("Total Paid:   INR %.2f%n", booking.getTotalFare());
                 System.out.println("====================================");
             } else {
                 System.out.println("Payment failed. Booking cancelled.");
                 System.out.println("[State: " + booking.getStatus() + "]");
             }
-        } catch (SeatLockException ex) {
+        } catch (SeatLockException | PaymentFailureException ex) {
             System.out.println("FAILED: " + ex.getMessage());
+            ErrorLogger.logError(ex);
             bookingManager.cancelBooking(booking);
             System.out.println("[State: " + booking.getStatus() + "]");
+        } catch (Exception ex) {
+            System.out.println("Unexpected Error: " + ex.getMessage());
+            ErrorLogger.logError(ex);
+            bookingManager.cancelBooking(booking);
         }
     }
 }

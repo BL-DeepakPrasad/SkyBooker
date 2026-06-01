@@ -19,7 +19,10 @@ import com.airline.skybooker.states.RefundedState;
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.managers.NotificationManager;
 import com.airline.skybooker.managers.AuthenticationManager;
+import com.airline.skybooker.managers.AuthenticationManager;
 import java.util.ArrayList;
+import com.airline.skybooker.exception.NetworkTimeoutException;
+import com.airline.skybooker.exception.PaymentFailureException;
 
 /**
  * Singleton Manager responsible for Booking lifecycle.
@@ -85,7 +88,7 @@ public class BookingManager {
             double refundAmount = refundData[0];
             double penalty = refundData[1];
             
-            System.out.printf("[CANCELLATION] Total Fare: $%.2f | Penalty: $%.2f | Refund Amount: $%.2f%n", 
+            System.out.printf("[CANCELLATION] Total Fare: INR %.2f | Penalty: INR %.2f | Refund Amount: INR %.2f%n", 
                                booking.getTotalFare(), penalty, refundAmount);
             
             if (booking.getPaymentStrategy() != null) {
@@ -110,7 +113,7 @@ public class BookingManager {
      */
     public boolean processPaymentAndConfirm(Booking booking, Flight flight, 
                                             boolean isExpress, PaymentStrategy strategy, 
-                                            SeatService seatService, String promoCode) throws SeatLockException {
+                                            SeatService seatService, String promoCode) throws SeatLockException, NetworkTimeoutException, PaymentFailureException {
         // 1. Lock Seats for all passengers
         for (com.airline.skybooker.models.BookingPassenger bp : booking.getPassengers()) {
             if (!seatService.lockSeat(flight.getFlightNumber(), bp.getSeatNumber())) {

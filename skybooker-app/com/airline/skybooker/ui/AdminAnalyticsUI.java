@@ -68,7 +68,7 @@ public class AdminAnalyticsUI {
                     LocalDate start = LocalDate.parse(scanner.nextLine().trim());
                     System.out.print("End Date (YYYY-MM-DD): ");
                     LocalDate end = LocalDate.parse(scanner.nextLine().trim());
-                    System.out.printf("Revenue: $%.2f%n", analyticsManager.getRevenueByDateRange(start, end));
+                    System.out.printf("Revenue: INR %.2f%n", analyticsManager.getRevenueByDateRange(start, end));
                 } catch (DateTimeParseException e) {
                     System.out.println("Invalid date format.");
                 }
@@ -78,7 +78,7 @@ public class AdminAnalyticsUI {
                 analyticsManager.getBookingTrendsByRoute().forEach((r, c) -> System.out.println(" - " + r + ": " + c + " bookings"));
                 break;
             case "4":
-                System.out.printf("Average Booking Value: $%.2f%n", analyticsManager.calculateAverageBookingValue());
+                System.out.printf("Average Booking Value: INR %.2f%n", analyticsManager.calculateAverageBookingValue());
                 break;
             case "5":
                 System.out.printf("Cancellation Rate: %.2f%%%n", analyticsManager.getCancellationRate());
@@ -105,7 +105,7 @@ public class AdminAnalyticsUI {
                 break;
             case "2":
                 System.out.println("Revenue by Airline:");
-                analyticsManager.getRevenueByAirline().forEach((a, r) -> System.out.printf(" - %s: $%.2f%n", a, r));
+                analyticsManager.getRevenueByAirline().forEach((a, r) -> System.out.printf(" - %s: INR %.2f%n", a, r));
                 break;
             case "3":
                 System.out.println("Peak Booking Hours:");
@@ -135,7 +135,7 @@ public class AdminAnalyticsUI {
                 System.out.print("Enter User ID: ");
                 try {
                     int id = Integer.parseInt(scanner.nextLine().trim());
-                    System.out.printf("Lifetime Value for User %d: $%.2f%n", id, analyticsManager.getCustomerLifetimeValue(id));
+                    System.out.printf("Lifetime Value for User %d: INR %.2f%n", id, analyticsManager.getCustomerLifetimeValue(id));
                 } catch (NumberFormatException e) {
                     System.out.println("Invalid ID.");
                 }

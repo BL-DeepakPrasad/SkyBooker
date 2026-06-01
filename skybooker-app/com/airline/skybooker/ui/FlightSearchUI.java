@@ -11,6 +11,8 @@ import com.airline.skybooker.filters.PriceCriteria;
 import com.airline.skybooker.filters.AirlineCriteria;
 import com.airline.skybooker.exception.FlightNotFoundException;
 import com.airline.skybooker.enums.TripType;
+import com.airline.skybooker.utils.ValidationUtils;
+import com.airline.skybooker.utils.ErrorLogger;
 
 import java.util.List;
 import java.util.Scanner;
@@ -56,12 +58,10 @@ public class FlightSearchUI {
                 }
             }
 
-            System.out.print("\nEnter Origin IATA Code (e.g. DEL): ");
-            String origin = scanner.nextLine().trim().toUpperCase();
+            String origin = getValidAirportCode("Enter Origin IATA Code (e.g. DEL): ");
             suggestAlternatives(origin);
 
-            System.out.print("Enter Destination IATA Code (e.g. BOM): ");
-            String destination = scanner.nextLine().trim().toUpperCase();
+            String destination = getValidAirportCode("Enter Destination IATA Code (e.g. BOM): ");
             suggestAlternatives(destination);
 
             System.out.print("\nAre your dates flexible? (y/n) to view ±3 Days Price Calendar: ");
@@ -83,9 +83,9 @@ public class FlightSearchUI {
                 }
             }
 
-            System.out.printf("\nAverage Fare for %s-%s: $%.2f%n", origin, destination, flightManager.getAverageFare(origin, destination));
+            System.out.printf("\nAverage Fare for %s-%s: INR %.2f%n", origin, destination, flightManager.getAverageFare(origin, destination));
             flightManager.getCheapestFlight(origin, destination).ifPresent(f ->
-                System.out.println("Cheapest Outbound Flight: $" + f.getBasePrice())
+                System.out.println("Cheapest Outbound Flight: INR " + f.getBasePrice())
             );
 
             System.out.print("\nEnter Flight Number to view full details (or press Enter to skip): ");
@@ -110,6 +110,20 @@ public class FlightSearchUI {
             System.out.println("ERROR: " + e.getMessage());
         } catch (Exception e) {
             System.out.println("An unexpected error occurred: " + e.getMessage());
+            ErrorLogger.logError(e);
+        }
+    }
+
+    private String getValidAirportCode(String prompt) {
+        while (true) {
+            System.out.print("\n" + prompt);
+            String code = scanner.nextLine().trim().toUpperCase();
+            try {
+                ValidationUtils.validateAirportCode(code);
+                return code;
+            } catch (IllegalArgumentException e) {
+                System.out.println("ERROR: " + e.getMessage());
+            }
         }
     }
 
@@ -160,13 +174,13 @@ public class FlightSearchUI {
         if (avgFare == 0.0) return;
 
         System.out.println("\n[Price Trend Calendar for " + origin + " -> " + destination + "]");
-        System.out.printf("  -3 Days: $%.2f%n", avgFare * 1.15);
-        System.out.printf("  -2 Days: $%.2f%n", avgFare * 1.05);
-        System.out.printf("  -1 Day : $%.2f%n", avgFare * 0.90);
-        System.out.printf("   Target: $%.2f  <-- Current Average%n", avgFare);
-        System.out.printf("  +1 Day : $%.2f%n", avgFare * 0.85);
-        System.out.printf("  +2 Days: $%.2f%n", avgFare * 0.95);
-        System.out.printf("  +3 Days: $%.2f%n", avgFare * 1.10);
+        System.out.printf("  -3 Days: INR %.2f%n", avgFare * 1.15);
+        System.out.printf("  -2 Days: INR %.2f%n", avgFare * 1.05);
+        System.out.printf("  -1 Day : INR %.2f%n", avgFare * 0.90);
+        System.out.printf("   Target: INR %.2f  <-- Current Average%n", avgFare);
+        System.out.printf("  +1 Day : INR %.2f%n", avgFare * 0.85);
+        System.out.printf("  +2 Days: INR %.2f%n", avgFare * 0.95);
+        System.out.printf("  +3 Days: INR %.2f%n", avgFare * 1.10);
     }
 
     private void suggestAlternatives(String iataCode) {

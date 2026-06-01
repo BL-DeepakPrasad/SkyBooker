@@ -56,7 +56,7 @@ public class BookingManagementUI {
         System.out.println("\n--- MANAGE BOOKING ---");
         System.out.println("PNR: " + booking.getPnrCode());
         System.out.println("Status: " + booking.getStatus());
-        System.out.printf("Total Fare Paid: $%.2f%n", booking.getTotalFare());
+        System.out.printf("Total Fare Paid: INR %.2f%n", booking.getTotalFare());
         System.out.println("1. Cancel Booking");
         System.out.println("2. Go Back");
         System.out.print("Enter choice: ");

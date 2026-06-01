@@ -8,6 +8,8 @@ import com.airline.skybooker.models.Booking;
 import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.BoardingPass;
+import com.airline.skybooker.exception.BookingNotFoundException;
+import com.airline.skybooker.utils.ErrorLogger;
 
 import java.util.Scanner;
 
@@ -88,8 +90,12 @@ public class CheckInUI {
                 NotificationManager.getInstance().sendBoardingPass(currentUser, pass);
             }
 
-        } catch (Exception e) {
+        } catch (BookingNotFoundException e) {
             System.out.println("[CHECK-IN FAILED] " + e.getMessage());
+            ErrorLogger.logError(e);
+        } catch (Exception e) {
+            System.out.println("[CHECK-IN FAILED] An unexpected error occurred: " + e.getMessage());
+            ErrorLogger.logError(e);
         }
     }
 }
