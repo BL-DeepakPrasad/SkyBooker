@@ -2,6 +2,10 @@ package com.airline.skybooker.states;
 
 import com.airline.skybooker.models.Booking;
 
+/**
+ * Represents the phase where temporary mutex locks are acquired against physical aircraft inventory.
+ * Safeguards chosen seat coordinates during the subsequent payment processing window.
+ */
 public class SeatSelectedState implements BookingState {
 
     @Override

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Singleton Manager responsible for User Authentication and Registration.
+ * Centralized security gateway for user registration, role provisioning, and session authentication.
  */
 public class AuthenticationManager {
 
@@ -32,6 +32,11 @@ public class AuthenticationManager {
         initializeMockPassenger();
     }
 
+    /**
+     * Retrieves the singleton instance of the AuthenticationManager.
+     *
+     * @return the singleton AuthenticationManager instance
+     */
     public static AuthenticationManager getInstance() {
         if (instance == null) {
             synchronized (AuthenticationManager.class) {
@@ -51,6 +56,17 @@ public class AuthenticationManager {
         registerPassenger("Test Passenger", "user@skybooker.com", "user123", "1234567890", "TEST1234", "Indian");
     }
 
+    /**
+     * Provisions a new passenger account in the system if the provided email is unique.
+     *
+     * @param fullName       the passenger's full legal name
+     * @param email          the passenger's contact email address, utilized for login
+     * @param password       the raw password to be hashed and stored
+     * @param phone          the passenger's contact phone number
+     * @param passportNumber the international passport number
+     * @param nationality    the passenger's country of citizenship
+     * @return true if the registration was successful, false if the email already exists
+     */
     public boolean registerPassenger(String fullName, String email, String password, String phone, String passportNumber, String nationality) {
         if (emailToIdMap.containsKey(email.toLowerCase())) {
             return false; // Email exists
@@ -71,6 +87,13 @@ public class AuthenticationManager {
         emailToIdMap.put(email.toLowerCase(), id);
     }
 
+    /**
+     * Authenticates a user credential set against the registered profiles and initiates a session.
+     *
+     * @param email    the user's registered email address
+     * @param password the user's raw password
+     * @return true if credentials match and the account is active, false otherwise
+     */
     public boolean login(String email, String password) {
         Integer id = emailToIdMap.get(email.toLowerCase());
         if (id != null) {
@@ -87,19 +110,43 @@ public class AuthenticationManager {
         return false;
     }
 
+    /**
+     * Fetches a user profile corresponding to the exact user identifier.
+     *
+     * @param userId the unique identifier of the user
+     * @return an Optional containing the matched User, or empty if not found
+     */
     public Optional<User> getUserById(int userId) {
         return Optional.ofNullable(userDatabase.get(userId));
     }
 
+    /**
+     * Retrieves the complete catalog of registered users across all roles.
+     *
+     * @return a list encompassing all User profiles within the system
+     */
     public List<User> getAllUsers() {
         return new ArrayList<>(userDatabase.values());
     }
 
+    /**
+     * Looks up a user account employing their registered email address.
+     *
+     * @param email the user's email address
+     * @return an Optional containing the corresponding User, or empty if no match exists
+     */
     public Optional<User> getUserByEmail(String email) {
         Integer id = emailToIdMap.get(email.toLowerCase());
         return id != null ? Optional.ofNullable(userDatabase.get(id)) : Optional.empty();
     }
 
+    /**
+     * Modifies the operational activity status of a specific user account.
+     *
+     * @param userId   the unique identifier of the user
+     * @param isActive the desired active state (true for active, false for suspended)
+     * @return true if the status was successfully toggled, false if the user was not found
+     */
     public boolean toggleUserStatus(int userId, boolean isActive) {
         User user = userDatabase.get(userId);
         if (user != null) {
@@ -109,6 +156,12 @@ public class AuthenticationManager {
         return false;
     }
 
+    /**
+     * Upgrades a standard passenger account to an airline staff role, retaining their core profile data.
+     *
+     * @param userId the unique identifier of the passenger to promote
+     * @return true if the promotion was successful, false if the user was not found or is not a Passenger
+     */
     public boolean promoteToAirlineStaff(int userId) {
         User user = userDatabase.get(userId);
         if (user != null && user instanceof Passenger) {
@@ -126,10 +179,18 @@ public class AuthenticationManager {
         return false;
     }
 
+    /**
+     * Terminates the currently active user authentication session.
+     */
     public void logout() {
         this.currentUser = null;
     }
 
+    /**
+     * Retrieves the user profile currently bound to the active session.
+     *
+     * @return an Optional containing the active User, or empty if no user is logged in
+     */
     public Optional<User> getCurrentUser() {
         return Optional.ofNullable(currentUser);
     }

@@ -1,12 +1,13 @@
 package com.airline.skybooker.interfaces;
 
 /**
- * Interface defining operations for objects that can be cancelled.
+ * Contract for operations involving the termination of an active entity or workflow.
  */
 public interface Cancellable {
     /**
-     * Cancels the entity.
-     * @return true if cancellation was successful.
+     * Revokes the current entity state and releases any tied resources.
+     * 
+     * @return true if the termination executes successfully, false otherwise
      */
     boolean cancel();
 }

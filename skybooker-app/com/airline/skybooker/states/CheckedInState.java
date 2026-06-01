@@ -3,7 +3,8 @@ package com.airline.skybooker.states;
 import com.airline.skybooker.models.Booking;
 
 /**
- * State representing a passenger who has successfully checked in online.
+ * Represents the final pre-boarding phase where passenger identities are verified and boarding passes are issued.
+ * Restricts further standard modifications to the reservation payload.
  */
 public class CheckedInState implements BookingState {
 

@@ -1,9 +1,8 @@
 package com.airline.skybooker.exception;
 
 /**
- * Thrown to indicate that no flights were found for a specific search criteria.
- * This usually occurs when searching for routes that have no scheduled flights or
- * when all scheduled flights are fully booked.
+ * Denotes a failure to locate operable flights matching user-defined search parameters.
+ * Triggered when scheduling matrices return empty sets for queried routes or timeframes.
  */
 public class FlightNotFoundException extends AirlineSystemException {
 

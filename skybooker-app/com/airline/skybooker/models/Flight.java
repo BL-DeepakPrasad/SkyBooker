@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 import com.airline.skybooker.enums.FlightStatus;
 
 /**
- * Represents a scheduled flight between an origin and destination airport.
- * This class encapsulates flight details, pricing, and seat availability.
- * It implements {@link Comparable} to enable default sorting by base price.
+ * Scheduled commercial flight operating between origin and destination airports.
+ * Central domain entity managing dynamic seat availability, tiered pricing, and flight status lifecycle.
+ * Implements {@link Comparable} to enable default ascending sort by base price.
  */
 public class Flight implements Comparable<Flight> {
     private int flightId;
@@ -47,7 +47,8 @@ public class Flight implements Comparable<Flight> {
     }
 
     /**
-     * The Builder Pattern implementation for Flight.
+     * Fluent interface for constructing complex Flight instances.
+     * Enforces required attributes and assigns safe defaults for optional fields.
      */
     public static class Builder {
         private int flightId;

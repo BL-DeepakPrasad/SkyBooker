@@ -1,8 +1,8 @@
 package com.airline.skybooker.exception;
 
 /**
- * Represents a generic system exception within the reservation platform.
- * This serves as the base class for all custom domain exceptions.
+ * Core foundational exception handling unexpected environmental or business rule violations.
+ * Establishes a unified catch boundary for all internally derived application faults.
  */
 public class AirlineSystemException extends RuntimeException {
 

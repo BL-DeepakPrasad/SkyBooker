@@ -3,7 +3,8 @@ package com.airline.skybooker.states;
 import com.airline.skybooker.models.Booking;
 
 /**
- * The initial state when a user selects a flight to book.
+ * Represents the genesis phase of a reservation workflow upon initial flight selection.
+ * Prepares the transaction context to collect mandatory passenger details.
  */
 public class InitiatedState implements BookingState {
 

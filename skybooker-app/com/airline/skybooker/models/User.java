@@ -4,7 +4,8 @@ import java.time.LocalDateTime;
 import com.airline.skybooker.enums.Role;
 
 /**
- * Abstract base class for all system users.
+ * Foundational abstraction for all authenticated entities interacting with the platform.
+ * Centralizes common identity attributes, contact information, and role-based access.
  * Demonstrates OOAD Inheritance and Abstraction.
  */
 public abstract class User {
@@ -17,6 +18,17 @@ public abstract class User {
     protected boolean isActive;
     protected LocalDateTime createdAt;
 
+    /**
+     * Bootstraps common profile attributes for a newly authenticated entity.
+     * Records the creation timestamp and activates the profile.
+     *
+     * @param userId       unique system identifier for the entity
+     * @param fullName     complete legal name
+     * @param email        primary contact and login email address
+     * @param passwordHash secured hash for authentication checks
+     * @param phone        primary contact phone number
+     * @param role         authorization level defining system permissions
+     */
     public User(int userId, String fullName, String email, String passwordHash, String phone, Role role) {
         this.userId = userId;
         this.fullName = fullName;
@@ -43,7 +55,8 @@ public abstract class User {
     public void setActive(boolean active) { this.isActive = active; }
 
     /**
-     * Polymorphic method to be overridden by subclasses.
+     * Renders role-specific interfaces and operational menus.
+     * Must be implemented by concrete subclasses to provide tailored dashboard views.
      */
     public abstract void displayDashboard();
 }

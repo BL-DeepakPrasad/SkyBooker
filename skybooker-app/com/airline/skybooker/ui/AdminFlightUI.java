@@ -14,20 +14,30 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Admin UI for managing flights.
- * Handles the creation, modification, and reporting of flights.
+ * Command-line interface for administrator management of flight operations.
+ * Facilitates scheduling, modifying pricing and status, and generating occupancy analytics.
  */
 public class AdminFlightUI {
     private final Scanner scanner;
     private final FlightManager flightManager;
     private final SeatService seatService;
 
+    /**
+     * Constructs the flight administration interface with required dependencies.
+     *
+     * @param scanner the input reader for capturing administrator commands
+     * @param seatService the service responsible for initial seat allocations on new flights
+     */
     public AdminFlightUI(Scanner scanner, SeatService seatService) {
         this.scanner = scanner;
         this.flightManager = FlightManager.getInstance();
         this.seatService = seatService;
     }
 
+    /**
+     * Initiates the main interactive loop for flight administration.
+     * Routes administrator commands to their respective operational handlers.
+     */
     public void startAdminFlow() {
         while (true) {
             System.out.println("\n=== FLIGHT MANAGEMENT (ADMIN/STAFF) ===");
@@ -55,6 +65,10 @@ public class AdminFlightUI {
         }
     }
 
+    /**
+     * Gathers requirements for a new flight schedule and persists it in the flight catalog.
+     * Captures airline details, route endpoints, pricing policies, and capacity.
+     */
     private void handleFlightCreation() {
         System.out.println("\n--- FLIGHT CREATION WIZARD ---");
         try {
@@ -99,6 +113,9 @@ public class AdminFlightUI {
         }
     }
 
+    /**
+     * Retrieves and displays the complete list of scheduled and published flights.
+     */
     private void handleViewAllFlights() {
         System.out.println("\n--- ALL PUBLISHED FLIGHTS ---");
         for (Flight f : flightManager.getAllFlights()) {
@@ -106,6 +123,10 @@ public class AdminFlightUI {
         }
     }
 
+    /**
+     * Prompts for flight modifications including schedule adjustments, dynamic pricing updates, and status changes.
+     * Resolves the target flight by its unique flight number before applying changes.
+     */
     private void handleFlightEdit() {
         System.out.println("\n--- FLIGHT INFORMATION MANAGEMENT ---");
         System.out.print("Enter Flight Number to Edit (e.g. AI-101): ");
@@ -179,6 +200,10 @@ public class AdminFlightUI {
         }
     }
 
+    /**
+     * Filters flight data to present analytical reports on capacity and route occupancy.
+     * Applies optional criteria such as airline code, route, or operational status.
+     */
     private void handleGenerateReport() {
         System.out.println("\n--- FLIGHT SEARCH & OCCUPANCY REPORT ---");
         System.out.println("Apply filters (press Enter to skip any filter):");

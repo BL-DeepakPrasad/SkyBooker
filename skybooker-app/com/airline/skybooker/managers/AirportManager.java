@@ -11,7 +11,8 @@ import java.util.stream.Collectors;
 import java.util.Collections;
 
 /**
- * Singleton repository for managing Airport geographic data.
+ * Orchestrator for managing airport geographic data, indexing, and lookup operations.
+ * Maintains in-memory caches for fast retrieval by IATA code and city.
  */
 public class AirportManager {
     private static AirportManager instance;
@@ -22,6 +23,11 @@ public class AirportManager {
         initializeMockData();
     }
 
+    /**
+     * Retrieves the singleton instance of the AirportManager.
+     *
+     * @return the singleton AirportManager instance
+     */
     public static synchronized AirportManager getInstance() {
         if (instance == null) {
             instance = new AirportManager();
@@ -54,7 +60,9 @@ public class AirportManager {
     }
 
     /**
-     * Adds a new airport to the system.
+     * Registers a new airport instance within the cache and city-based search index.
+     *
+     * @param airport the constructed Airport object to register
      */
     public void addAirport(Airport airport) {
         airportCache.put(airport.getIataCode().toUpperCase(), airport);
@@ -63,7 +71,16 @@ public class AirportManager {
     }
 
     /**
-     * Service method to create and register an airport.
+     * Constructs and persists a new airport record using the provided configuration parameters.
+     *
+     * @param name           the full official name of the airport
+     * @param iata           the unique 3-letter IATA code
+     * @param city           the city where the airport is located
+     * @param country        the country of the airport
+     * @param timezone       the timezone in which the airport operates
+     * @param terminals      the available terminals as a comma-separated string
+     * @param facilities     the list of facilities provided by the airport
+     * @param contactDetails the primary contact email or phone number
      */
     public void createAirport(String name, String iata, String city, String country, String timezone, String terminals, String facilities, String contactDetails) {
         Airport newAirport = new Airport.Builder()
@@ -75,7 +92,12 @@ public class AirportManager {
     }
 
     /**
-     * Service method to update an existing airport.
+     * Modifies the operational terminals and facilities for an existing airport identified by its IATA code.
+     *
+     * @param iata       the 3-letter IATA code of the airport to update
+     * @param terminals  the updated list of operational terminals, or null if unchanged
+     * @param facilities the updated list of facilities, or null if unchanged
+     * @throws IllegalArgumentException if no airport matches the provided IATA code
      */
     public void updateAirport(String iata, String terminals, String facilities) {
         Optional<Airport> opt = getAirportByCode(iata);
@@ -89,7 +111,11 @@ public class AirportManager {
     }
 
     /**
-     * Service method to toggle airport active status.
+     * Switches the active operational state of an airport based on its IATA code.
+     *
+     * @param iata the 3-letter IATA code of the target airport
+     * @return true if the airport is now active, false if suspended
+     * @throws IllegalArgumentException if no airport matches the provided IATA code
      */
     public boolean toggleAirportStatus(String iata) {
         Optional<Airport> opt = getAirportByCode(iata);
@@ -103,21 +129,30 @@ public class AirportManager {
     }
 
     /**
-     * Retrieves an airport by exact IATA code.
+     * Retrieves an airport record based on its unique IATA identifier.
+     *
+     * @param code the exact 3-letter IATA code
+     * @return an Optional containing the matched Airport, or empty if not found
      */
     public Optional<Airport> getAirportByCode(String code) {
         return Optional.ofNullable(airportCache.get(code.toUpperCase()));
     }
 
     /**
-     * Gets all registered airports.
+     * Fetches the complete collection of registered airports in the system.
+     *
+     * @return a newly constructed list containing all active and inactive airports
      */
     public List<Airport> getAllAirports() {
         return new ArrayList<>(airportCache.values());
     }
 
     /**
-     * Searches by IATA code, City name, or Airport name.
+     * Scans the airport registry for matches against IATA code, city, or airport name.
+     * Case-insensitive partial matching is applied.
+     *
+     * @param query the search string to match against airport fields
+     * @return a filtered list of airports fulfilling the search criteria
      */
     public List<Airport> searchAirports(String query) {
         String lowerQuery = query.toLowerCase();
@@ -129,7 +164,10 @@ public class AirportManager {
     }
 
     /**
-     * Recommends alternative nearby airports in the same city.
+     * Recommends nearby alternative airports operating within the same metropolitan area.
+     *
+     * @param iataCode the IATA code of the base airport
+     * @return a list of alternative airports in the same city, excluding the base airport
      */
     public List<Airport> getAlternativeAirports(String iataCode) {
         Optional<Airport> opt = getAirportByCode(iataCode);

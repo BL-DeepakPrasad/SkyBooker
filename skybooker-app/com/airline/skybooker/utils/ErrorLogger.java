@@ -6,10 +6,20 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Centralized diagnostic component for persisting application exceptions to a local file system.
+ * Isolates error auditing logic from business services to ensure consistent trace capture.
+ */
 public class ErrorLogger {
 
     private static final String LOG_FILE = "system_errors.log";
 
+    /**
+     * Appends a formatted exception stack trace to the persistent audit log.
+     * Records the execution timestamp alongside critical stack elements for forensic debugging.
+     * 
+     * @param e The caught exception instance containing runtime failure details
+     */
     public static void logError(Exception e) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(LOG_FILE, true))) {
             writer.printf("[%s] ERROR: %s%n", 

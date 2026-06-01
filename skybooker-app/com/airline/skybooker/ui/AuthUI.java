@@ -5,15 +5,29 @@ import com.airline.skybooker.utils.ValidationUtils;
 import com.airline.skybooker.utils.InputReader;
 import java.util.Scanner;
 
+/**
+ * Command-line interface for user authentication and registration workflows.
+ * Guides users through login, signup, or continuing as a guest.
+ */
 public class AuthUI {
     private final AuthenticationManager authManager;
     private final Scanner scanner;
 
+    /**
+     * Constructs the authentication interface with the provided input scanner.
+     *
+     * @param scanner the input reader for capturing user credentials
+     */
     public AuthUI(Scanner scanner) {
         this.scanner = scanner;
         this.authManager = AuthenticationManager.getInstance();
     }
 
+    /**
+     * Displays the initial authentication menu and loops until a valid session is established or the user exits.
+     *
+     * @return true if the application should proceed, false if the user chose to exit
+     */
     public boolean displayAuthMenu() {
         while (authManager.getCurrentUser().isEmpty()) {
             System.out.println("\n1. Login");
@@ -36,6 +50,9 @@ public class AuthUI {
         return true;
     }
 
+    /**
+     * Prompts for login credentials and delegates authentication to the underlying manager.
+     */
     private void handleLogin() {
         System.out.print("Email: ");
         String email = scanner.nextLine().trim();
@@ -49,6 +66,9 @@ public class AuthUI {
         }
     }
 
+    /**
+     * Gathers and validates required details to register a new passenger account.
+     */
     private void handleRegistration() {
         try {
             String name = InputReader.readString(scanner, "Full Name: ", ValidationUtils::validateName);

@@ -1,11 +1,11 @@
 package com.airline.skybooker.interfaces;
 
 /**
- * Interface defining operations for objects that can be booked.
+ * Contract for entities that undergo a reservation lifecycle.
  */
 public interface Bookable {
     /**
-     * Confirms the booking.
+     * Finalizes the reservation state and locks the associated inventory.
      */
     void confirm();
 }

@@ -1,9 +1,8 @@
 package com.airline.skybooker.models;
 
 /**
- * Represents an airline operating within the platform.
- * This class encapsulates the airline's identity, contact information,
- * and operational status.
+ * Registered aviation carrier operating flights within the platform.
+ * Encapsulates brand identity, international aviation codes, and operational contact data.
  */
 public class Airline {
     private int airlineId;

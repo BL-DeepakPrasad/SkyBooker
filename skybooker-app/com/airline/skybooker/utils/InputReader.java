@@ -4,13 +4,18 @@ import java.util.Scanner;
 import java.util.function.Consumer;
 
 /**
- * Utility class for reading validated console input to maintain DRY principles.
+ * Command-line input adapter ensuring standardized and resilient user data extraction.
+ * Employs functional validation boundaries to eliminate malformed input propagation.
  */
 public class InputReader {
 
     /**
-     * Reads a required string and validates it against a provided validator.
-     * Keeps looping until the input passes validation.
+     * Halts thread execution until a strictly validated character sequence is acquired from standard input.
+     * 
+     * @param scanner   The active input stream scanner
+     * @param prompt    The instructional text presented to the client
+     * @param validator The functional condition the input must satisfy
+     * @return A sanitized and successfully validated string input
      */
     public static String readString(Scanner scanner, String prompt, Consumer<String> validator) {
         while (true) {
@@ -30,8 +35,12 @@ public class InputReader {
     }
 
     /**
-     * Reads an optional string. If the user presses enter (empty input), it returns empty string.
-     * Otherwise it validates against the provided validator.
+     * Facilitates optional character sequence input, yielding an empty string on immediate carriage return.
+     * 
+     * @param scanner   The active input stream scanner
+     * @param prompt    The instructional text presented to the client
+     * @param validator The functional condition applied if input is non-empty
+     * @return The sanitized string input, or an empty string if bypassed
      */
     public static String readOptionalString(Scanner scanner, String prompt, Consumer<String> validator) {
         while (true) {
@@ -54,7 +63,12 @@ public class InputReader {
     }
 
     /**
-     * Reads an integer with an optional validation step.
+     * Captures and converts standard input into a 32-bit integer, guaranteeing numeric integrity.
+     * 
+     * @param scanner   The active input stream scanner
+     * @param prompt    The instructional text presented to the client
+     * @param validator The functional condition the numeric value must satisfy
+     * @return A safely parsed and validated integer
      */
     public static int readInt(Scanner scanner, String prompt, Consumer<Integer> validator) {
         while (true) {
@@ -77,7 +91,12 @@ public class InputReader {
     }
 
     /**
-     * Reads a double with an optional validation step.
+     * Captures and converts standard input into a double-precision floating point value.
+     * 
+     * @param scanner   The active input stream scanner
+     * @param prompt    The instructional text presented to the client
+     * @param validator The functional condition the decimal value must satisfy
+     * @return A safely parsed and validated double
      */
     public static double readDouble(Scanner scanner, String prompt, Consumer<Double> validator) {
         while (true) {

@@ -1,10 +1,20 @@
 package com.airline.skybooker.payments;
 
+/**
+ * Financial processor orchestrating equated monthly installment (EMI) transactions.
+ * Calculates amortized payment schedules and validates tenure restrictions.
+ */
 public class EMIPayment extends AbstractPayment {
     
     private final String cardNumber;
     private final int months;
 
+    /**
+     * Initializes an installment-based transaction configuration.
+     * 
+     * @param cardNumber The 16-digit primary account number eligible for EMI
+     * @param months     The agreed tenure duration in months (e.g., 3, 6, 12)
+     */
     public EMIPayment(String cardNumber, int months) {
         this.cardNumber = cardNumber;
         this.months = months;

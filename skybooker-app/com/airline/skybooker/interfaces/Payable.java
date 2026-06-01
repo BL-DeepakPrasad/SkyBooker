@@ -1,26 +1,29 @@
 package com.airline.skybooker.interfaces;
 
 /**
- * Interface defining operations for objects that can process payments.
+ * Financial operations contract for processing transactions and issuing refunds.
  */
 public interface Payable {
     /**
-     * Processes a payment of the specified amount.
-     * @param amount The amount to pay
-     * @return true if successful
+     * Executes the financial transaction for the given charge.
+     * 
+     * @param amount The total cost to deduct
+     * @return true if the transaction completes authorized, false otherwise
      */
     boolean processPayment(double amount);
 
     /**
-     * Refunds a specified amount.
-     * @param amount The amount to refund
-     * @return true if successful
+     * Reverts a previously captured transaction and returns funds.
+     * 
+     * @param amount The specific monetary value to refund
+     * @return true if the refund succeeds, false otherwise
      */
     boolean refund(double amount);
 
     /**
-     * Validates the payment details.
-     * @return true if valid
+     * Verifies the integrity and authorization readiness of the payment credentials.
+     * 
+     * @return true if the credentials pass validation rules, false otherwise
      */
     boolean validate();
 }

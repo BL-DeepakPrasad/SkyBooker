@@ -1,7 +1,8 @@
 package com.airline.skybooker.models;
 
 /**
- * Represents a passenger line item within a Booking.
+ * Individual traveler details associated with a specific flight booking.
+ * Maintains state regarding seating, baggage allowances, and add-on services.
  */
 public class BookingPassenger {
     private String fullName;
@@ -13,6 +14,14 @@ public class BookingPassenger {
     private boolean isCancelled;
     private double farePaid;
 
+    /**
+     * Initializes a traveler profile for a booking.
+     * Applies default standard baggage weight and initializes add-ons to false.
+     *
+     * @param fullName       complete legal name matching the travel document
+     * @param passportNumber unique identifier of the travel document
+     * @param ageCategory    classification (e.g., Adult, Child, Infant) for fare calculation
+     */
     public BookingPassenger(String fullName, String passportNumber, String ageCategory) {
         this.fullName = fullName;
         this.passportNumber = passportNumber;

@@ -222,12 +222,24 @@ public class FlightManager implements Searchable {
                 .collect(Collectors.minBy(Comparator.comparingDouble(Flight::getBasePrice)));
     }
 
+    /**
+     * Retrieves a specific flight based on its designated alphanumeric flight number.
+     *
+     * @param flightNumber the flight code string (e.g., "AI-101")
+     * @return an Optional containing the matched Flight, or empty if not found
+     */
     public Optional<Flight> getFlightByNumber(String flightNumber) {
         return flightDatabase.stream()
                 .filter(f -> f.getFlightNumber().equalsIgnoreCase(flightNumber))
                 .findFirst();
     }
 
+    /**
+     * Fetches a flight using its internal unique numeric identifier.
+     *
+     * @param flightId the primary key identifying the flight
+     * @return an Optional containing the corresponding Flight, or empty if no match exists
+     */
     public Optional<Flight> getFlightById(int flightId) {
         return flightDatabase.stream()
                 .filter(f -> f.getFlightId() == flightId)
@@ -251,19 +263,35 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Retrieves all flights in the system.
+     * Fetches a full snapshot of the current flight database.
+     *
+     * @return a list containing all scheduled flights
      */
     public List<Flight> getAllFlights() {
         return new ArrayList<>(flightDatabase);
     }
 
     /**
-     * Service method to validate inputs and create a Flight.
+     * Validates parameters and synthesizes a new Flight schedule, including route setup and seat layout initialization.
+     *
+     * @param airlineName  the name of the operating airline
+     * @param airlineCode  the short airline IATA designator
+     * @param flightNumber the designated flight number
+     * @param aircraftType the model of the aircraft serving the route
+     * @param originCode   the IATA code of the departure airport
+     * @param destCode     the IATA code of the arrival airport
+     * @param capacity     the maximum passenger capacity for the flight
+     * @param baseFare     the starting price point for a standard seat
+     * @param baggage      the allowed baggage configuration text
+     * @param cancelPolicy the governing cancellation rules text
+     * @param amenities    the list of in-flight services provided
+     * @param seatService  the service handling the initial seat map generation
+     * @throws IllegalArgumentException if the origin or destination airport codes are invalid
      */
     public void createFlight(String airlineName, String airlineCode, String flightNumber, String aircraftType, 
                              String originCode, String destCode, int capacity, double baseFare, 
                              String baggage, String cancelPolicy, String amenities, 
-                             com.airline.skybooker.services.SeatService seatService) {
+                             SeatService seatService) {
         
         AirportManager am = AirportManager.getInstance();
         Airport origin = am.getAirportByCode(originCode).orElseThrow(() -> new IllegalArgumentException("Origin Airport not found"));
@@ -295,7 +323,11 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Service methods to modify flight data.
+     * Delays or reschedules a flight by adjusting its departure date relative to the current time.
+     *
+     * @param flightNum the flight identifier
+     * @param daysDelay the number of days to offset the departure from today
+     * @throws IllegalArgumentException if the flight does not exist
      */
     public void updateFlightDeparture(String flightNum, int daysDelay) {
         Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
@@ -303,18 +335,39 @@ public class FlightManager implements Searchable {
         clearCache();
     }
 
+    /**
+     * Adjusts the baseline fare price for an existing scheduled flight.
+     *
+     * @param flightNum the flight identifier
+     * @param newFare   the updated base fare amount
+     * @throws IllegalArgumentException if the flight does not exist
+     */
     public void updateFlightFare(String flightNum, double newFare) {
         Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
         f.setBasePrice(newFare);
         clearCache();
     }
 
+    /**
+     * Modifies the base price of a flight proportionally according to demand algorithms.
+     *
+     * @param flightNum  the flight identifier
+     * @param percentage the percentage multiplier to apply (e.g., 10.0 for a 10% increase)
+     * @throws IllegalArgumentException if the flight does not exist
+     */
     public void applyDynamicPricing(String flightNum, double percentage) {
         Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
         f.applyDynamicPricing(percentage);
         clearCache();
     }
 
+    /**
+     * Transitions a flight's operational status and orchestrates alert broadcasts for severe disruptions.
+     *
+     * @param flightNum the flight identifier
+     * @param status    the new operational state (e.g., DELAYED, CANCELLED)
+     * @throws IllegalArgumentException if the flight does not exist
+     */
     public void updateFlightStatus(String flightNum, FlightStatus status) {
         Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
         f.setFlightStatus(status);
@@ -332,6 +385,13 @@ public class FlightManager implements Searchable {
         }
     }
 
+    /**
+     * Changes the assigned departure terminal gate and alerts impacted passengers.
+     *
+     * @param flightNum the flight identifier
+     * @param newGate   the new gate string identifier (e.g., "G2B")
+     * @throws IllegalArgumentException if the flight does not exist
+     */
     public void updateFlightGate(String flightNum, String newGate) {
         Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
         f.setDepartureGate(newGate);
@@ -347,7 +407,12 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Service method to generate occupancy reports via Stream filters.
+     * Filters the flight database applying predicates for airline, route, and status sequentially.
+     *
+     * @param airlineCode an optional airline code to filter by, or empty to ignore
+     * @param route       an optional route pattern to match, or empty to ignore
+     * @param statusStr   an optional status string to enforce, or empty to ignore
+     * @return a filtered list of matching flights
      */
     public List<Flight> getFilteredFlights(String airlineCode, String route, String statusStr) {
         return flightDatabase.stream()

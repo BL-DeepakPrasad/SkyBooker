@@ -3,13 +3,27 @@ package com.airline.skybooker.ui;
 import com.airline.skybooker.models.Passenger;
 import java.util.Scanner;
 
+/**
+ * Command-line interface for managing and updating passenger profiles.
+ * Facilitates the viewing and modification of personal details and notification preferences.
+ */
 public class ProfileUI {
     private final Scanner scanner;
 
+    /**
+     * Constructs the profile management interface with the provided input scanner.
+     *
+     * @param scanner the input reader for capturing passenger inputs
+     */
     public ProfileUI(Scanner scanner) {
         this.scanner = scanner;
     }
 
+    /**
+     * Displays the passenger's current profile details and presents options for inline modifications.
+     *
+     * @param passenger the authenticated passenger whose profile is being viewed
+     */
     public void handleViewProfile(Passenger passenger) {
         System.out.println("\n============================================");
         System.out.println("               USER PROFILE                 ");
@@ -49,6 +63,11 @@ public class ProfileUI {
         scanner.nextLine();
     }
 
+    /**
+     * Prompts the passenger to update their contact information and travel documents through an interactive wizard.
+     *
+     * @param passenger the authenticated passenger updating their details
+     */
     public void handleProfileUpdate(Passenger passenger) {
         System.out.println("\n--- UPDATE PROFILE ---");
         System.out.println("Leave blank to keep current value.");

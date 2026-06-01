@@ -9,8 +9,7 @@ import java.util.Scanner;
 
 /**
  * Acts as the Front Controller for authenticated users.
- * Routes dashboard selections to the appropriate controller. 
- * keeping Main.java clean and compliant with SRP.
+ * Routes dashboard selections to the appropriate domain-specific UI module.
  */
 public class DashboardController {
     
@@ -24,6 +23,19 @@ public class DashboardController {
     private final CheckInUI checkInUI;
     private final AdminUserUI adminUserUI;
 
+    /**
+     * Constructs the dashboard controller with all available UI modules.
+     *
+     * @param scanner the input reader for capturing user selections
+     * @param profileUI the UI for profile management
+     * @param bookingManagementUI the UI for managing existing bookings
+     * @param searchUI the UI for searching and discovering flights
+     * @param adminFlightUI the UI for administrator flight operations
+     * @param adminAirportUI the UI for administrator airport operations
+     * @param adminAnalyticsUI the UI for platform reporting
+     * @param checkInUI the UI for the web check-in process
+     * @param adminUserUI the UI for administrator user management
+     */
     public DashboardController(Scanner scanner, ProfileUI profileUI, BookingManagementUI bookingManagementUI, 
                                FlightSearchUI searchUI, AdminFlightUI adminFlightUI, 
                                AdminAirportUI adminAirportUI, AdminAnalyticsUI adminAnalyticsUI,
@@ -39,6 +51,11 @@ public class DashboardController {
         this.adminUserUI = adminUserUI;
     }
 
+    /**
+     * Initiates the main interactive dashboard loop for the authenticated user, displaying available features based on their role.
+     *
+     * @param user the currently logged-in user
+     */
     public void startLoop(User user) {
         boolean running = true;
         
@@ -61,6 +78,13 @@ public class DashboardController {
         }
     }
 
+    /**
+     * Evaluates the user's menu selection and routes control to the appropriate UI handler.
+     *
+     * @param choice the string input representing the menu selection
+     * @param user the currently logged-in user
+     * @return true to continue the dashboard loop, false to exit/logout
+     */
     private boolean routeChoice(String choice, User user) {
         boolean isPassenger = user instanceof Passenger;
         boolean isStaff = user instanceof AirlineStaff;

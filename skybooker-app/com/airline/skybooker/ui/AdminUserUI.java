@@ -8,15 +8,27 @@ import java.util.Scanner;
 import java.util.Optional;
 import java.util.List;
 
+/**
+ * Command-line interface for administrator oversight of user accounts.
+ * Manages user roles, operational statuses, and account retrieval.
+ */
 public class AdminUserUI {
     private final Scanner scanner;
     private final AuthenticationManager authManager;
 
+    /**
+     * Constructs the user administration interface with the provided input scanner.
+     *
+     * @param scanner the input reader for capturing administrator commands
+     */
     public AdminUserUI(Scanner scanner) {
         this.scanner = scanner;
         this.authManager = AuthenticationManager.getInstance();
     }
 
+    /**
+     * Initiates the main interactive loop for user management operations.
+     */
     public void startUserManagementFlow() {
         while (true) {
             System.out.println("\n=== USER MANAGEMENT (ADMIN) ===");
@@ -44,6 +56,9 @@ public class AdminUserUI {
         }
     }
 
+    /**
+     * Retrieves and lists summaries of all registered users in the system.
+     */
     private void handleViewAllUsers() {
         List<User> users = authManager.getAllUsers();
         System.out.println("\n--- ALL REGISTERED USERS ---");
@@ -52,6 +67,9 @@ public class AdminUserUI {
         }
     }
 
+    /**
+     * Looks up a specific user account using their registered email address.
+     */
     private void handleSearchUser() {
         System.out.print("\nEnter Email to Search: ");
         String email = scanner.nextLine().trim();
@@ -65,6 +83,9 @@ public class AdminUserUI {
         }
     }
 
+    /**
+     * Switches a specified user account's operational state between active and suspended.
+     */
     private void handleToggleStatus() {
         System.out.print("\nEnter User ID to modify status: ");
         try {
@@ -83,6 +104,9 @@ public class AdminUserUI {
         }
     }
 
+    /**
+     * Upgrades a standard passenger account to an airline staff role with elevated privileges.
+     */
     private void handlePromoteUser() {
         System.out.print("\nEnter Passenger ID to Promote: ");
         try {
@@ -104,6 +128,11 @@ public class AdminUserUI {
         }
     }
 
+    /**
+     * Formats and prints essential account details for a given user.
+     *
+     * @param u the user domain model to summarize
+     */
     private void printUserSummary(User u) {
         String type = u.getClass().getSimpleName();
         String status = u.isActive() ? "Active" : "Suspended";

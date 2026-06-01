@@ -6,16 +6,29 @@ import java.util.Scanner;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
+/**
+ * Command-line interface for platform analytics and reporting.
+ * Provides administrators with access to booking trends, flight performance, and passenger metrics.
+ */
 public class AdminAnalyticsUI {
 
     private final Scanner scanner;
     private final AnalyticsManager analyticsManager;
 
+    /**
+     * Constructs the analytics interface with the provided input scanner.
+     *
+     * @param scanner the input reader for capturing administrator commands
+     */
     public AdminAnalyticsUI(Scanner scanner) {
         this.scanner = scanner;
         this.analyticsManager = AnalyticsManager.getInstance();
     }
 
+    /**
+     * Initiates the main interactive loop for accessing analytics reports.
+     * Presents categories of available reports and routes to the appropriate handler.
+     */
     public void startAnalyticsFlow() {
         boolean running = true;
         while (running) {
@@ -46,6 +59,9 @@ public class AdminAnalyticsUI {
         }
     }
 
+    /**
+     * Presents booking-related reports including revenue, cancellation rates, and trends.
+     */
     private void handleBookingReports() {
         System.out.println("\n--- 13.1 Booking Reports ---");
         System.out.println("1. Daily Booking Report (Today)");
@@ -89,6 +105,9 @@ public class AdminAnalyticsUI {
         }
     }
 
+    /**
+     * Presents flight-related performance metrics such as occupancy rates and airline revenue.
+     */
     private void handleFlightPerformanceReports() {
         System.out.println("\n--- 13.2 Flight Performance Reports ---");
         System.out.println("1. Flight Occupancy Rates");
@@ -114,6 +133,9 @@ public class AdminAnalyticsUI {
         }
     }
 
+    /**
+     * Presents passenger demographics and customer lifetime value metrics.
+     */
     private void handlePassengerAnalytics() {
         System.out.println("\n--- 13.3 Passenger Analytics ---");
         System.out.println("1. Passenger Demographics (Nationality)");

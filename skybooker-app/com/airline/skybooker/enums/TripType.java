@@ -1,7 +1,8 @@
 package com.airline.skybooker.enums;
 
 /**
- * Defines the type of flight search/booking.
+ * Specifies the directional flow of a requested travel itinerary.
+ * Influences routing algorithms, search criteria parameters, and bundled pricing logic.
  */
 public enum TripType {
     ONE_WAY,

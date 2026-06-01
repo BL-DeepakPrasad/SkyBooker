@@ -7,21 +7,38 @@ import java.util.List;
 import java.util.Scanner;
 
 import com.airline.skybooker.services.SeatService;
+import com.airline.skybooker.services.BookingService;
 import com.airline.skybooker.managers.FlightManager;
 import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.BookingPassenger;
 
+/**
+ * Command-line interface for passengers to manage their existing bookings.
+ * Handles cancellations, seat modifications, and passenger detail updates.
+ */
 public class BookingManagementUI {
     private final BookingManager bookingManager;
     private final Scanner scanner;
     private final SeatService seatService;
 
+    /**
+     * Constructs the booking management interface with necessary services.
+     *
+     * @param scanner the input reader for capturing user commands
+     * @param seatService the service handling seat reassignment operations
+     */
     public BookingManagementUI(Scanner scanner, SeatService seatService) {
         this.scanner = scanner;
         this.seatService = seatService;
         this.bookingManager = BookingManager.getInstance();
     }
 
+    /**
+     * Retrieves and displays all bookings associated with the given passenger.
+     * Allows selection of a specific booking for further management.
+     *
+     * @param passenger the authenticated passenger whose bookings to display
+     */
     public void displayMyBookings(Passenger passenger) {
         System.out.println("\n============================================");
         System.out.println("               MY BOOKINGS                  ");
@@ -59,6 +76,11 @@ public class BookingManagementUI {
         }
     }
 
+    /**
+     * Presents options to modify a selected booking, checking operational rules before applying changes.
+     *
+     * @param booking the target booking record to manage
+     */
     private void manageSingleBooking(Booking booking) {
         Flight flight = FlightManager.getInstance().getFlightById(booking.getFlightId()).orElse(null);
         if (flight == null) return;
@@ -103,8 +125,8 @@ public class BookingManagementUI {
                 if (choice.equals("1")) {
                     System.out.print("Are you sure you want to cancel this ENTIRE booking? (y/n): ");
                     if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
-                        bookingManager.cancelBooking(booking, flight, seatService);
-                        System.out.println("Cancellation request processed. Current Status: " + booking.getStatus());
+                        BookingService.getInstance().cancelBooking(booking, flight, seatService);
+                        System.out.println("Booking Cancelled Successfully.");
                         break;
                     }
                 } else if (choice.equals("2")) {
@@ -124,12 +146,16 @@ public class BookingManagementUI {
         }
     }
 
+    /**
+     * Executes a partial cancellation for a specific passenger within a larger booking itinerary.
+     */
     private void handlePartialCancellation(Booking booking, Flight flight, List<BookingPassenger> passengers) {
         System.out.print("Enter passenger number from the list above (e.g. 1): ");
         try {
             int idx = Integer.parseInt(scanner.nextLine().trim()) - 1;
             if (idx >= 0 && idx < passengers.size() && !passengers.get(idx).isCancelled()) {
-                bookingManager.cancelSpecificPassenger(booking, flight, idx, seatService);
+                BookingService.getInstance().cancelSpecificPassenger(booking, flight, idx, seatService);
+                System.out.println("Passenger Cancelled.");
             } else {
                 System.out.println("Invalid selection or already cancelled.");
             }
@@ -138,6 +164,9 @@ public class BookingManagementUI {
         }
     }
 
+    /**
+     * Collects updated personal information or meal preferences for a specific passenger on the booking.
+     */
     private void handleEditPassenger(Booking booking, List<BookingPassenger> passengers) {
         System.out.print("Enter passenger number from the list above (e.g. 1): ");
         try {
@@ -160,6 +189,9 @@ public class BookingManagementUI {
         }
     }
 
+    /**
+     * Orchestrates a seat reassignment by presenting the current map and updating the passenger record.
+     */
     private void handleChangeSeat(Booking booking, Flight flight, List<BookingPassenger> passengers) {
         System.out.print("Enter passenger number from the list above (e.g. 1): ");
         try {

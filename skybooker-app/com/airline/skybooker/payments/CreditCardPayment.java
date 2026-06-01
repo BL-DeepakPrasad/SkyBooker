@@ -1,11 +1,22 @@
 package com.airline.skybooker.payments;
 
+/**
+ * Financial processor handling direct credit card billing operations.
+ * Integrates with standard card networks and enforces 3D-Secure authentication workflows.
+ */
 public class CreditCardPayment extends AbstractPayment {
     
     private final String cardNumber;
     private final String cardHolderName;
     private final String cvv;
 
+    /**
+     * Initializes the credit card billing context with required primary account details.
+     * 
+     * @param cardNumber     The 16-digit primary account number
+     * @param cardHolderName The legal name embossed on the card
+     * @param cvv            The 3-digit security verification code
+     */
     public CreditCardPayment(String cardNumber, String cardHolderName, String cvv) {
         this.cardNumber = cardNumber;
         this.cardHolderName = cardHolderName;

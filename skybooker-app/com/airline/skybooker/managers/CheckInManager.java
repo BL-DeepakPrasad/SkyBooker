@@ -5,17 +5,19 @@ import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.BoardingPass;
-import com.airline.skybooker.models.BoardingPass;
+import com.airline.skybooker.models.BookingPassenger;
 import com.airline.skybooker.states.ConfirmedState;
 import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.exception.BookingNotFoundException;
+import com.airline.skybooker.constants.AppConstants;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 /**
- * Singleton Manager responsible for Online Check-in logic.
+ * Orchestrator overseeing the online check-in lifecycle.
+ * Enforces timing windows, document validations, and issues boarding passes.
  */
 public class CheckInManager {
 
@@ -23,6 +25,11 @@ public class CheckInManager {
 
     private CheckInManager() {}
 
+    /**
+     * Retrieves the singleton instance of the CheckInManager.
+     *
+     * @return the singleton CheckInManager instance
+     */
     public static CheckInManager getInstance() {
         if (instance == null) {
             synchronized (CheckInManager.class) {
@@ -35,8 +42,12 @@ public class CheckInManager {
     }
 
     /**
-     * Retrieves the booking for check-in and performs all 14.2 validations.
-     * Throws an exception if any validation fails.
+     * Validates the check-in constraints including passenger ownership, booking state, flight window, and passport requirements.
+     *
+     * @param pnr         the Passenger Name Record code representing the booking
+     * @param currentUser the user initiating the check-in process
+     * @return the matched Booking entity if all validations pass
+     * @throws IllegalStateException if any validation check fails
      */
     public Booking validateAndRetrieveBooking(String pnr, User currentUser) throws IllegalStateException {
         Booking booking = BookingManager.getInstance().getAllBookings().stream()
@@ -48,7 +59,7 @@ public class CheckInManager {
             throw new IllegalStateException("Unauthorized access. Booking does not belong to you.");
         }
 
-        if (!booking.getStatus().equals("CONFIRMED")) {
+        if (!booking.getStatus().equals(AppConstants.STATUS_CONFIRMED)) {
             throw new IllegalStateException("Only CONFIRMED bookings can be checked in.");
         }
 
@@ -78,7 +89,17 @@ public class CheckInManager {
         return booking;
     }
 
-    public BoardingPass createBoardingPass(Booking booking, Flight flight, com.airline.skybooker.models.BookingPassenger bp, String baggage, boolean specialAssistance) {
+    /**
+     * Generates a digital boarding pass document combining flight details, passenger info, and check-in preferences.
+     *
+     * @param booking           the confirmed Booking
+     * @param flight            the scheduled Flight
+     * @param bp                the specific passenger within the booking
+     * @param baggage           the declared baggage information
+     * @param specialAssistance flag indicating if wheelchair or special assistance is required
+     * @return a newly constructed BoardingPass instance
+     */
+    public BoardingPass createBoardingPass(Booking booking, Flight flight, BookingPassenger bp, String baggage, boolean specialAssistance) {
         return new BoardingPass(
             booking.getPnrCode(),
             bp.getFullName(),
@@ -93,6 +114,11 @@ public class CheckInManager {
         );
     }
 
+    /**
+     * Progresses the booking state to formally indicate completion of the check-in process.
+     *
+     * @param booking the Booking to transition
+     */
     public void finalizeCheckInState(Booking booking) {
         booking.nextState(); // Moves from CONFIRMED -> CHECKED_IN
     }

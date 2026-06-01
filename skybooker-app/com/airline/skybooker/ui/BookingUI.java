@@ -9,19 +9,22 @@ import com.airline.skybooker.payments.UPIPayment;
 import com.airline.skybooker.payments.EMIPayment;
 import com.airline.skybooker.models.Booking;
 import com.airline.skybooker.models.BookingPassenger;
-import com.airline.skybooker.enums.BookingPriority;
 import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.services.SeatService;
+import com.airline.skybooker.services.FareCalculatorService;
+import com.airline.skybooker.services.BookingService;
 import com.airline.skybooker.exception.SeatLockException;
 import com.airline.skybooker.exception.PaymentFailureException;
 import com.airline.skybooker.utils.ValidationUtils;
 import com.airline.skybooker.utils.InputReader;
 import com.airline.skybooker.utils.ErrorLogger;
 import java.util.Scanner;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
+/**
+ * Command-line interface for creating and completing new flight reservations.
+ * Guides the user through passenger entry, seat selection, and payment processing.
+ */
 public class BookingUI {
     private final BookingManager bookingManager;
     private final PaymentManager paymentManager;
@@ -29,6 +32,12 @@ public class BookingUI {
     private final SeatService seatService;
     private final Scanner scanner;
 
+    /**
+     * Constructs the booking interface with required input and seat allocation dependencies.
+     *
+     * @param scanner the input reader for capturing user commands
+     * @param seatService the service responsible for seat validation and assignment
+     */
     public BookingUI(Scanner scanner, SeatService seatService) {
         this.scanner = scanner;
         this.bookingManager = BookingManager.getInstance();
@@ -37,6 +46,13 @@ public class BookingUI {
         this.seatService = seatService;
     }
 
+    /**
+     * Orchestrates the multi-step booking process for a selected flight.
+     * Captures passenger details, applies business rules, and initiates seat selection.
+     *
+     * @param passenger the authenticated passenger initiating the booking
+     * @param flight the chosen flight to book
+     */
     public void startBookingFlow(Passenger passenger, Flight flight) {
         System.out.println("\n[Rule Check] Validating flight departure time...");
         // Mock departure time check - assuming mock flights are 24+ hours out
@@ -107,7 +123,7 @@ public class BookingUI {
         // Business Rule Validation: Infant must travel with adult
         if (infantCount > 0 && adultCount == 0) {
             System.out.println("\n[ERROR] Business Rule Violation: An Infant must travel with at least one Adult.");
-            bookingManager.cancelBooking(booking, flight, seatService);
+            BookingService.getInstance().cancelBooking(booking, flight, seatService);
             return;
         }
 
@@ -132,6 +148,12 @@ public class BookingUI {
         handlePaymentPhase(booking, flight);
     }
 
+    /**
+     * Calculates the dynamic fare and presents payment options to finalize the booking transaction.
+     *
+     * @param booking the booking record in progress
+     * @param flight the flight being booked
+     */
     private void handlePaymentPhase(Booking booking, Flight flight) {
         System.out.println("\n[UPGRADE OPPORTUNITY]");
         System.out.print("Opt for EXPRESS Booking for an additional INR 25 fee? (Faster Processing) (y/n): ");
@@ -146,11 +168,11 @@ public class BookingUI {
         System.out.println("\nCalculating complex dynamic fares based on age, baggage, and seat selections...");
         boolean isDomestic = flight.getOrigin().getCountry().equalsIgnoreCase(flight.getDestination().getCountry());
         
-        String breakdown = com.airline.skybooker.services.FareCalculatorService.getInstance().getFareBreakdown(booking, flight.getBasePrice(), isExpress, promo, isDomestic);
+        String breakdown = FareCalculatorService.getInstance().getFareBreakdown(booking, flight.getBasePrice(), isExpress, promo, isDomestic);
         booking.setFareBreakdown(breakdown);
         System.out.println(breakdown);
         
-        double previewAmount = com.airline.skybooker.services.FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promo, isDomestic);
+        double previewAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promo, isDomestic);
         System.out.printf("\n*** TOTAL PAYABLE AMOUNT: INR %.2f ***%n", previewAmount);
 
         System.out.println("\nSelect Payment Strategy:");
@@ -183,7 +205,7 @@ public class BookingUI {
         }
 
         try {
-            boolean success = bookingManager.processPaymentAndConfirm(booking, flight, isExpress, payable, seatService, promo);
+            boolean success = BookingService.getInstance().processPaymentAndConfirm(booking, flight, isExpress, payable, seatService, promo);
             if (success) {
                 System.out.println("\n====================================");
                 System.out.println("          E-TICKET GENERATED        ");
@@ -200,12 +222,12 @@ public class BookingUI {
         } catch (SeatLockException | PaymentFailureException ex) {
             System.out.println("FAILED: " + ex.getMessage());
             ErrorLogger.logError(ex);
-            bookingManager.cancelBooking(booking, flight, seatService);
+            BookingService.getInstance().cancelBooking(booking, flight, seatService);
             System.out.println("[State: " + booking.getStatus() + "]");
         } catch (Exception ex) {
             System.out.println("Unexpected Error: " + ex.getMessage());
             ErrorLogger.logError(ex);
-            bookingManager.cancelBooking(booking, flight, seatService);
+            BookingService.getInstance().cancelBooking(booking, flight, seatService);
         }
     }
 }

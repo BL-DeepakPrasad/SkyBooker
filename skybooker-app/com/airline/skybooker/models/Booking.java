@@ -8,6 +8,11 @@ import com.airline.skybooker.interfaces.Bookable;
 import com.airline.skybooker.interfaces.Cancellable;
 import java.time.LocalDateTime;
 
+/**
+ * Flight reservation for one or more passengers.
+ * Orchestrates the booking lifecycle using the State Pattern, managing transitions 
+ * from initialization through payment and final confirmation or cancellation.
+ */
 public class Booking implements Comparable<Booking>, Bookable, Cancellable {
     private String bookingId;
     private int userId;
@@ -24,6 +29,14 @@ public class Booking implements Comparable<Booking>, Bookable, Cancellable {
     private long timestamp;
     private Payable payable;
 
+    /**
+     * Initializes a new booking session for a user on a specific flight.
+     * Generates a unique PNR and sets the initial state to Initiated.
+     *
+     * @param bookingId unique identifier for the booking system
+     * @param userId    ID of the user making the reservation
+     * @param flightId  ID of the selected flight
+     */
     public Booking(String bookingId, int userId, int flightId) {
         this.bookingId = bookingId;
         this.pnrCode = "PNR" + (int)(Math.random() * 10000);
@@ -39,6 +52,10 @@ public class Booking implements Comparable<Booking>, Bookable, Cancellable {
     }
 
     // State Pattern Delegation Methods
+    /**
+     * Triggers the transition to the next logical state in the booking lifecycle.
+     * Delegation is handled by the current BookingState implementation.
+     */
     public void nextState() {
         currentState.nextState(this);
     }
@@ -63,6 +80,13 @@ public class Booking implements Comparable<Booking>, Bookable, Cancellable {
         this.currentState = state;
     }
 
+    /**
+     * Compares this booking with another to establish processing priority.
+     * Priority bookings (e.g., EXPRESS) are processed first, followed by timestamp ordering.
+     *
+     * @param other the booking to compare against
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than the specified object
+     */
     @Override
     public int compareTo(Booking other) {
         // 1. Sort by Priority (EXPRESS comes before REGULAR)

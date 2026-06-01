@@ -3,10 +3,11 @@ package com.airline.skybooker.services;
 import com.airline.skybooker.models.Booking;
 import com.airline.skybooker.models.BookingPassenger;
 import com.airline.skybooker.enums.BookingPriority;
+import com.airline.skybooker.constants.AppConstants;
 
 /**
- * Service responsible for all pricing and penalty calculations.
- * Extracts pricing business rules out of the BookingManager to enforce SRP.
+ * Centralized business logic component for dynamically determining pricing, surcharges, and penalties.
+ * Enforces the Single Responsibility Principle by decoupling financial rule evaluation from core reservation flows.
  */
 public class FareCalculatorService {
 
@@ -14,6 +15,12 @@ public class FareCalculatorService {
 
     private FareCalculatorService() {}
 
+    /**
+     * Retrieves the singleton instance of the FareCalculatorService.
+     * Guaranteed to return a single, thread-safe instance across the application lifecycle.
+     *
+     * @return the singleton instance of the FareCalculatorService
+     */
     public static FareCalculatorService getInstance() {
         if (instance == null) {
             synchronized (FareCalculatorService.class) {
@@ -26,8 +33,14 @@ public class FareCalculatorService {
     }
 
     /**
-     * Calculates the final payable amount before a booking is confirmed.
-     * Applies priority fees and promotional discounts.
+     * Computes the total transaction cost by aggregating base fares, priority surcharges, taxes, and promotional deductions.
+     * 
+     * @param booking    The reservation context containing passenger details and selected add-ons
+     * @param baseFare   The standard ticket price per seat before modifications
+     * @param isExpress  Flag dictating whether to apply expedited processing fees
+     * @param promoCode  The optional coupon code to evaluate for discounts
+     * @param isDomestic Flag indicating if regional taxation rules apply
+     * @return The final aggregated price to be charged to the customer
      */
     public double calculateFinalFare(Booking booking, double baseFare, boolean isExpress, String promoCode, boolean isDomestic) {
         double totalPassengerFare = 0.0;
@@ -37,26 +50,26 @@ public class FareCalculatorService {
             
             // Age discounts
             if (bp.getAgeCategory().equalsIgnoreCase("Child")) {
-                passengerFare *= 0.75; // 25% off for children
+                passengerFare *= AppConstants.CHILD_DISCOUNT_MULTIPLIER;
             } else if (bp.getAgeCategory().equalsIgnoreCase("Infant")) {
-                passengerFare *= 0.10; // 90% off for infants
+                passengerFare *= AppConstants.INFANT_DISCOUNT_MULTIPLIER;
             }
             
             // Baggage: INR 10 per kg over 15kg
-            if (bp.getBaggageWeight() > 15.0) {
-                passengerFare += (bp.getBaggageWeight() - 15.0) * 10.0;
+            if (bp.getBaggageWeight() > AppConstants.FREE_BAGGAGE_ALLOWANCE_KG) {
+                passengerFare += (bp.getBaggageWeight() - AppConstants.FREE_BAGGAGE_ALLOWANCE_KG) * AppConstants.EXCESS_BAGGAGE_FEE_PER_KG;
             }
             
             // Meal upgrade
             if (bp.hasMealUpgrade()) {
-                passengerFare += 20.0;
+                passengerFare += AppConstants.MEAL_UPGRADE_FEE;
             }
             
             // Seat Selection: Premium for A, C, D, F
             if (bp.getSeatNumber() != null && !bp.getSeatNumber().isEmpty()) {
                 char seatLetter = bp.getSeatNumber().charAt(bp.getSeatNumber().length() - 1);
                 if (seatLetter == 'A' || seatLetter == 'F' || seatLetter == 'C' || seatLetter == 'D') {
-                    passengerFare += 15.0;
+                    passengerFare += AppConstants.PREMIUM_SEAT_FEE;
                 }
             }
             
@@ -66,30 +79,37 @@ public class FareCalculatorService {
         double finalAmount = totalPassengerFare;
         
         // Surcharges per booking
-        finalAmount += 20.0; // Airport charges
-        finalAmount += 15.0; // Fuel surcharge
+        finalAmount += AppConstants.AIRPORT_CHARGES;
+        finalAmount += AppConstants.FUEL_SURCHARGE;
 
         if (isExpress) {
             booking.setPriority(BookingPriority.EXPRESS);
-            finalAmount += 25.0; // Express Fee
+            finalAmount += AppConstants.EXPRESS_BOOKING_FEE;
         } else {
             booking.setPriority(BookingPriority.REGULAR);
         }
         
         // GST for domestic flights (5%)
         if (isDomestic) {
-            finalAmount += finalAmount * 0.05;
+            finalAmount += finalAmount * AppConstants.GST_RATE;
         }
         
-        if (promoCode != null && promoCode.equalsIgnoreCase("SKYBOOKER20")) {
-            finalAmount = finalAmount * 0.80; // 20% Discount
+        if (promoCode != null && promoCode.equalsIgnoreCase(AppConstants.PROMO_CODE_SKYBOOKER20)) {
+            finalAmount = finalAmount * (1.0 - AppConstants.PROMO_DISCOUNT_RATE);
         }
         
         return finalAmount;
     }
 
     /**
-     * Generates a receipt-style breakdown of the fare for the UI.
+     * Constructs a detailed textual invoice outlining all applied charges, discounts, and taxes per passenger.
+     * 
+     * @param booking    The reservation context containing passenger details
+     * @param baseFare   The standard ticket price per seat
+     * @param isExpress  Flag indicating expedited service inclusion
+     * @param promoCode  The applied promotional coupon, if any
+     * @param isDomestic Flag indicating if domestic taxes apply
+     * @return A formatted string detailing the exact financial breakdown
      */
     public String getFareBreakdown(Booking booking, double baseFare, boolean isExpress, String promoCode, boolean isDomestic) {
         StringBuilder sb = new StringBuilder();
@@ -107,29 +127,29 @@ public class FareCalculatorService {
             sb.append(String.format("  Base Fare: INR %.2f%n", baseFare));
             
             if (bp.getAgeCategory().equalsIgnoreCase("Child")) {
-                passengerFare *= 0.75;
-                sb.append(String.format("  Child Discount (25%%): -INR %.2f%n", baseFare * 0.25));
+                passengerFare *= AppConstants.CHILD_DISCOUNT_MULTIPLIER;
+                sb.append(String.format("  Child Discount (25%%): -INR %.2f%n", baseFare * (1 - AppConstants.CHILD_DISCOUNT_MULTIPLIER)));
             } else if (bp.getAgeCategory().equalsIgnoreCase("Infant")) {
-                passengerFare *= 0.10;
-                sb.append(String.format("  Infant Discount (90%%): -INR %.2f%n", baseFare * 0.90));
+                passengerFare *= AppConstants.INFANT_DISCOUNT_MULTIPLIER;
+                sb.append(String.format("  Infant Discount (90%%): -INR %.2f%n", baseFare * (1 - AppConstants.INFANT_DISCOUNT_MULTIPLIER)));
             }
             
-            if (bp.getBaggageWeight() > 15.0) {
-                double excess = (bp.getBaggageWeight() - 15.0) * 10.0;
+            if (bp.getBaggageWeight() > AppConstants.FREE_BAGGAGE_ALLOWANCE_KG) {
+                double excess = (bp.getBaggageWeight() - AppConstants.FREE_BAGGAGE_ALLOWANCE_KG) * AppConstants.EXCESS_BAGGAGE_FEE_PER_KG;
                 passengerFare += excess;
-                sb.append(String.format("  Excess Baggage (%.1f kg): +INR %.2f%n", (bp.getBaggageWeight() - 15.0), excess));
+                sb.append(String.format("  Excess Baggage (%.1f kg): +INR %.2f%n", (bp.getBaggageWeight() - AppConstants.FREE_BAGGAGE_ALLOWANCE_KG), excess));
             }
             
             if (bp.hasMealUpgrade()) {
-                passengerFare += 20.0;
-                sb.append("  Meal Upgrade: +INR 20.00\n");
+                passengerFare += AppConstants.MEAL_UPGRADE_FEE;
+                sb.append(String.format("  Meal Upgrade: +INR %.2f%n", AppConstants.MEAL_UPGRADE_FEE));
             }
             
             if (bp.getSeatNumber() != null && !bp.getSeatNumber().isEmpty()) {
                 char seatLetter = bp.getSeatNumber().charAt(bp.getSeatNumber().length() - 1);
                 if (seatLetter == 'A' || seatLetter == 'F' || seatLetter == 'C' || seatLetter == 'D') {
-                    passengerFare += 15.0;
-                    sb.append(String.format("  Premium Seat (%s): +INR 15.00%n", bp.getSeatNumber()));
+                    passengerFare += AppConstants.PREMIUM_SEAT_FEE;
+                    sb.append(String.format("  Premium Seat (%s): +INR %.2f%n", bp.getSeatNumber(), AppConstants.PREMIUM_SEAT_FEE));
                 }
             }
             sb.append(String.format("  Subtotal: INR %.2f%n", passengerFare));
@@ -141,26 +161,26 @@ public class FareCalculatorService {
         
         double finalAmount = totalPassengerFare;
         
-        sb.append("Airport Charges: +INR 20.00\n");
-        finalAmount += 20.0;
+        sb.append(String.format("Airport Charges: +INR %.2f%n", AppConstants.AIRPORT_CHARGES));
+        finalAmount += AppConstants.AIRPORT_CHARGES;
         
-        sb.append("Fuel Surcharge: +INR 15.00\n");
-        finalAmount += 15.0;
+        sb.append(String.format("Fuel Surcharge: +INR %.2f%n", AppConstants.FUEL_SURCHARGE));
+        finalAmount += AppConstants.FUEL_SURCHARGE;
 
         if (isExpress) {
-            sb.append("Express Booking Fee: +INR 25.00\n");
-            finalAmount += 25.0;
+            sb.append(String.format("Express Booking Fee: +INR %.2f%n", AppConstants.EXPRESS_BOOKING_FEE));
+            finalAmount += AppConstants.EXPRESS_BOOKING_FEE;
         }
         
         if (isDomestic) {
-            double gst = finalAmount * 0.05;
-            sb.append(String.format("GST (5%%): +INR %.2f%n", gst));
+            double gst = finalAmount * AppConstants.GST_RATE;
+            sb.append(String.format("GST (%.0f%%): +INR %.2f%n", AppConstants.GST_RATE * 100, gst));
             finalAmount += gst;
         }
         
-        if (promoCode != null && promoCode.equalsIgnoreCase("SKYBOOKER20")) {
-            double discount = finalAmount * 0.20;
-            sb.append(String.format("Promo Discount (20%%): -INR %.2f%n", discount));
+        if (promoCode != null && promoCode.equalsIgnoreCase(AppConstants.PROMO_CODE_SKYBOOKER20)) {
+            double discount = finalAmount * AppConstants.PROMO_DISCOUNT_RATE;
+            sb.append(String.format("Promo Discount (%.0f%%): -INR %.2f%n", AppConstants.PROMO_DISCOUNT_RATE * 100, discount));
             finalAmount -= discount;
         }
         
@@ -169,11 +189,13 @@ public class FareCalculatorService {
     }
 
     /**
-     * Calculates the refund amount and cancellation penalty.
-     * Returns an array where [0] is the refund amount, and [1] is the penalty applied.
+     * Determines the eligible refund value and applies standard cancellation penalties based on the initial transaction amount.
+     * 
+     * @param totalFarePaid The originally settled transaction amount
+     * @return A double array where index 0 contains the final refundable value and index 1 contains the deducted penalty
      */
     public double[] calculateRefundAndPenalty(double totalFarePaid) {
-        double penalty = totalFarePaid * 0.20; // 20% cancellation penalty
+        double penalty = totalFarePaid * AppConstants.CANCELLATION_PENALTY_RATE;
         double refundAmount = totalFarePaid - penalty;
         return new double[]{refundAmount, penalty};
     }

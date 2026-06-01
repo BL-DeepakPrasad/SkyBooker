@@ -5,7 +5,8 @@ import com.airline.skybooker.enums.BookingPriority;
 import java.util.concurrent.PriorityBlockingQueue;
 
 /**
- * Manages processing of high-priority express bookings over regular bookings.
+ * Manages the priority-based processing queue for asynchronous booking finalization.
+ * Implements anti-starvation mechanisms (aging) to ensure regular bookings are eventually processed.
  */
 public class PriorityBookingManager {
 
@@ -25,6 +26,11 @@ public class PriorityBookingManager {
         this.bookingQueue = new PriorityBlockingQueue<>();
     }
 
+    /**
+     * Retrieves the singleton instance of the PriorityBookingManager.
+     *
+     * @return the singleton PriorityBookingManager instance
+     */
     public static PriorityBookingManager getInstance() {
         if (instance == null) {
             synchronized (PriorityBookingManager.class) {
@@ -37,7 +43,9 @@ public class PriorityBookingManager {
     }
 
     /**
-     * Adds a new booking request to the queue and applies aging to prevent starvation.
+     * Enqueues a new booking request for asynchronous processing, triggering the aging algorithm beforehand.
+     *
+     * @param booking the Booking object to be added to the processing queue
      */
     public void enqueueBooking(Booking booking) {
         applyAgingAlgorithm(); // 10.2 Prevent starvation before adding new items
@@ -46,8 +54,8 @@ public class PriorityBookingManager {
     }
 
     /**
-     * 10.2 Anti-Starvation Algorithm (Aging)
-     * Upgrades REGULAR bookings to EXPRESS if they have been waiting too long.
+     * Implements an anti-starvation (aging) algorithm.
+     * Upgrades the priority of REGULAR bookings to EXPRESS if they exceed the maximum wait threshold.
      */
     private void applyAgingAlgorithm() {
         long currentTime = System.currentTimeMillis();
@@ -73,7 +81,8 @@ public class PriorityBookingManager {
     }
 
     /**
-     * Processes bookings from the queue in priority order.
+     * Iteratively processes and consumes pending bookings from the priority queue.
+     * Simulates external system processing latency based on booking priority tier.
      */
     public void processQueue() {
         System.out.println("\n--- PROCESSING BOOKING QUEUE (" + bookingQueue.size() + " pending) ---");
@@ -114,7 +123,7 @@ public class PriorityBookingManager {
     }
 
     /**
-     * 10.2 Generate priority processing reports
+     * Aggregates and displays a statistical report of queue throughput and processing metrics.
      */
     public void generateProcessingReport() {
         System.out.println("\n============================================");

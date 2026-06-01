@@ -2,6 +2,10 @@ package com.airline.skybooker.states;
 
 import com.airline.skybooker.models.Booking;
 
+/**
+ * Denotes a fully settled reservation encompassing successful payment and locked inventory.
+ * Exposes operations for progressing to airport check-in or orchestrating post-payment refunds.
+ */
 public class ConfirmedState implements BookingState {
 
     @Override

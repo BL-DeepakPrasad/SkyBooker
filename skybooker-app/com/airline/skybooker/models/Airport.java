@@ -1,8 +1,8 @@
 package com.airline.skybooker.models;
 
 /**
- * Represents a geographical airport within the system.
- * This class encapsulates the airport's location data and standard aviation codes.
+ * Geographical airport within the system.
+ * Encapsulates the airport's location data and standard aviation codes.
  */
 public class Airport {
     private int airportId;
@@ -127,7 +127,10 @@ public class Airport {
     public void setContactDetails(String contactDetails) { this.contactDetails = contactDetails; }
 
     /**
-     * Prints detailed information for passengers.
+     * Aggregates and formats the complete airport profile for display purposes.
+     * Includes geographical data, operational status, and available facilities.
+     *
+     * @return formatted multi-line string containing airport details
      */
     public String getFullDetails() {
         return String.format("Airport: %s (%s)%nCity: %s, %s%nTimezone: %s%nTerminals: %s%nFacilities: %s%nContact: %s%nStatus: %s",

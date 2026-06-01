@@ -5,7 +5,8 @@ import com.airline.skybooker.exception.NetworkTimeoutException;
 import com.airline.skybooker.exception.PaymentFailureException;
 
 /**
- * Singleton managing payment processing and refunds.
+ * Gateway orchestrator handling financial transactions and refund routing.
+ * Ensures stateful tracking of successful and failed payment operations.
  */
 public class PaymentManager {
 
@@ -15,6 +16,11 @@ public class PaymentManager {
 
     private PaymentManager() {}
 
+    /**
+     * Retrieves the singleton instance of the PaymentManager.
+     *
+     * @return the singleton PaymentManager instance
+     */
     public static PaymentManager getInstance() {
         if (instance == null) {
             synchronized (PaymentManager.class) {
@@ -27,7 +33,14 @@ public class PaymentManager {
     }
 
     /**
-     * Executes a payment through the provided strategy.
+     * Executes a payment transaction using the provided payment strategy.
+     * Includes simulated network latency and failure scenarios.
+     *
+     * @param strategy the payment method abstraction (e.g., Credit Card, UPI)
+     * @param amount   the total fiat value to be processed
+     * @return true if the transaction was processed successfully
+     * @throws NetworkTimeoutException if the simulated gateway times out
+     * @throws PaymentFailureException if the simulated transaction is explicitly declined
      */
     public boolean processTransaction(Payable strategy, double amount) throws NetworkTimeoutException, PaymentFailureException {
         if (strategy == null) {
@@ -56,7 +69,11 @@ public class PaymentManager {
     }
 
     /**
-     * Re-routes a refund through the original payment strategy.
+     * Re-routes a refund transaction through the original payment strategy utilized during booking.
+     *
+     * @param strategy the original payment method utilized
+     * @param amount   the value to be refunded to the customer
+     * @return true if the refund was successfully processed, false otherwise
      */
     public boolean processRefund(Payable strategy, double amount) {
         if (strategy == null) {

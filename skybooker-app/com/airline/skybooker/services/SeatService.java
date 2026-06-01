@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Service layer responsible for seat operations.
- * Designed to mirror a Spring Boot @Service. Handles concurrent locking.
+ * Orchestrator for aircraft seating assignments, handling concurrent inventory allocation and visualization.
+ * Ensures thread-safe mutations against the underlying seat repository during high-concurrency reservation scenarios.
  */
 public class SeatService {
     // Represents a database repository mapping flights to their seats
@@ -40,7 +40,10 @@ public class SeatService {
     }
 
     /**
-     * Dynamically generates a seat map based on capacity.
+     * Provisions a structured seating topology based on overall capacity constraints.
+     * 
+     * @param flightNumber The unique identifier for the targeted flight
+     * @param totalSeats   The maximum passenger capacity to model
      */
     public void initializeAircraftLayout(String flightNumber, int totalSeats) {
         List<Seat> seats = new ArrayList<>();
@@ -65,7 +68,9 @@ public class SeatService {
     }
 
     /**
-     * Displays a text-based grid map of the seats for a specific flight.
+     * Renders an interactive console visualization detailing current seating availability, locks, and finalized bookings.
+     * 
+     * @param flightNumber The unique flight identifier queried for layout visualization
      */
     public void displaySeatMap(String flightNumber) {
         List<Seat> seats = flightSeats.get(flightNumber);
@@ -84,8 +89,12 @@ public class SeatService {
     }
 
     /**
-     * Attempts to lock a seat for a user.
-     * Uses synchronized blocks to prevent concurrent thread race conditions.
+     * Acquires a temporary reservation mutex on a specific seat to prevent simultaneous selection by other threads.
+     * 
+     * @param flightNumber The unique flight identifier
+     * @param seatNumber   The specific seat coordinate requested (e.g., "1A")
+     * @return true if the mutex is successfully acquired
+     * @throws SeatLockException if the seat is already finalized, currently locked, or non-existent
      */
     public boolean lockSeat(String flightNumber, String seatNumber) throws SeatLockException {
         List<Seat> seats = flightSeats.get(flightNumber);
@@ -111,7 +120,10 @@ public class SeatService {
     }
 
     /**
-     * Confirms a locked seat permanently after payment.
+     * Finalizes the state of a previously locked seat, converting it to a permanent booked status post-transaction.
+     * 
+     * @param flightNumber The associated flight identifier
+     * @param seatNumber   The seat coordinate to confirm
      */
     public void confirmSeat(String flightNumber, String seatNumber) {
         List<Seat> seats = flightSeats.get(flightNumber);
@@ -129,7 +141,10 @@ public class SeatService {
     }
 
     /**
-     * Releases a seat back to available pool.
+     * Revokes any temporary locks or bookings on a seat, restoring its state to globally available inventory.
+     * 
+     * @param flightNumber The associated flight identifier
+     * @param seatNumber   The seat coordinate to free
      */
     public void releaseSeat(String flightNumber, String seatNumber) {
         List<Seat> seats = flightSeats.get(flightNumber);
@@ -147,7 +162,11 @@ public class SeatService {
     }
 
     /**
-     * Checks if a seat number exists and is not permanently booked.
+     * Evaluates whether a requested seat coordinate exists within the aircraft layout and is currently unbooked.
+     * 
+     * @param flightNumber The associated flight identifier
+     * @param seatNumber   The specific seat coordinate to inspect
+     * @return true if the seat exists and is available for selection, false otherwise
      */
     public boolean isValidSeat(String flightNumber, String seatNumber) {
         List<Seat> seats = flightSeats.get(flightNumber);

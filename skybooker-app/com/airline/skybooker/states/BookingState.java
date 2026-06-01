@@ -3,26 +3,29 @@ package com.airline.skybooker.states;
 import com.airline.skybooker.models.Booking;
 
 /**
- * The core State Interface for the State Design Pattern.
- * Defines the contract for all booking lifecycle states.
+ * Contract for the State Design Pattern orchestrating the reservation lifecycle.
+ * Dictates allowable transitions and cancellation behaviors based on the current context phase.
  */
 public interface BookingState {
     
     /**
-     * Transitions the booking to the next logical state.
-     * @param booking the context
+     * Advances the reservation context to the subsequent logical phase in the checkout or fulfillment pipeline.
+     * 
+     * @param booking The stateful context object undergoing mutation
      */
     void nextState(Booking booking);
 
     /**
-     * Cancels the booking from the current state.
-     * @param booking the context
+     * Terminates the active reservation flow, potentially triggering refunds or inventory releases depending on the current phase.
+     * 
+     * @param booking The stateful context object undergoing termination
      */
     void cancel(Booking booking);
 
     /**
-     * Gets the human-readable name of the current state.
-     * @return state name
+     * Retrieves the formalized string representation of the current operational phase.
+     * 
+     * @return The standard string identifier for the state
      */
     String getStatusName();
 }

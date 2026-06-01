@@ -20,6 +20,10 @@ import java.util.Scanner;
 import java.util.Map;
 import java.util.HashMap;
 
+/**
+ * Command-line interface for querying and filtering available flights.
+ * Handles auto-suggestions, price calendars, and routing into the booking flow.
+ */
 public class FlightSearchUI {
     private final Scanner scanner;
     private final FlightManager flightManager;
@@ -31,6 +35,12 @@ public class FlightSearchUI {
     private int flightDisplayCounter = 1;
     private Map<Integer, Flight> flightDisplayMap = new HashMap<>();
 
+    /**
+     * Constructs the flight search interface with necessary dependencies.
+     *
+     * @param scanner the input reader for capturing search criteria
+     * @param bookingUI the interface to transition into when booking a selected flight
+     */
     public FlightSearchUI(Scanner scanner, BookingUI bookingUI) {
         this.scanner = scanner;
         this.flightManager = FlightManager.getInstance();
@@ -40,6 +50,9 @@ public class FlightSearchUI {
         this.bookingUI = bookingUI;
     }
 
+    /**
+     * Initiates the flight discovery process. Gathers trip requirements, performs searches, and lists results.
+     */
     public void startSearchFlow() {
         flightDisplayCounter = 1;
         flightDisplayMap.clear();
@@ -133,10 +146,21 @@ public class FlightSearchUI {
         }
     }
 
+    /**
+     * Prompts the user for a valid IATA airport code.
+     *
+     * @param prompt the message displayed to the user
+     * @return the validated, upper-case IATA code
+     */
     private String getValidAirportCode(String prompt) {
         return InputReader.readString(scanner, "\n" + prompt, ValidationUtils::validateAirportCode).toUpperCase();
     }
 
+    /**
+     * Presents search results with pagination and offers dynamic filtering options.
+     *
+     * @param flights the collection of flights to display and potentially filter
+     */
     private void displayAndFilter(List<Flight> flights) {
         int pageSize = 3;
         int current = 0;
@@ -185,6 +209,9 @@ public class FlightSearchUI {
             }
         }
     }
+    /**
+     * Generates a simulated flexible-date price calendar centered around the average fare.
+     */
     private void showPriceCalendar(String origin, String destination) {
         double avgFare = flightManager.getAverageFare(origin, destination);
         if (avgFare == 0.0) return;
@@ -199,6 +226,9 @@ public class FlightSearchUI {
         System.out.printf("  +3 Days: INR %.2f%n", avgFare * 1.10);
     }
 
+    /**
+     * Looks up and displays nearby alternative airports for a given IATA code.
+     */
     private void suggestAlternatives(String iataCode) {
         List<Airport> alternatives = airportManager.getAlternativeAirports(iataCode);
         if (!alternatives.isEmpty()) {

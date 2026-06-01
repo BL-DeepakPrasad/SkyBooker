@@ -2,6 +2,10 @@ package com.airline.skybooker.states;
 
 import com.airline.skybooker.models.Booking;
 
+/**
+ * Represents a resolved financial reversion state following a confirmed cancellation.
+ * Closes the transaction lifecycle completely, preventing any subsequent mutations.
+ */
 public class RefundedState implements BookingState {
 
     @Override

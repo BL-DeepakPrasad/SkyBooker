@@ -8,17 +8,27 @@ import java.util.Optional;
 import java.util.Scanner;
 
 /**
- * Admin UI for managing airports.
+ * Command-line interface for administrator management of airport records.
+ * Facilitates adding, updating, searching, and toggling the operational status of airports.
  */
 public class AdminAirportUI {
     private final Scanner scanner;
     private final AirportManager airportManager;
 
+    /**
+     * Constructs the airport administration interface with the provided input scanner.
+     *
+     * @param scanner the input reader for capturing administrator commands
+     */
     public AdminAirportUI(Scanner scanner) {
         this.scanner = scanner;
         this.airportManager = AirportManager.getInstance();
     }
 
+    /**
+     * Initiates the main interactive loop for airport administration.
+     * Presents available management options and routes to the appropriate handler.
+     */
     public void startAirportFlow() {
         while (true) {
             System.out.println("\n=== AIRPORT MANAGEMENT (ADMIN) ===");
@@ -49,6 +59,10 @@ public class AdminAirportUI {
         }
     }
 
+    /**
+     * Prompts the administrator for new airport details and persists the record.
+     * Captures essential data including IATA code, location, timezone, and facilities.
+     */
     private void handleAddAirport() {
         System.out.println("\n--- ADD NEW AIRPORT ---");
         try {
@@ -83,6 +97,10 @@ public class AdminAirportUI {
         }
     }
 
+    /**
+     * Gathers updated terminal or facility information for an existing airport and applies changes.
+     * Looks up the target airport by IATA code before executing the update.
+     */
     private void handleUpdateAirport() {
         System.out.print("Enter IATA Code of Airport to edit: ");
         String iata = scanner.nextLine().trim();
@@ -107,6 +125,10 @@ public class AdminAirportUI {
         }
     }
 
+    /**
+     * Switches the operational status of a specified airport between active and inactive.
+     * Prevents operations on unrecognized IATA codes.
+     */
     private void handleToggleStatus() {
         System.out.print("Enter IATA Code of Airport to toggle: ");
         String iata = scanner.nextLine().trim();
@@ -125,6 +147,9 @@ public class AdminAirportUI {
         }
     }
 
+    /**
+     * Retrieves and displays the complete registry of all airports.
+     */
     private void handleListAll() {
         System.out.println("\n--- GLOBAL AIRPORT REGISTRY ---");
         for (Airport a : airportManager.getAllAirports()) {
@@ -132,6 +157,9 @@ public class AdminAirportUI {
         }
     }
 
+    /**
+     * Queries the airport registry by code, city, or name and presents the matching results.
+     */
     private void handleSearchAirports() {
         System.out.println("\n--- ADVANCED AIRPORT SEARCH ---");
         System.out.print("Enter search query (Code, City, or Name): ");

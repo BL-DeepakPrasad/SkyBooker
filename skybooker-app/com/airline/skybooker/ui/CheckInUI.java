@@ -13,16 +13,29 @@ import com.airline.skybooker.utils.ErrorLogger;
 
 import java.util.Scanner;
 
+/**
+ * Command-line interface for the web check-in workflow.
+ * Verifies booking eligibility, confirms seats, and generates boarding passes.
+ */
 public class CheckInUI {
 
     private final Scanner scanner;
     private final CheckInManager checkInManager;
 
+    /**
+     * Constructs the check-in interface with the provided input scanner.
+     *
+     * @param scanner the input reader for capturing passenger check-in details
+     */
     public CheckInUI(Scanner scanner) {
         this.scanner = scanner;
         this.checkInManager = CheckInManager.getInstance();
     }
 
+    /**
+     * Initiates the check-in sequence.
+     * Validates the user's booking via PNR and coordinates the generation of boarding documents.
+     */
     public void startCheckInFlow() {
         System.out.println("\n=== WEB CHECK-IN ===");
         User currentUser = AuthenticationManager.getInstance().getCurrentUser().orElse(null);

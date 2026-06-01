@@ -22,10 +22,13 @@ import com.airline.skybooker.managers.AuthenticationManager;
 import com.airline.skybooker.managers.AuthenticationManager;
 import java.util.ArrayList;
 import com.airline.skybooker.exception.NetworkTimeoutException;
+import com.airline.skybooker.models.BookingPassenger;
 import com.airline.skybooker.exception.PaymentFailureException;
+import com.airline.skybooker.constants.AppConstants;
 
 /**
- * Singleton Manager responsible for Booking lifecycle.
+ * Orchestrator handling the lifecycle of flight bookings, from initialization through payment and cancellation.
+ * Interacts with seat services and payment gateways to ensure transactional integrity.
  */
 public class BookingManager {
 
@@ -38,6 +41,11 @@ public class BookingManager {
         this.bookingDatabase = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Retrieves the singleton instance of the BookingManager.
+     *
+     * @return the singleton BookingManager instance
+     */
     public static BookingManager getInstance() {
         if (instance == null) {
             synchronized (BookingManager.class) {
@@ -50,26 +58,44 @@ public class BookingManager {
     }
 
     /**
-     * Initiates a new booking.
+     * Initializes a new booking record mapped to a specific user and flight combination.
+     *
+     * @param userId   the unique identifier of the user initiating the booking
+     * @param flightId the unique identifier of the target flight
+     * @return a freshly initialized Booking instance with a pending status
      */
     public Booking initiateBooking(int userId, int flightId) {
-        String bookingId = "BKG-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String bookingId = AppConstants.BOOKING_PREFIX + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         Booking booking = new Booking(bookingId, userId, flightId);
         bookingDatabase.put(bookingId, booking);
         System.out.println("Booking " + bookingId + " created with status: " + booking.getStatus());
         return booking;
     }
 
+    /**
+     * Fetches a booking entity using its unique booking identifier.
+     *
+     * @param bookingId the unique string ID of the booking
+     * @return an Optional containing the corresponding Booking, or empty if not found
+     */
     public Optional<Booking> getBooking(String bookingId) {
         return Optional.ofNullable(bookingDatabase.get(bookingId));
     }
 
+    /**
+     * Retrieves the complete in-memory registry of all bookings.
+     *
+     * @return a list containing all active and inactive booking records
+     */
     public List<Booking> getAllBookings() {
         return new ArrayList<>(bookingDatabase.values());
     }
 
     /**
-     * Retrieves all bookings for a specific user using Java Streams.
+     * Filters and retrieves all booking records associated with a specific user profile.
+     *
+     * @param userId the unique identifier of the user
+     * @return a list of bookings linked to the provided user ID
      */
     public List<Booking> getBookingsForUser(int userId) {
         return bookingDatabase.values().stream()
@@ -77,70 +103,21 @@ public class BookingManager {
                 .collect(Collectors.toList());
     }
 
+    // Cancellation and Payment methods have been moved to BookingOrchestratorService 
+    // to strictly enforce the Single Responsibility Principle.
+
     /**
-     * Service method to cancel a booking and process refund.
+     * Updates personal details and preferences for a specific passenger within an active booking.
+     *
+     * @param booking        the target Booking object
+     * @param passengerIndex the zero-based index of the passenger
+     * @param newName        the updated full name, or empty string to retain existing
+     * @param newPassport    the updated passport number, or empty string to retain existing
+     * @param newMeal        the updated meal upgrade preference flag
      */
-    public void cancelBooking(Booking booking, Flight flight, SeatService seatService) {
-        if (booking.getStatus().equals("CONFIRMED")) {
-            System.out.println("\n[CANCELLATION] Processing cancellation for " + booking.getPnrCode());
-            
-            double[] refundData = FareCalculatorService.getInstance().calculateRefundAndPenalty(booking.getTotalFare());
-            double refundAmount = refundData[0];
-            double penalty = refundData[1];
-            
-            System.out.printf("[CANCELLATION] Total Fare: INR %.2f | Penalty: INR %.2f | Refund Amount: INR %.2f%n", 
-                                booking.getTotalFare(), penalty, refundAmount);
-            
-            if (booking.getPayable() != null) {
-                boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPayable(), refundAmount);
-                if (refundSuccess) {
-                    booking.setState(new RefundedState());
-                    
-                    // Release all seats
-                    for (com.airline.skybooker.models.BookingPassenger bp : booking.getPassengers()) {
-                        if (!bp.isCancelled()) {
-                            seatService.releaseSeat(flight.getFlightNumber(), bp.getSeatNumber());
-                            bp.setCancelled(true);
-                        }
-                    }
-                    
-                    // Notify passenger of refund
-                    User passenger = AuthenticationManager.getInstance().getCurrentUser().orElse(null);
-                    if (passenger != null) {
-                        NotificationManager.getInstance().sendRefundLifecycle(passenger, booking, refundAmount);
-                    }
-                    return;
-                }
-            }
-        }
-        booking.cancel();
-    }
-
-    public void cancelSpecificPassenger(Booking booking, Flight flight, int passengerIndex, SeatService seatService) {
-        if (passengerIndex < 0 || passengerIndex >= booking.getPassengers().size()) return;
-        com.airline.skybooker.models.BookingPassenger bp = booking.getPassengers().get(passengerIndex);
-        if (bp.isCancelled()) return;
-
-        double[] refundData = FareCalculatorService.getInstance().calculateRefundAndPenalty(bp.getFarePaid());
-        double refundAmount = refundData[0];
-        double penalty = refundData[1];
-        
-        System.out.printf("[PARTIAL CANCELLATION] %s | Penalty: INR %.2f | Refund: INR %.2f%n", 
-                          bp.getFullName(), penalty, refundAmount);
-                          
-        if (booking.getPayable() != null) {
-            boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPayable(), refundAmount);
-            if (refundSuccess) {
-                bp.setCancelled(true);
-                seatService.releaseSeat(flight.getFlightNumber(), bp.getSeatNumber());
-                booking.setTotalFare(booking.getTotalFare() - bp.getFarePaid());
-            }
-        }
-    }
-
     public void modifyPassengerDetails(Booking booking, int passengerIndex, String newName, String newPassport, boolean newMeal) {
         if (passengerIndex < 0 || passengerIndex >= booking.getPassengers().size()) return;
-        com.airline.skybooker.models.BookingPassenger bp = booking.getPassengers().get(passengerIndex);
+        BookingPassenger bp = booking.getPassengers().get(passengerIndex);
         if (bp.isCancelled()) return;
         
         if (!newName.isEmpty()) bp.setFullName(newName);
@@ -148,9 +125,19 @@ public class BookingManager {
         bp.setMealUpgrade(newMeal);
     }
 
+    /**
+     * Attempts to reallocate a passenger to a new seat, releasing the old seat upon success.
+     *
+     * @param booking        the target Booking
+     * @param flight         the Flight containing the seat map
+     * @param passengerIndex the zero-based index of the passenger to move
+     * @param newSeat        the desired new seat identifier (e.g., "12A")
+     * @param seatService    the seat management service validating the exchange
+     * @return true if the seat swap was successfully completed, false otherwise
+     */
     public boolean changePassengerSeat(Booking booking, Flight flight, int passengerIndex, String newSeat, SeatService seatService) {
         if (passengerIndex < 0 || passengerIndex >= booking.getPassengers().size()) return false;
-        com.airline.skybooker.models.BookingPassenger bp = booking.getPassengers().get(passengerIndex);
+        BookingPassenger bp = booking.getPassengers().get(passengerIndex);
         if (bp.isCancelled()) return false;
         
         try {
@@ -166,65 +153,5 @@ public class BookingManager {
         return false;
     }
 
-    /**
-     * God Method to orchestrate locking, pricing, payment, and priority routing.
-     */
-    public boolean processPaymentAndConfirm(Booking booking, Flight flight, 
-                                            boolean isExpress, Payable payable, 
-                                            SeatService seatService, String promoCode) throws SeatLockException, NetworkTimeoutException, PaymentFailureException {
-        // 1. Lock Seats for all passengers
-        for (com.airline.skybooker.models.BookingPassenger bp : booking.getPassengers()) {
-            if (!seatService.lockSeat(flight.getFlightNumber(), bp.getSeatNumber())) {
-                throw new SeatLockException("Seat " + bp.getSeatNumber() + " is no longer available.");
-            }
-        }
-        
-        // Transition: PASSENGER_DETAILS -> SEAT_SELECTED
-        booking.nextState(); 
-        
-        // Transition: SEAT_SELECTED -> PAYMENT_PENDING
-        booking.nextState();
-        
-        boolean isDomestic = flight.getOrigin().getCountry().equalsIgnoreCase(flight.getDestination().getCountry());
-        
-        // 2. Calculate Final Fare & Priority via Service
-        double finalAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promoCode, isDomestic);
-        
-        // Save strategy for future refunds
-        booking.setPayable(payable);
-        booking.setTotalFare(finalAmount);
-
-        // 3. Process Payment
-        boolean paymentSuccess = PaymentManager.getInstance().processTransaction(payable, finalAmount);
-        
-        if (paymentSuccess) {
-            // Confirm seats permanently
-            for (com.airline.skybooker.models.BookingPassenger bp : booking.getPassengers()) {
-                seatService.confirmSeat(flight.getFlightNumber(), bp.getSeatNumber());
-                // For simplicity in this demo, just assign average fare to each passenger
-                bp.setFarePaid(finalAmount / booking.getPassengers().size());
-            }
-
-            // 4. Confirm Booking: PAYMENT_PENDING -> CONFIRMED
-            booking.nextState(); 
-            
-            // Notify passenger of confirmation
-            User passenger = AuthenticationManager.getInstance().getCurrentUser().orElse(null);
-            if (passenger != null) {
-                NotificationManager.getInstance().sendBookingConfirmation(passenger, booking, flight);
-                    
-                // Simulate Scheduled Reminders (12.2)
-                NotificationManager.getInstance().sendTravelReminder(passenger, booking, "Check-in opens in 24 Hours!");
-                NotificationManager.getInstance().sendTravelReminder(passenger, booking, "Boarding starts in 3 Hours!");
-            }
-            
-            // 5. Add to Priority Processing Queue
-            PriorityBookingManager.getInstance().enqueueBooking(booking);
-            PriorityBookingManager.getInstance().processQueue();
-            return true;
-        } else {
-            booking.cancel();
-            return false;
-        }
-    }
+    // ProcessPaymentAndConfirm moved to BookingOrchestratorService to enforce SRP
 }

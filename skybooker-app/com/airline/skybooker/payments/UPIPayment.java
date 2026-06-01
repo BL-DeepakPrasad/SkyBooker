@@ -1,9 +1,18 @@
 package com.airline.skybooker.payments;
 
+/**
+ * Financial processor handling Unified Payments Interface (UPI) transfers.
+ * Dispatches payment requests to virtual payment addresses and awaits asynchronous approval.
+ */
 public class UPIPayment extends AbstractPayment {
 
     private final String upiId;
 
+    /**
+     * Constructs a UPI transaction request bound to a specific virtual address.
+     * 
+     * @param upiId The registered Virtual Payment Address (VPA) of the payer
+     */
     public UPIPayment(String upiId) {
         this.upiId = upiId;
     }
