@@ -15,7 +15,7 @@ public class Airport {
     private double longitude;
     private String timezone;
     
-    // Module 9 Rubric Fields
+    // Airport facilities
     private boolean isActive = true;
     private String terminals = "T1";
     private String facilities = "Basic";
@@ -127,7 +127,7 @@ public class Airport {
     public void setContactDetails(String contactDetails) { this.contactDetails = contactDetails; }
 
     /**
-     * Prints detailed information for passengers (Module 9.2).
+     * Prints detailed information for passengers.
      */
     public String getFullDetails() {
         return String.format("Airport: %s (%s)%nCity: %s, %s%nTimezone: %s%nTerminals: %s%nFacilities: %s%nContact: %s%nStatus: %s",

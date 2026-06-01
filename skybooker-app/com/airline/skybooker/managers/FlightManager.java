@@ -229,7 +229,7 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Module 8.1: Adds a dynamically created flight to the database.
+     * Registers a new dynamically created flight into the system.
      * Updates the route index and clears the cache to ensure consistency.
      */
     public synchronized void addFlight(Flight flight) {

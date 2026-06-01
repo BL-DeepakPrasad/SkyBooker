@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * UI Controller for Module 8 (Admin Flight Management).
+ * Admin UI for managing flights.
  * Handles the creation, modification, and reporting of flights.
  */
 public class AdminFlightUI {

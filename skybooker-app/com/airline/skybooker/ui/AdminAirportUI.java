@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.Scanner;
 
 /**
- * UI Controller for Module 9 (Admin Airport Management).
+ * Admin UI for managing airports.
  */
 public class AdminAirportUI {
     private final Scanner scanner;

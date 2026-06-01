@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 /**
  * Acts as the Front Controller for authenticated users.
- * Routes dashboard selections to the appropriate UI module, 
+ * Routes dashboard selections to the appropriate controller. 
  * keeping Main.java clean and compliant with SRP.
  */
 public class DashboardController {
@@ -20,14 +20,18 @@ public class DashboardController {
     private final FlightSearchUI searchUI;
     private final AdminFlightUI adminFlightUI;
     private final AdminAirportUI adminAirportUI;
+    private final AdminAnalyticsUI adminAnalyticsUI;
 
-    public DashboardController(Scanner scanner, ProfileUI profileUI, BookingManagementUI bookingManagementUI, FlightSearchUI searchUI, AdminFlightUI adminFlightUI, AdminAirportUI adminAirportUI) {
+    public DashboardController(Scanner scanner, ProfileUI profileUI, BookingManagementUI bookingManagementUI, 
+                               FlightSearchUI searchUI, AdminFlightUI adminFlightUI, 
+                               AdminAirportUI adminAirportUI, AdminAnalyticsUI adminAnalyticsUI) {
         this.scanner = scanner;
         this.profileUI = profileUI;
         this.bookingManagementUI = bookingManagementUI;
         this.searchUI = searchUI;
         this.adminFlightUI = adminFlightUI;
         this.adminAirportUI = adminAirportUI;
+        this.adminAnalyticsUI = adminAnalyticsUI;
     }
 
     public void startLoop(User user) {
@@ -74,7 +78,7 @@ public class DashboardController {
                 return true;
             case "4":
                 if (isPassenger) searchUI.startSearchFlow();
-                else if (isAdmin) System.out.println("Platform Analytics coming soon!");
+                else if (isAdmin) adminAnalyticsUI.startAnalyticsFlow();
                 else System.out.println("Invalid choice.");
                 return true;
             case "5":

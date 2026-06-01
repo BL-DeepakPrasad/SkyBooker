@@ -40,7 +40,7 @@ public class SeatService {
     }
 
     /**
-     * Module 8.1: Dynamically generates a seat map for a newly created flight based on capacity.
+     * Dynamically generates a seat map based on capacity.
      */
     public void initializeAircraftLayout(String flightNumber, int totalSeats) {
         List<Seat> seats = new ArrayList<>();

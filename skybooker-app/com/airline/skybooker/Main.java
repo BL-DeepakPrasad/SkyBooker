@@ -11,18 +11,19 @@ import com.airline.skybooker.ui.BookingManagementUI;
 import com.airline.skybooker.ui.DashboardController;
 import com.airline.skybooker.ui.AdminFlightUI;
 import com.airline.skybooker.ui.AdminAirportUI;
+import com.airline.skybooker.ui.AdminAnalyticsUI;
 
 import java.util.Scanner;
 
 /**
- * Main application entry point for the Flight Search module.
+ * Main application entry point.
  * Acts as the Front Controller, delegating logic to UI classes to preserve SRP.
  */
 public class Main {
     private final Scanner scanner;
     private final AuthenticationManager authManager;
     
-    // UI Modules
+    // UI Controllers
     private final AuthUI authUI;
     private final FlightSearchUI searchUI;
     private final DashboardController dashboardController;
@@ -39,8 +40,9 @@ public class Main {
         BookingManagementUI bookingManagementUI = new BookingManagementUI(scanner);
         AdminFlightUI adminFlightUI = new AdminFlightUI(scanner, seatService);
         AdminAirportUI adminAirportUI = new AdminAirportUI(scanner);
+        AdminAnalyticsUI adminAnalyticsUI = new AdminAnalyticsUI(scanner);
         
-        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI, adminFlightUI, adminAirportUI);
+        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI, adminFlightUI, adminAirportUI, adminAnalyticsUI);
     }
 
     /**

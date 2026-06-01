@@ -192,7 +192,7 @@ public class Flight implements Comparable<Flight> {
     public int getTotalCapacity() { return totalCapacity; }
     
     /**
-     * Module 8.3: Calculates the current occupancy rate of the flight.
+     * Calculates the current occupancy rate.
      */
     public double getOccupancyRate() {
         if (totalCapacity == 0) return 0.0;
@@ -218,14 +218,14 @@ public class Flight implements Comparable<Flight> {
      */
     public synchronized void decrementSeats() { this.availableSeats--; }
     
-    // Mutators for Module 8.2 (Admin Edit)
+    // Admin mutators
     public void setFlightStatus(FlightStatus status) { this.flightStatus = status; }
     public void setDepartureTime(LocalDateTime time) { this.departureTime = time; }
     public void setBasePrice(double price) { this.basePrice = price; }
     public void setDepartureGate(String gate) { this.departureGate = gate; }
     
     /**
-     * Module 8.2: Modifies the base fare dynamically based on demand/season.
+     * Modifies the base fare dynamically.
      * @param percentage Increase or decrease percentage (e.g., 20.0 for +20%)
      */
     public void applyDynamicPricing(double percentage) {

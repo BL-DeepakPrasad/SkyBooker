@@ -2,7 +2,7 @@ package com.airline.skybooker.enums;
 
 /**
  * Defines the current status of a flight.
- * Required for Module 8 (Admin Flight Management).
+ * Represents the current state of a flight.
  */
 public enum FlightStatus {
     SCHEDULED,

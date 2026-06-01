@@ -5,8 +5,7 @@ import com.airline.skybooker.enums.BookingPriority;
 import java.util.concurrent.PriorityBlockingQueue;
 
 /**
- * Singleton Manager responsible for handling concurrent booking requests efficiently.
- * Satisfies Module 10 requirements (PriorityQueue processing).
+ * Manages processing of high-priority express bookings over regular bookings.
  */
 public class PriorityBookingManager {
 

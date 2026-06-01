@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A dedicated service module for processing flight filters.
+ * Service for filtering flight search results.
  * It combines multiple FlightCriteria using the Java Streams API.
  */
 public class FlightFilterService {

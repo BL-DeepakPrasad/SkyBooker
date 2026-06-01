@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Singleton Manager responsible for User Authentication and Registration.
@@ -17,18 +19,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AuthenticationManager {
 
     private static volatile AuthenticationManager instance;
-    private final Map<String, User> userDatabase; // Email -> User
+    private final Map<Integer, User> userDatabase; // UserId -> User
+    private final Map<String, Integer> emailToIdMap;
     private final AtomicInteger idGenerator;
     private User currentUser;
 
     private AuthenticationManager() {
         this.userDatabase = new ConcurrentHashMap<>();
-        this.idGenerator = new AtomicInteger(1);
-        
-        // Mock Admin Account
-        registerAdmin("System Admin", "admin@skybooker.com", "admin123", "555-0000");
-        // Mock Staff Account
-        registerStaff("Flight Ops", "staff@skybooker.com", "staff123", "555-1111");
+        this.emailToIdMap = new ConcurrentHashMap<>();
+        this.idGenerator = new AtomicInteger(1000);
+        initializeMockAdmin();
     }
 
     public static AuthenticationManager getInstance() {
@@ -42,37 +42,48 @@ public class AuthenticationManager {
         return instance;
     }
 
-    public Passenger registerPassenger(String fullName, String email, String password, String phone, String passport, String nationality) {
-        if (userDatabase.containsKey(email.toLowerCase())) {
-            throw new IllegalArgumentException("Email already registered!");
+    private void initializeMockAdmin() {
+        registerAdmin("System Admin", "admin@skybooker.com", "admin123");
+    }
+
+    public boolean registerPassenger(String fullName, String email, String password, String phone, String passportNumber, String nationality) {
+        if (emailToIdMap.containsKey(email.toLowerCase())) {
+            return false; // Email exists
         }
-        
-        String passwordHash = PasswordUtils.hashPassword(password);
-        
-        Passenger passenger = new Passenger(idGenerator.getAndIncrement(), fullName, email.toLowerCase(), passwordHash, phone, passport, nationality);
-        userDatabase.put(passenger.getEmail(), passenger);
-        return passenger;
+        int id = idGenerator.incrementAndGet();
+        String hash = PasswordUtils.hashPassword(password);
+        Passenger p = new Passenger(id, fullName, email.toLowerCase(), hash, phone, passportNumber, nationality);
+        userDatabase.put(id, p);
+        emailToIdMap.put(email.toLowerCase(), id);
+        return true;
     }
 
-    private void registerAdmin(String name, String email, String pass, String phone) {
-        Admin admin = new Admin(idGenerator.getAndIncrement(), name, email.toLowerCase(), PasswordUtils.hashPassword(pass), phone);
-        userDatabase.put(admin.getEmail(), admin);
-    }
-
-    private void registerStaff(String name, String email, String pass, String phone) {
-        AirlineStaff staff = new AirlineStaff(idGenerator.getAndIncrement(), name, email.toLowerCase(), PasswordUtils.hashPassword(pass), phone);
-        userDatabase.put(staff.getEmail(), staff);
+    private void registerAdmin(String fullName, String email, String password) {
+        int id = idGenerator.incrementAndGet();
+        String hash = PasswordUtils.hashPassword(password);
+        Admin a = new Admin(id, fullName, email.toLowerCase(), hash, "");
+        userDatabase.put(id, a);
+        emailToIdMap.put(email.toLowerCase(), id);
     }
 
     public boolean login(String email, String password) {
-        User user = userDatabase.get(email.toLowerCase());
-        if (user != null) {
+        Integer id = emailToIdMap.get(email.toLowerCase());
+        if (id != null) {
+            User user = userDatabase.get(id);
             if (PasswordUtils.verifyPassword(password, user.getPasswordHash())) {
                 this.currentUser = user;
                 return true;
             }
         }
         return false;
+    }
+
+    public Optional<User> getUserById(int userId) {
+        return Optional.ofNullable(userDatabase.get(userId));
+    }
+
+    public List<User> getAllUsers() {
+        return new ArrayList<>(userDatabase.values());
     }
 
     public void logout() {
