@@ -6,12 +6,19 @@ import com.airline.skybooker.models.Passenger;
 import java.util.List;
 import java.util.Scanner;
 
+import com.airline.skybooker.services.SeatService;
+import com.airline.skybooker.managers.FlightManager;
+import com.airline.skybooker.models.Flight;
+import com.airline.skybooker.models.BookingPassenger;
+
 public class BookingManagementUI {
     private final BookingManager bookingManager;
     private final Scanner scanner;
+    private final SeatService seatService;
 
-    public BookingManagementUI(Scanner scanner) {
+    public BookingManagementUI(Scanner scanner, SeatService seatService) {
         this.scanner = scanner;
+        this.seatService = seatService;
         this.bookingManager = BookingManager.getInstance();
     }
 
@@ -53,22 +60,123 @@ public class BookingManagementUI {
     }
 
     private void manageSingleBooking(Booking booking) {
-        System.out.println("\n--- MANAGE BOOKING ---");
-        System.out.println("PNR: " + booking.getPnrCode());
-        System.out.println("Status: " + booking.getStatus());
-        System.out.printf("Total Fare Paid: INR %.2f%n", booking.getTotalFare());
-        System.out.println("1. Cancel Booking");
-        System.out.println("2. Go Back");
-        System.out.print("Enter choice: ");
+        Flight flight = FlightManager.getInstance().getFlightById(booking.getFlightId()).orElse(null);
+        if (flight == null) return;
 
-        String choice = scanner.nextLine().trim();
+        while(true) {
+            System.out.println("\n--- MANAGE BOOKING ---");
+            System.out.println("PNR: " + booking.getPnrCode());
+            System.out.println("Status: " + booking.getStatus());
+            System.out.printf("Total Fare Paid: INR %.2f%n", booking.getTotalFare());
+            
+            boolean isBookingCancelled = booking.getStatus().equals("CANCELLED") || booking.getStatus().equals("REFUNDED");
 
-        if (choice.equals("1")) {
-            System.out.print("Are you sure you want to cancel this booking? (y/n): ");
-            if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
-                bookingManager.cancelBooking(booking);
-                System.out.println("Cancellation request processed. Current Status: " + booking.getStatus());
+            System.out.println("\nPassengers:");
+            List<BookingPassenger> passengers = booking.getPassengers();
+            for (int i = 0; i < passengers.size(); i++) {
+                BookingPassenger bp = passengers.get(i);
+                String status = (bp.isCancelled() || isBookingCancelled) ? "[CANCELLED]" : "[CONFIRMED]";
+                System.out.printf("  %d. %s - Seat: %s %s%n", (i+1), bp.getFullName(), bp.getSeatNumber(), status);
             }
+            
+            if (isBookingCancelled) {
+                System.out.println("\nThis booking is cancelled. No further modifications are allowed.");
+                System.out.println("0. Go Back");
+            } else {
+                System.out.println("\n1. Cancel Entire Booking");
+                System.out.println("2. Cancel Specific Passenger (Partial Cancellation)");
+                System.out.println("3. Edit Passenger Details");
+                System.out.println("4. Change Seat Assignment");
+                if (booking.getFareBreakdown() != null) {
+                    System.out.println("5. View Fare Breakdown");
+                }
+                System.out.println("0. Go Back");
+            }
+            
+            System.out.print("Enter choice: ");
+
+            String choice = scanner.nextLine().trim();
+
+            if (choice.equals("0")) {
+                break;
+            } else if (!isBookingCancelled) {
+                if (choice.equals("1")) {
+                    System.out.print("Are you sure you want to cancel this ENTIRE booking? (y/n): ");
+                    if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                        bookingManager.cancelBooking(booking, flight, seatService);
+                        System.out.println("Cancellation request processed. Current Status: " + booking.getStatus());
+                        break;
+                    }
+                } else if (choice.equals("2")) {
+                    handlePartialCancellation(booking, flight, passengers);
+                } else if (choice.equals("3")) {
+                    handleEditPassenger(booking, passengers);
+                } else if (choice.equals("4")) {
+                    handleChangeSeat(booking, flight, passengers);
+                } else if (choice.equals("5") && booking.getFareBreakdown() != null) {
+                    System.out.println(booking.getFareBreakdown());
+                } else {
+                    System.out.println("Invalid selection.");
+                }
+            } else {
+                System.out.println("Invalid selection.");
+            }
+        }
+    }
+
+    private void handlePartialCancellation(Booking booking, Flight flight, List<BookingPassenger> passengers) {
+        System.out.print("Enter passenger number from the list above (e.g. 1): ");
+        try {
+            int idx = Integer.parseInt(scanner.nextLine().trim()) - 1;
+            if (idx >= 0 && idx < passengers.size() && !passengers.get(idx).isCancelled()) {
+                bookingManager.cancelSpecificPassenger(booking, flight, idx, seatService);
+            } else {
+                System.out.println("Invalid selection or already cancelled.");
+            }
+        } catch (Exception e) {
+            System.out.println("Invalid input.");
+        }
+    }
+
+    private void handleEditPassenger(Booking booking, List<BookingPassenger> passengers) {
+        System.out.print("Enter passenger number from the list above (e.g. 1): ");
+        try {
+            int idx = Integer.parseInt(scanner.nextLine().trim()) - 1;
+            if (idx >= 0 && idx < passengers.size() && !passengers.get(idx).isCancelled()) {
+                System.out.print("Enter new Full Name (press Enter to keep current): ");
+                String name = scanner.nextLine().trim();
+                System.out.print("Enter new Passport (press Enter to keep current): ");
+                String passport = scanner.nextLine().trim();
+                System.out.print("Add Meal Upgrade? (y/n): ");
+                boolean meal = scanner.nextLine().trim().equalsIgnoreCase("y");
+                
+                bookingManager.modifyPassengerDetails(booking, idx, name, passport, meal);
+                System.out.println("Passenger details updated successfully!");
+            } else {
+                System.out.println("Invalid selection.");
+            }
+        } catch (Exception e) {
+            System.out.println("Invalid input.");
+        }
+    }
+
+    private void handleChangeSeat(Booking booking, Flight flight, List<BookingPassenger> passengers) {
+        System.out.print("Enter passenger number from the list above (e.g. 1): ");
+        try {
+            int idx = Integer.parseInt(scanner.nextLine().trim()) - 1;
+            if (idx >= 0 && idx < passengers.size() && !passengers.get(idx).isCancelled()) {
+                seatService.displaySeatMap(flight.getFlightNumber());
+                System.out.print("Enter new Seat Number: ");
+                String newSeat = scanner.nextLine().trim().toUpperCase();
+                
+                if (bookingManager.changePassengerSeat(booking, flight, idx, newSeat, seatService)) {
+                    System.out.println("Seat successfully changed to " + newSeat);
+                }
+            } else {
+                System.out.println("Invalid selection.");
+            }
+        } catch (Exception e) {
+            System.out.println("Invalid input.");
         }
     }
 }

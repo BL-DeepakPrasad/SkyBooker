@@ -38,6 +38,9 @@ public abstract class User {
 
     public void setFullName(String fullName) { this.fullName = fullName; }
     public void setPhone(String phone) { this.phone = phone; }
+    
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { this.isActive = active; }
 
     /**
      * Polymorphic method to be overridden by subclasses.

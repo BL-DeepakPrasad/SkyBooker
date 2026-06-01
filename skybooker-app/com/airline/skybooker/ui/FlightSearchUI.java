@@ -16,6 +16,8 @@ import com.airline.skybooker.utils.ErrorLogger;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.Map;
+import java.util.HashMap;
 
 public class FlightSearchUI {
     private final Scanner scanner;
@@ -24,6 +26,9 @@ public class FlightSearchUI {
     private final BookingUI bookingUI;
     private final AuthenticationManager authManager;
     private final AirportManager airportManager;
+    
+    private int flightDisplayCounter = 1;
+    private Map<Integer, Flight> flightDisplayMap = new HashMap<>();
 
     public FlightSearchUI(Scanner scanner, BookingUI bookingUI) {
         this.scanner = scanner;
@@ -35,6 +40,9 @@ public class FlightSearchUI {
     }
 
     public void startSearchFlow() {
+        flightDisplayCounter = 1;
+        flightDisplayMap.clear();
+
         System.out.println("\n--- FLIGHT SEARCH ---");
         try {
             System.out.println("\nSelect Trip Type:");
@@ -88,22 +96,32 @@ public class FlightSearchUI {
                 System.out.println("Cheapest Outbound Flight: INR " + f.getBasePrice())
             );
 
-            System.out.print("\nEnter Flight Number to view full details (or press Enter to skip): ");
+            System.out.print("\nEnter List Number (e.g. 1) or Flight Number (e.g. IG-202) to view details & book (or press Enter to skip): ");
             String fNumber = scanner.nextLine().trim();
             if (!fNumber.isEmpty()) {
-                flightManager.getFlightByNumber(fNumber).ifPresentOrElse(
-                    flight -> {
-                        System.out.println(flight.getFullDetails());
-                        
-                        if (authManager.getCurrentUser().isPresent() && authManager.getCurrentUser().get() instanceof Passenger) {
-                            Passenger currentPassenger = (Passenger) authManager.getCurrentUser().get();
-                            bookingUI.startBookingFlow(currentPassenger, flight);
-                        } else {
-                            System.out.println("\n(You must be logged in as a Passenger to book this flight.)");
-                        }
-                    },
-                    () -> System.out.println("Flight not found.")
-                );
+                Flight selectedFlight = null;
+                
+                // Try to parse as List Number first
+                try {
+                    int selection = Integer.parseInt(fNumber);
+                    selectedFlight = flightDisplayMap.get(selection);
+                } catch (NumberFormatException e) {
+                    // Fallback: search by Flight Number string
+                    selectedFlight = flightManager.getFlightByNumber(fNumber).orElse(null);
+                }
+                
+                if (selectedFlight != null) {
+                    System.out.println(selectedFlight.getFullDetails());
+                    
+                    if (authManager.getCurrentUser().isPresent() && authManager.getCurrentUser().get() instanceof Passenger) {
+                        Passenger currentPassenger = (Passenger) authManager.getCurrentUser().get();
+                        bookingUI.startBookingFlow(currentPassenger, selectedFlight);
+                    } else {
+                        System.out.println("\n(You must be logged in as a Passenger to book this flight.)");
+                    }
+                } else {
+                    System.out.println("Flight not found or invalid selection.");
+                }
             }
 
         } catch (FlightNotFoundException e) {
@@ -133,7 +151,10 @@ public class FlightSearchUI {
         
         while (current < flights.size()) {
             for (int i = current; i < Math.min(current + pageSize, flights.size()); i++) {
-                System.out.println((i + 1) + ". " + flights.get(i));
+                Flight f = flights.get(i);
+                System.out.println(flightDisplayCounter + ". " + f);
+                flightDisplayMap.put(flightDisplayCounter, f);
+                flightDisplayCounter++;
             }
             current += pageSize;
             if (current < flights.size()) {
@@ -164,7 +185,10 @@ public class FlightSearchUI {
                 System.out.println("No flights match your filters.");
             } else {
                 for (int i = 0; i < filtered.size(); i++) {
-                    System.out.println((i + 1) + ". " + filtered.get(i));
+                    Flight f = filtered.get(i);
+                    System.out.println(flightDisplayCounter + ". " + f);
+                    flightDisplayMap.put(flightDisplayCounter, f);
+                    flightDisplayCounter++;
                 }
             }
         }

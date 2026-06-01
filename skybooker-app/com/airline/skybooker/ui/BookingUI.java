@@ -65,12 +65,40 @@ public class BookingUI {
 
         for (int i = 0; i < numPassengers; i++) {
             System.out.println("\n--- Passenger " + (i + 1) + " ---");
-            System.out.print("Full Name: ");
-            String name = scanner.nextLine().trim();
-            System.out.print("Passport Number (Enter to skip): ");
-            String passport = scanner.nextLine().trim();
-            System.out.print("Age Category (Adult/Child/Infant): ");
-            String ageCat = scanner.nextLine().trim();
+            String name;
+            while (true) {
+                System.out.print("Full Name: ");
+                name = scanner.nextLine().trim();
+                try {
+                    ValidationUtils.validateName(name);
+                    break;
+                } catch (IllegalArgumentException e) {
+                    System.out.println("ERROR: " + e.getMessage());
+                }
+            }
+
+            String passport;
+            while (true) {
+                System.out.print("Passport Number (Enter to skip): ");
+                passport = scanner.nextLine().trim();
+                if (passport.isEmpty()) break;
+                try {
+                    ValidationUtils.validatePassport(passport);
+                    break;
+                } catch (IllegalArgumentException e) {
+                    System.out.println("ERROR: " + e.getMessage());
+                }
+            }
+
+            String ageCat;
+            while (true) {
+                System.out.print("Age Category (Adult/Child/Infant): ");
+                ageCat = scanner.nextLine().trim();
+                if (ageCat.equalsIgnoreCase("Adult") || ageCat.equalsIgnoreCase("Child") || ageCat.equalsIgnoreCase("Infant")) {
+                    break;
+                }
+                System.out.println("ERROR: Please enter Adult, Child, or Infant.");
+            }
             
             if (ageCat.equalsIgnoreCase("Adult")) adultCount++;
             else if (ageCat.equalsIgnoreCase("Infant")) infantCount++;
@@ -78,15 +106,33 @@ public class BookingUI {
             BookingPassenger bp = new BookingPassenger(name, passport, ageCat);
 
             // Baggage
-            System.out.print("Estimated Baggage Weight in kg (Standard is 15kg): ");
-            try {
-                double weight = Double.parseDouble(scanner.nextLine().trim());
-                bp.setBaggageWeight(weight);
-            } catch (Exception e) {}
+            while (true) {
+                System.out.print("Estimated Baggage Weight in kg (Standard is 15kg): ");
+                String weightInput = scanner.nextLine().trim();
+                if (weightInput.isEmpty()) break;
+                try {
+                    double weight = Double.parseDouble(weightInput);
+                    if (weight < 0 || weight > 100) {
+                        System.out.println("ERROR: Baggage weight must be between 0 and 100 kg.");
+                        continue;
+                    }
+                    bp.setBaggageWeight(weight);
+                    break;
+                } catch (NumberFormatException e) {
+                    System.out.println("ERROR: Invalid number format.");
+                }
+            }
 
             // Meal
-            System.out.print("Opt for Meal Upgrade (+INR 20)? (y/n): ");
-            bp.setMealUpgrade(scanner.nextLine().trim().equalsIgnoreCase("y"));
+            while (true) {
+                System.out.print("Opt for Meal Upgrade (+INR 20)? (y/n): ");
+                String mealInput = scanner.nextLine().trim().toLowerCase();
+                if (mealInput.equals("y") || mealInput.equals("n") || mealInput.isEmpty()) {
+                    bp.setMealUpgrade(mealInput.equals("y"));
+                    break;
+                }
+                System.out.println("ERROR: Please enter 'y' or 'n'.");
+            }
 
             booking.getPassengers().add(bp);
         }
@@ -94,7 +140,7 @@ public class BookingUI {
         // Business Rule Validation: Infant must travel with adult
         if (infantCount > 0 && adultCount == 0) {
             System.out.println("\n[ERROR] Business Rule Violation: An Infant must travel with at least one Adult.");
-            bookingManager.cancelBooking(booking);
+            bookingManager.cancelBooking(booking, flight, seatService);
             return;
         }
 
@@ -103,8 +149,16 @@ public class BookingUI {
         
         for (int i = 0; i < numPassengers; i++) {
             BookingPassenger bp = booking.getPassengers().get(i);
-            System.out.print("Enter Seat Number for " + bp.getFullName() + " (e.g. 1B): ");
-            String seatNum = scanner.nextLine().trim();
+            String seatNum;
+            while (true) {
+                System.out.print("Enter Seat Number for " + bp.getFullName() + " (e.g. 1B): ");
+                seatNum = scanner.nextLine().trim().toUpperCase();
+                if (seatService.isValidSeat(flight.getFlightNumber(), seatNum)) {
+                    break;
+                } else {
+                    System.out.println("Invalid or unavailable seat. Please try again.");
+                }
+            }
             bp.setSeatNumber(seatNum);
         }
 
@@ -123,6 +177,14 @@ public class BookingUI {
         }
 
         System.out.println("\nCalculating complex dynamic fares based on age, baggage, and seat selections...");
+        boolean isDomestic = flight.getOrigin().getCountry().equalsIgnoreCase(flight.getDestination().getCountry());
+        
+        String breakdown = com.airline.skybooker.services.FareCalculatorService.getInstance().getFareBreakdown(booking, flight.getBasePrice(), isExpress, promo, isDomestic);
+        booking.setFareBreakdown(breakdown);
+        System.out.println(breakdown);
+        
+        double previewAmount = com.airline.skybooker.services.FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promo, isDomestic);
+        System.out.printf("\n*** TOTAL PAYABLE AMOUNT: INR %.2f ***%n", previewAmount);
 
         System.out.println("\nSelect Payment Strategy:");
         System.out.println("1. Credit/Debit Card");
@@ -184,7 +246,7 @@ public class BookingUI {
             strategy = new EMIPayment(card, months);
         } else {
             System.out.println("Invalid payment method.");
-            bookingManager.cancelBooking(booking);
+            bookingManager.cancelBooking(booking, flight, seatService);
             return;
         }
 
@@ -206,12 +268,12 @@ public class BookingUI {
         } catch (SeatLockException | PaymentFailureException ex) {
             System.out.println("FAILED: " + ex.getMessage());
             ErrorLogger.logError(ex);
-            bookingManager.cancelBooking(booking);
+            bookingManager.cancelBooking(booking, flight, seatService);
             System.out.println("[State: " + booking.getStatus() + "]");
         } catch (Exception ex) {
             System.out.println("Unexpected Error: " + ex.getMessage());
             ErrorLogger.logError(ex);
-            bookingManager.cancelBooking(booking);
+            bookingManager.cancelBooking(booking, flight, seatService);
         }
     }
 }

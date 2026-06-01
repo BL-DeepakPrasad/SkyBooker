@@ -69,8 +69,8 @@ public class ValidationUtils {
     }
 
     public static void validatePassport(String passport) {
-        if (passport == null || !passport.matches("^[A-Z0-9]{6,9}$")) {
-            throw new IllegalArgumentException("Invalid passport format. Must be 6-9 alphanumeric characters.");
+        if (passport == null || !passport.matches("^[A-Za-z0-9]{6,15}$")) {
+            throw new IllegalArgumentException("Invalid passport format. Must be 6-15 alphanumeric characters.");
         }
     }
 }

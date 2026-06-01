@@ -109,4 +109,55 @@ public class SeatService {
         }
         throw new SeatLockException("Seat " + seatNumber + " does not exist on this aircraft.");
     }
+
+    /**
+     * Confirms a locked seat permanently after payment.
+     */
+    public void confirmSeat(String flightNumber, String seatNumber) {
+        List<Seat> seats = flightSeats.get(flightNumber);
+        if (seats != null) {
+            for (Seat seat : seats) {
+                if (seat.getSeatNumber().equalsIgnoreCase(seatNumber)) {
+                    synchronized (seat) {
+                        seat.setBooked(true);
+                        seat.setLocked(false);
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    /**
+     * Releases a seat back to available pool.
+     */
+    public void releaseSeat(String flightNumber, String seatNumber) {
+        List<Seat> seats = flightSeats.get(flightNumber);
+        if (seats != null) {
+            for (Seat seat : seats) {
+                if (seat.getSeatNumber().equalsIgnoreCase(seatNumber)) {
+                    synchronized (seat) {
+                        seat.setBooked(false);
+                        seat.setLocked(false);
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if a seat number exists and is not permanently booked.
+     */
+    public boolean isValidSeat(String flightNumber, String seatNumber) {
+        List<Seat> seats = flightSeats.get(flightNumber);
+        if (seats == null) return false;
+        
+        for (Seat seat : seats) {
+            if (seat.getSeatNumber().equalsIgnoreCase(seatNumber)) {
+                return !seat.isBooked();
+            }
+        }
+        return false;
+    }
 }

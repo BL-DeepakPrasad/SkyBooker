@@ -228,6 +228,12 @@ public class FlightManager implements Searchable {
                 .findFirst();
     }
 
+    public Optional<Flight> getFlightById(int flightId) {
+        return flightDatabase.stream()
+                .filter(f -> f.getFlightId() == flightId)
+                .findFirst();
+    }
+
     /**
      * Registers a new dynamically created flight into the system.
      * Updates the route index and clears the cache to ensure consistency.

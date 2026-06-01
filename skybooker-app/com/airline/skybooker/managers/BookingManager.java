@@ -80,7 +80,7 @@ public class BookingManager {
     /**
      * Service method to cancel a booking and process refund.
      */
-    public void cancelBooking(Booking booking) {
+    public void cancelBooking(Booking booking, Flight flight, SeatService seatService) {
         if (booking.getStatus().equals("CONFIRMED")) {
             System.out.println("\n[CANCELLATION] Processing cancellation for " + booking.getPnrCode());
             
@@ -89,12 +89,20 @@ public class BookingManager {
             double penalty = refundData[1];
             
             System.out.printf("[CANCELLATION] Total Fare: INR %.2f | Penalty: INR %.2f | Refund Amount: INR %.2f%n", 
-                               booking.getTotalFare(), penalty, refundAmount);
+                                booking.getTotalFare(), penalty, refundAmount);
             
             if (booking.getPaymentStrategy() != null) {
                 boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPaymentStrategy(), refundAmount);
                 if (refundSuccess) {
                     booking.setState(new RefundedState());
+                    
+                    // Release all seats
+                    for (com.airline.skybooker.models.BookingPassenger bp : booking.getPassengers()) {
+                        if (!bp.isCancelled()) {
+                            seatService.releaseSeat(flight.getFlightNumber(), bp.getSeatNumber());
+                            bp.setCancelled(true);
+                        }
+                    }
                     
                     // Notify passenger of refund
                     User passenger = AuthenticationManager.getInstance().getCurrentUser().orElse(null);
@@ -106,6 +114,56 @@ public class BookingManager {
             }
         }
         booking.cancel();
+    }
+
+    public void cancelSpecificPassenger(Booking booking, Flight flight, int passengerIndex, SeatService seatService) {
+        if (passengerIndex < 0 || passengerIndex >= booking.getPassengers().size()) return;
+        com.airline.skybooker.models.BookingPassenger bp = booking.getPassengers().get(passengerIndex);
+        if (bp.isCancelled()) return;
+
+        double[] refundData = FareCalculatorService.getInstance().calculateRefundAndPenalty(bp.getFarePaid());
+        double refundAmount = refundData[0];
+        double penalty = refundData[1];
+        
+        System.out.printf("[PARTIAL CANCELLATION] %s | Penalty: INR %.2f | Refund: INR %.2f%n", 
+                          bp.getFullName(), penalty, refundAmount);
+                          
+        if (booking.getPaymentStrategy() != null) {
+            boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPaymentStrategy(), refundAmount);
+            if (refundSuccess) {
+                bp.setCancelled(true);
+                seatService.releaseSeat(flight.getFlightNumber(), bp.getSeatNumber());
+                booking.setTotalFare(booking.getTotalFare() - bp.getFarePaid());
+            }
+        }
+    }
+
+    public void modifyPassengerDetails(Booking booking, int passengerIndex, String newName, String newPassport, boolean newMeal) {
+        if (passengerIndex < 0 || passengerIndex >= booking.getPassengers().size()) return;
+        com.airline.skybooker.models.BookingPassenger bp = booking.getPassengers().get(passengerIndex);
+        if (bp.isCancelled()) return;
+        
+        if (!newName.isEmpty()) bp.setFullName(newName);
+        if (!newPassport.isEmpty()) bp.setPassportNumber(newPassport);
+        bp.setMealUpgrade(newMeal);
+    }
+
+    public boolean changePassengerSeat(Booking booking, Flight flight, int passengerIndex, String newSeat, SeatService seatService) {
+        if (passengerIndex < 0 || passengerIndex >= booking.getPassengers().size()) return false;
+        com.airline.skybooker.models.BookingPassenger bp = booking.getPassengers().get(passengerIndex);
+        if (bp.isCancelled()) return false;
+        
+        try {
+            if (seatService.lockSeat(flight.getFlightNumber(), newSeat)) {
+                seatService.releaseSeat(flight.getFlightNumber(), bp.getSeatNumber());
+                seatService.confirmSeat(flight.getFlightNumber(), newSeat);
+                bp.setSeatNumber(newSeat);
+                return true;
+            }
+        } catch (SeatLockException e) {
+            System.out.println("Cannot change seat: " + e.getMessage());
+        }
+        return false;
     }
 
     /**
@@ -140,6 +198,13 @@ public class BookingManager {
         boolean success = PaymentManager.getInstance().processTransaction(strategy, finalAmount);
         
         if (success) {
+            // Confirm seats permanently
+            for (com.airline.skybooker.models.BookingPassenger bp : booking.getPassengers()) {
+                seatService.confirmSeat(flight.getFlightNumber(), bp.getSeatNumber());
+                // For simplicity in this demo, just assign average fare to each passenger
+                bp.setFarePaid(finalAmount / booking.getPassengers().size());
+            }
+
             // 4. Confirm Booking: PAYMENT_PENDING -> CONFIRMED
             booking.nextState(); 
             

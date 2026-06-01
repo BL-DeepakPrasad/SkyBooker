@@ -12,6 +12,7 @@ public class Booking implements Comparable<Booking> {
     private int flightId;
     private String pnrCode;
     private double totalFare;
+    private String fareBreakdown;
     private LocalDateTime bookedAt;
     private java.util.List<BookingPassenger> passengers;
     
@@ -72,6 +73,8 @@ public class Booking implements Comparable<Booking> {
     public void setPnrCode(String pnrCode) { this.pnrCode = pnrCode; }
     public double getTotalFare() { return totalFare; }
     public void setTotalFare(double totalFare) { this.totalFare = totalFare; }
+    public String getFareBreakdown() { return fareBreakdown; }
+    public void setFareBreakdown(String fareBreakdown) { this.fareBreakdown = fareBreakdown; }
     public LocalDateTime getBookedAt() { return bookedAt; }
     public void setPriority(BookingPriority priority) { this.priority = priority; }
     public BookingPriority getPriority() { return priority; }

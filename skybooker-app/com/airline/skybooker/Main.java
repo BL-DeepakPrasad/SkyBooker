@@ -13,6 +13,7 @@ import com.airline.skybooker.ui.AdminFlightUI;
 import com.airline.skybooker.ui.AdminAirportUI;
 import com.airline.skybooker.ui.AdminAnalyticsUI;
 import com.airline.skybooker.ui.CheckInUI;
+import com.airline.skybooker.ui.AdminUserUI;
 import com.airline.skybooker.exception.DatabaseConnectionException;
 import com.airline.skybooker.utils.ErrorLogger;
 
@@ -40,13 +41,14 @@ public class Main {
         SeatService seatService = new SeatService();
         BookingUI bookingUI = new BookingUI(scanner, seatService);
         this.searchUI = new FlightSearchUI(scanner, bookingUI);
-        BookingManagementUI bookingManagementUI = new BookingManagementUI(scanner);
+        BookingManagementUI bookingManagementUI = new BookingManagementUI(scanner, seatService);
         AdminFlightUI adminFlightUI = new AdminFlightUI(scanner, seatService);
         AdminAirportUI adminAirportUI = new AdminAirportUI(scanner);
         AdminAnalyticsUI adminAnalyticsUI = new AdminAnalyticsUI(scanner);
         CheckInUI checkInUI = new CheckInUI(scanner);
+        AdminUserUI adminUserUI = new AdminUserUI(scanner);
         
-        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI, adminFlightUI, adminAirportUI, adminAnalyticsUI, checkInUI);
+        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI, adminFlightUI, adminAirportUI, adminAnalyticsUI, checkInUI, adminUserUI);
     }
 
     /**

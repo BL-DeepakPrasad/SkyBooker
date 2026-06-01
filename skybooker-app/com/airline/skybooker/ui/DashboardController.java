@@ -22,11 +22,12 @@ public class DashboardController {
     private final AdminAirportUI adminAirportUI;
     private final AdminAnalyticsUI adminAnalyticsUI;
     private final CheckInUI checkInUI;
+    private final AdminUserUI adminUserUI;
 
     public DashboardController(Scanner scanner, ProfileUI profileUI, BookingManagementUI bookingManagementUI, 
                                FlightSearchUI searchUI, AdminFlightUI adminFlightUI, 
                                AdminAirportUI adminAirportUI, AdminAnalyticsUI adminAnalyticsUI,
-                               CheckInUI checkInUI) {
+                               CheckInUI checkInUI, AdminUserUI adminUserUI) {
         this.scanner = scanner;
         this.profileUI = profileUI;
         this.bookingManagementUI = bookingManagementUI;
@@ -35,6 +36,7 @@ public class DashboardController {
         this.adminAirportUI = adminAirportUI;
         this.adminAnalyticsUI = adminAnalyticsUI;
         this.checkInUI = checkInUI;
+        this.adminUserUI = adminUserUI;
     }
 
     public void startLoop(User user) {
@@ -72,7 +74,7 @@ public class DashboardController {
                 return true;
             case "2":
                 if (isPassenger) bookingManagementUI.displayMyBookings(passenger);
-                else if (isAdmin) System.out.println("User Management coming soon!");
+                else if (isAdmin) adminUserUI.startUserManagementFlow();
                 else System.out.println("Feature coming soon!");
                 return true;
             case "3":

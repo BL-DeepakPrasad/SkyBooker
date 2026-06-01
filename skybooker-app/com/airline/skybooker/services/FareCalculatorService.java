@@ -89,6 +89,86 @@ public class FareCalculatorService {
     }
 
     /**
+     * Generates a receipt-style breakdown of the fare for the UI.
+     */
+    public String getFareBreakdown(Booking booking, double baseFare, boolean isExpress, String promoCode, boolean isDomestic) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n============================================\n");
+        sb.append("               FARE BREAKDOWN                 \n");
+        sb.append("============================================\n");
+        
+        double totalPassengerFare = 0.0;
+        
+        for (int i = 0; i < booking.getPassengers().size(); i++) {
+            BookingPassenger bp = booking.getPassengers().get(i);
+            sb.append(String.format("Passenger %d (%s):%n", (i+1), bp.getFullName()));
+            
+            double passengerFare = baseFare;
+            sb.append(String.format("  Base Fare: INR %.2f%n", baseFare));
+            
+            if (bp.getAgeCategory().equalsIgnoreCase("Child")) {
+                passengerFare *= 0.75;
+                sb.append(String.format("  Child Discount (25%%): -INR %.2f%n", baseFare * 0.25));
+            } else if (bp.getAgeCategory().equalsIgnoreCase("Infant")) {
+                passengerFare *= 0.10;
+                sb.append(String.format("  Infant Discount (90%%): -INR %.2f%n", baseFare * 0.90));
+            }
+            
+            if (bp.getBaggageWeight() > 15.0) {
+                double excess = (bp.getBaggageWeight() - 15.0) * 10.0;
+                passengerFare += excess;
+                sb.append(String.format("  Excess Baggage (%.1f kg): +INR %.2f%n", (bp.getBaggageWeight() - 15.0), excess));
+            }
+            
+            if (bp.hasMealUpgrade()) {
+                passengerFare += 20.0;
+                sb.append("  Meal Upgrade: +INR 20.00\n");
+            }
+            
+            if (bp.getSeatNumber() != null && !bp.getSeatNumber().isEmpty()) {
+                char seatLetter = bp.getSeatNumber().charAt(bp.getSeatNumber().length() - 1);
+                if (seatLetter == 'A' || seatLetter == 'F' || seatLetter == 'C' || seatLetter == 'D') {
+                    passengerFare += 15.0;
+                    sb.append(String.format("  Premium Seat (%s): +INR 15.00%n", bp.getSeatNumber()));
+                }
+            }
+            sb.append(String.format("  Subtotal: INR %.2f%n", passengerFare));
+            totalPassengerFare += passengerFare;
+        }
+
+        sb.append("--------------------------------------------\n");
+        sb.append(String.format("Passengers Subtotal: INR %.2f%n", totalPassengerFare));
+        
+        double finalAmount = totalPassengerFare;
+        
+        sb.append("Airport Charges: +INR 20.00\n");
+        finalAmount += 20.0;
+        
+        sb.append("Fuel Surcharge: +INR 15.00\n");
+        finalAmount += 15.0;
+
+        if (isExpress) {
+            sb.append("Express Booking Fee: +INR 25.00\n");
+            finalAmount += 25.0;
+        }
+        
+        if (isDomestic) {
+            double gst = finalAmount * 0.05;
+            sb.append(String.format("GST (5%%): +INR %.2f%n", gst));
+            finalAmount += gst;
+        }
+        
+        if (promoCode != null && promoCode.equalsIgnoreCase("SKYBOOKER20")) {
+            double discount = finalAmount * 0.20;
+            sb.append(String.format("Promo Discount (20%%): -INR %.2f%n", discount));
+            finalAmount -= discount;
+        }
+        
+        sb.append("============================================");
+        return sb.toString();
+    }
+
+    /**
      * Calculates the refund amount and cancellation penalty.
      * Returns an array where [0] is the refund amount, and [1] is the penalty applied.
      */

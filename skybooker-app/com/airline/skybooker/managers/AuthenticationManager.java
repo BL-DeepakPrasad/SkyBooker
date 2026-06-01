@@ -29,6 +29,7 @@ public class AuthenticationManager {
         this.emailToIdMap = new ConcurrentHashMap<>();
         this.idGenerator = new AtomicInteger(1000);
         initializeMockAdmin();
+        initializeMockPassenger();
     }
 
     public static AuthenticationManager getInstance() {
@@ -44,6 +45,10 @@ public class AuthenticationManager {
 
     private void initializeMockAdmin() {
         registerAdmin("System Admin", "admin@skybooker.com", "admin123");
+    }
+
+    private void initializeMockPassenger() {
+        registerPassenger("Test Passenger", "user@skybooker.com", "user123", "1234567890", "TEST1234", "Indian");
     }
 
     public boolean registerPassenger(String fullName, String email, String password, String phone, String passportNumber, String nationality) {
@@ -70,6 +75,10 @@ public class AuthenticationManager {
         Integer id = emailToIdMap.get(email.toLowerCase());
         if (id != null) {
             User user = userDatabase.get(id);
+            if (!user.isActive()) {
+                System.out.println("Account is suspended. Please contact support.");
+                return false;
+            }
             if (PasswordUtils.verifyPassword(password, user.getPasswordHash())) {
                 this.currentUser = user;
                 return true;
@@ -84,6 +93,37 @@ public class AuthenticationManager {
 
     public List<User> getAllUsers() {
         return new ArrayList<>(userDatabase.values());
+    }
+
+    public Optional<User> getUserByEmail(String email) {
+        Integer id = emailToIdMap.get(email.toLowerCase());
+        return id != null ? Optional.ofNullable(userDatabase.get(id)) : Optional.empty();
+    }
+
+    public boolean toggleUserStatus(int userId, boolean isActive) {
+        User user = userDatabase.get(userId);
+        if (user != null) {
+            user.setActive(isActive);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean promoteToAirlineStaff(int userId) {
+        User user = userDatabase.get(userId);
+        if (user != null && user instanceof Passenger) {
+            AirlineStaff staff = new AirlineStaff(
+                user.getUserId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                user.getPhone()
+            );
+            staff.setActive(user.isActive());
+            userDatabase.put(userId, staff);
+            return true;
+        }
+        return false;
     }
 
     public void logout() {
