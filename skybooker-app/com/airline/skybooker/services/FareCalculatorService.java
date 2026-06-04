@@ -41,10 +41,7 @@ public class FareCalculatorService {
      * @param baseFare   the starting price of the ticket
      * @param isExpress  whether the user chose faster processing
      * @param promoCode  a discount code, if any
-     * @param isDomestic whether the flight is within the same country (affects taxes)
-     * @return the final total amount to charge
-     */
-    public double calculateFinalFare(Booking booking, double baseFare, boolean isExpress, String promoCode, boolean isDomestic) {
+    public double calculateFinalFare(Booking booking, double baseFare, boolean isExpress, String promoCode) {
         double totalPassengerFare = 0.0;
         
         for (BookingPassenger bp : booking.getPassengers()) {
@@ -91,10 +88,8 @@ public class FareCalculatorService {
             booking.setPriority(BookingPriority.REGULAR);
         }
         
-        // GST for domestic flights (5%)
-        if (isDomestic) {
-            finalAmount += finalAmount * AppConstants.GST_RATE;
-        }
+        // Apply GST
+        finalAmount += finalAmount * AppConstants.GST_RATE;
         
         if (promoCode != null && promoCode.equalsIgnoreCase(AppConstants.PROMO_CODE_SKYBOOKER20)) {
             finalAmount = finalAmount * (1.0 - AppConstants.PROMO_DISCOUNT_RATE);
@@ -111,10 +106,7 @@ public class FareCalculatorService {
      * @param baseFare   the starting price of the ticket
      * @param isExpress  whether the user chose faster processing
      * @param promoCode  a discount code, if any
-     * @param isDomestic whether the flight is within the same country
-     * @return a printable string containing the receipt
-     */
-    public String getFareBreakdown(Booking booking, double baseFare, boolean isExpress, String promoCode, boolean isDomestic) {
+    public String getFareBreakdown(Booking booking, double baseFare, boolean isExpress, String promoCode) {
         StringBuilder sb = new StringBuilder();
         sb.append("\n============================================\n");
         sb.append("               FARE BREAKDOWN                 \n");
@@ -175,11 +167,9 @@ public class FareCalculatorService {
             finalAmount += AppConstants.EXPRESS_BOOKING_FEE;
         }
         
-        if (isDomestic) {
-            double gst = finalAmount * AppConstants.GST_RATE;
-            sb.append(String.format("GST (%.0f%%): +INR %.2f%n", AppConstants.GST_RATE * 100, gst));
-            finalAmount += gst;
-        }
+        double gst = finalAmount * AppConstants.GST_RATE;
+        sb.append(String.format("GST (%.0f%%): +INR %.2f%n", AppConstants.GST_RATE * 100, gst));
+        finalAmount += gst;
         
         if (promoCode != null && promoCode.equalsIgnoreCase(AppConstants.PROMO_CODE_SKYBOOKER20)) {
             double discount = finalAmount * AppConstants.PROMO_DISCOUNT_RATE;

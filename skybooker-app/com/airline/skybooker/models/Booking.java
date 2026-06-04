@@ -7,6 +7,7 @@ import com.airline.skybooker.interfaces.Payable;
 import com.airline.skybooker.interfaces.Bookable;
 import com.airline.skybooker.interfaces.Cancellable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Record of a customer buying tickets for a specific flight.
@@ -114,5 +115,5 @@ public class Booking implements Comparable<Booking>, Bookable, Cancellable {
     public long getTimestamp() { return timestamp; }
     public void setPayable(Payable payable) { this.payable = payable; }
     public Payable getPayable() { return payable; }
-    public java.util.List<BookingPassenger> getPassengers() { return passengers; }
+    public List<BookingPassenger> getPassengers() { return passengers; }
 }

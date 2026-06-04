@@ -68,16 +68,11 @@ public class BookingService {
             }
         }
         
-        // Transition: PASSENGER_DETAILS -> SEAT_SELECTED
-        booking.nextState(); 
-        
         // Transition: SEAT_SELECTED -> PAYMENT_PENDING
         booking.nextState();
         
-        boolean isDomestic = flight.getOrigin().getCountry().equalsIgnoreCase(flight.getDestination().getCountry());
-        
         // 2. Calculate Final Fare & Priority via Service
-        double finalAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promoCode, isDomestic);
+        double finalAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promoCode);
         
         // Save strategy for future refunds
         booking.setPayable(payable);
@@ -93,6 +88,9 @@ public class BookingService {
                 bp.setFarePaid(finalAmount / booking.getPassengers().size());
             }
 
+            // Generate PNR upon successful payment
+            booking.setPnrCode("PNR" + (int)(Math.random() * 10000));
+
             // 4. Confirm Booking: PAYMENT_PENDING -> CONFIRMED
             booking.nextState(); 
             
@@ -103,7 +101,6 @@ public class BookingService {
                     
                 // Simulate Scheduled Reminders
                 NotificationManager.getInstance().sendTravelReminder(passenger, booking, "Check-in opens in 24 Hours!");
-                NotificationManager.getInstance().sendTravelReminder(passenger, booking, "Boarding starts in 3 Hours!");
             }
             
             // 5. Add to Priority Processing Queue

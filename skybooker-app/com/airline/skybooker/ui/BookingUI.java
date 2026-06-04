@@ -65,7 +65,6 @@ public class BookingUI {
         int numPassengers = InputReader.readInt(scanner, "Enter number of passengers (Max 6): ", ValidationUtils::validatePassengerCount);
 
         Booking booking = bookingManager.initiateBooking(passenger.getUserId(), flight.getFlightId());
-        booking.nextState();
         System.out.println("[State: " + booking.getStatus() + "] Collecting passenger details.");
 
         int adultCount = 0;
@@ -146,6 +145,9 @@ public class BookingUI {
             bp.setSeatNumber(seatNum);
         }
 
+        // Transition: INITIATED -> SEAT_SELECTED
+        booking.nextState();
+
         handlePaymentPhase(booking, flight);
     }
 
@@ -168,13 +170,11 @@ public class BookingUI {
         }
 
         System.out.println("\nCalculating complex dynamic fares based on age, baggage, and seat selections...");
-        boolean isDomestic = flight.getOrigin().getCountry().equalsIgnoreCase(flight.getDestination().getCountry());
-        
-        String breakdown = FareCalculatorService.getInstance().getFareBreakdown(booking, flight.getBasePrice(), isExpress, promo, isDomestic);
+        String breakdown = FareCalculatorService.getInstance().getFareBreakdown(booking, flight.getBasePrice(), isExpress, promo);
         booking.setFareBreakdown(breakdown);
         System.out.println(breakdown);
         
-        double previewAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promo, isDomestic);
+        double previewAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promo);
         System.out.printf("\n*** TOTAL PAYABLE AMOUNT: INR %.2f ***%n", previewAmount);
 
         System.out.println("\nSelect Payment Strategy:");

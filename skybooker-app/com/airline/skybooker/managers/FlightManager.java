@@ -143,8 +143,11 @@ public class FlightManager implements Searchable {
      */
     @Override
     public List<Flight> searchFlights(String originCode, String destinationCode) {
-        String cacheKey = originCode.toUpperCase() + "-" + destinationCode.toUpperCase();
-        
+        System.out.println(routeIndex);
+        System.out.println("search cache"+searchCache);
+        String cacheKey = originCode.toUpperCase() + "-" + destinationCode.toUpperCase(); //DEL-BOM
+
+        // search in the cache first
         if (searchCache.containsKey(cacheKey)) {
             System.out.println("[CACHE HIT] Returning results from cache.");
             List<Flight> cachedResults = searchCache.get(cacheKey).stream()
@@ -157,6 +160,7 @@ public class FlightManager implements Searchable {
         }
 
         List<Flight> indexedFlights = routeIndex.getOrDefault(cacheKey, Collections.emptyList());
+
 
         List<Flight> results = indexedFlights
                 .stream()

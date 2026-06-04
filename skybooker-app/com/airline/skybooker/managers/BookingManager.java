@@ -2,6 +2,7 @@ package com.airline.skybooker.managers;
 
 import com.airline.skybooker.models.Booking;
 
+import java.net.PasswordAuthentication;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -122,13 +123,17 @@ public class BookingManager {
      * @param newMeal        the updated meal upgrade preference flag
      */
     public void modifyPassengerDetails(Booking booking, int passengerIndex, String newName, String newPassport, boolean newMeal) {
-        if (passengerIndex < 0 || passengerIndex >= booking.getPassengers().size()) return;
-        BookingPassenger bp = booking.getPassengers().get(passengerIndex);
-        if (bp.isCancelled()) return;
-        
-        if (!newName.isEmpty()) bp.setFullName(newName);
-        if (!newPassport.isEmpty()) bp.setPassportNumber(newPassport);
-        bp.setMealUpgrade(newMeal);
+
+        List<BookingPassenger> listOfPassenger = booking.getPassengers();
+
+        if (passengerIndex < 0 || passengerIndex >= listOfPassenger.size()) return;
+
+        BookingPassenger bookingPassenger = listOfPassenger.get(passengerIndex);
+
+        if (bookingPassenger.isCancelled()) return;
+        if (!newName.isEmpty()) bookingPassenger.setFullName(newName);
+        if (!newPassport.isEmpty()) bookingPassenger.setPassportNumber(newPassport);
+        bookingPassenger.setMealUpgrade(newMeal);
     }
 
     /**
@@ -144,14 +149,15 @@ public class BookingManager {
      */
     public boolean changePassengerSeat(Booking booking, Flight flight, int passengerIndex, String newSeat, SeatService seatService) {
         if (passengerIndex < 0 || passengerIndex >= booking.getPassengers().size()) return false;
-        BookingPassenger bp = booking.getPassengers().get(passengerIndex);
-        if (bp.isCancelled()) return false;
+
+        BookingPassenger bookingPassenger = booking.getPassengers().get(passengerIndex);
+        if (bookingPassenger.isCancelled()) return false;
         
         try {
             if (seatService.lockSeat(flight.getFlightNumber(), newSeat)) {
-                seatService.releaseSeat(flight.getFlightNumber(), bp.getSeatNumber());
+                seatService.releaseSeat(flight.getFlightNumber(), bookingPassenger.getSeatNumber());
                 seatService.confirmSeat(flight.getFlightNumber(), newSeat);
-                bp.setSeatNumber(newSeat);
+                bookingPassenger.setSeatNumber(newSeat);
                 return true;
             }
         } catch (SeatLockException e) {
@@ -160,5 +166,5 @@ public class BookingManager {
         return false;
     }
 
-    // ProcessPaymentAndConfirm moved to BookingService to enforce SRP
+
 }

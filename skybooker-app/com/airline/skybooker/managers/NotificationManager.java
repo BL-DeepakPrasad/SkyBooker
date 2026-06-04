@@ -3,7 +3,7 @@ package com.airline.skybooker.managers;
 import com.airline.skybooker.notifications.AbstractNotification;
 import com.airline.skybooker.notifications.EmailNotification;
 import com.airline.skybooker.notifications.SMSNotification;
-import com.airline.skybooker.notifications.WhatsAppNotification;
+
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.models.Booking;
@@ -16,7 +16,6 @@ import java.util.List;
 
 /**
  * Handles sending all messages and alerts to customers.
- * It automatically chooses the best way to contact a user—like sending an email for a long receipt, or an SMS/WhatsApp for a quick flight delay warning.
  */
 public class NotificationManager {
 
@@ -25,7 +24,7 @@ public class NotificationManager {
 
     private NotificationManager() {
         activeChannels = new ArrayList<>();
-        // By default, activate Email and SMS. WhatsApp is optional.
+        // By default, activate Email and SMS.
         activeChannels.add(new EmailNotification());
         activeChannels.add(new SMSNotification());
     }
@@ -33,7 +32,6 @@ public class NotificationManager {
     /**
      * Provides access to the single, shared NotificationManager instance.
      * Ensures all messages go through the same centralized system to avoid spamming the user.
-     *
      * @return the singleton NotificationManager instance
      */
     public static NotificationManager getInstance() {
@@ -48,7 +46,7 @@ public class NotificationManager {
     }
 
     /**
-     * Sends a simple text message to the user through all of their preferred contact methods (Email, SMS, and optionally WhatsApp).
+     * Sends a simple text message to the user through all of their preferred contact methods (Email and SMS).
      *
      * @param user    the target User entity receiving the message
      * @param message the plain text payload to be transmitted
@@ -60,13 +58,6 @@ public class NotificationManager {
             channel.send(user, message);
         }
         
-        // Handle WhatsApp Opt-in dynamically
-        if (user instanceof Passenger) {
-            boolean optIn = ((Passenger) user).isWhatsappOptIn();
-            if (optIn) {
-                new WhatsAppNotification().send(user, message);
-            }
-        }
     }
 
     /**
@@ -88,10 +79,6 @@ public class NotificationManager {
         String smsBody = String.format(AppConstants.MSG_BOOKING_CONFIRMATION, booking.getPnrCode(), flight.getFlightNumber(), flight.getOrigin().getCity(), flight.getDestination().getCity());
         new SMSNotification().send(user, smsBody);
         
-        // WhatsApp if opted in
-        if (user instanceof Passenger && ((Passenger) user).isWhatsappOptIn()) {
-            new WhatsAppNotification().send(user, emailBody);
-        }
     }
 
     /**
@@ -120,7 +107,7 @@ public class NotificationManager {
     }
 
     /**
-     * Keeps the customer updated when they cancel a flight and are waiting for their money back.
+     * Keeps the customer updated when they cancel a flight
      *
      * @param user    the target User entity receiving the refund
      * @param booking the cancelled or modified Booking

@@ -2,7 +2,6 @@ package com.airline.skybooker.managers;
 
 import com.airline.skybooker.models.Booking;
 import com.airline.skybooker.models.Flight;
-import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.BoardingPass;
 import com.airline.skybooker.models.BookingPassenger;
@@ -11,11 +10,11 @@ import com.airline.skybooker.constants.AppConstants;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
+
 
 /**
  * Handles the process of checking in for a flight before departure.
- * Verifies that the passenger is allowed to check in (e.g., flight isn't too far in the future, passport is provided) and generates their boarding pass.
+ * Verifies that the passenger is allowed to check in and generates their boarding pass.
  */
 public class CheckInManager {
 
@@ -42,7 +41,7 @@ public class CheckInManager {
 
     /**
      * Verifies if a user is legally allowed to check in for their flight right now.
-     * It checks if they own the booking, if the booking is confirmed, and if they have a passport for international flights.
+     * It checks if they own the booking and if the booking is confirmed.
      *
      * @param pnr         the Passenger Name Record code representing the booking
      * @param currentUser the user initiating the check-in process
@@ -50,6 +49,8 @@ public class CheckInManager {
      * @throws IllegalStateException if any validation check fails
      */
     public Booking validateAndRetrieveBooking(String pnr, User currentUser) throws IllegalStateException {
+
+        // find the particular booking of a user via pnr
         Booking booking = BookingManager.getInstance().getAllBookings().stream()
                 .filter(b -> b.getPnrCode() != null && b.getPnrCode().equalsIgnoreCase(pnr))
                 .findFirst()
@@ -70,18 +71,6 @@ public class CheckInManager {
 
         // Validate Check-in Window (24h to 3h before departure)
         long hoursUntilDeparture = ChronoUnit.HOURS.between(LocalDateTime.now(), flight.getDepartureTime());
-
-
-        // Validate Passport for International Flights
-        boolean isInternational = !flight.getOrigin().getCountry().equalsIgnoreCase(flight.getDestination().getCountry());
-        if (isInternational) {
-            if (currentUser instanceof Passenger) {
-                Passenger p = (Passenger) currentUser;
-                if (p.getPassportNumber() == null || p.getPassportNumber().trim().isEmpty()) {
-                    throw new IllegalStateException("Passport is required for international flights. Please update your profile.");
-                }
-            }
-        }
 
         return booking;
     }

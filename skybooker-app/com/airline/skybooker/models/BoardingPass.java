@@ -51,16 +51,6 @@ public class BoardingPass {
         this.specialAssistance = specialAssistance;
     }
 
-    /**
-     * Creates a fake barcode made of text lines to simulate what a real scanner would read.
-     * In a real app, this would generate an actual image file (like a QR code), but we use text here to keep it simple.
-     *
-     * @return a text-based barcode
-     */
-    public String generateBarcode() {
-        return "||| || ||| | ||| || ||| || ||| | ||||\n" +
-               "PNR: " + pnr + " | FLIGHT: " + flightNumber;
-    }
 
     /**
      * Lays out the boarding pass into a neat, boxy text format that looks like a real ticket printed on paper.
@@ -79,7 +69,6 @@ public class BoardingPass {
         sb.append(String.format("DEPARTURE: %-20s SEAT: %s%n", departureTime, seatNumber));
         sb.append(String.format("BAGGAGE: %-22s ASSISTANCE: %s%n", baggageAllowance, specialAssistance ? "Yes" : "No"));
         sb.append("--------------------------------------------------\n");
-        sb.append(generateBarcode()).append("\n");
         sb.append("==================================================\n");
         return sb.toString();
     }

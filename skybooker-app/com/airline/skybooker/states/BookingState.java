@@ -9,23 +9,23 @@ import com.airline.skybooker.models.Booking;
 public interface BookingState {
     
     /**
-     * Advances the reservation context to the subsequent logical phase in the checkout or fulfillment pipeline.
+     * Moves the booking forward to the next step (e.g., from 'Seat Selected' to 'Payment').
      * 
-     * @param booking The stateful context object undergoing mutation
+     * @param booking The booking that is moving forward
      */
     void nextState(Booking booking);
 
     /**
-     * Terminates the active reservation flow, potentially triggering refunds or inventory releases depending on the current phase.
+     * Cancels the current booking and handles any necessary clean-up, like releasing seats or issuing refunds.
      * 
-     * @param booking The stateful context object undergoing termination
+     * @param booking The booking being cancelled
      */
     void cancel(Booking booking);
 
     /**
-     * Retrieves the formalized string representation of the current operational phase.
+     * Returns the name of the current state (like "CONFIRMED" or "CANCELLED") so we can show it on the UI.
      * 
-     * @return The standard string identifier for the state
+     * @return The simple text name of the state
      */
     String getStatusName();
 }
