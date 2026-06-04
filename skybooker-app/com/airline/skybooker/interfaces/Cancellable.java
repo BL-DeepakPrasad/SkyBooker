@@ -1,7 +1,8 @@
 package com.airline.skybooker.interfaces;
 
 /**
- * Contract for operations involving the termination of an active entity or workflow.
+ * An interface for things that can be cancelled.
+ * It exists to provide a common way to undo an action or stop a process.
  */
 public interface Cancellable {
     /**

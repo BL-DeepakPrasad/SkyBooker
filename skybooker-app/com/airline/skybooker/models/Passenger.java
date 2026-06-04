@@ -3,8 +3,8 @@ package com.airline.skybooker.models;
 import com.airline.skybooker.enums.Role;
 
 /**
- * Standard customer entity utilizing the platform to search and book flights.
- * Maintains travel-specific profile data such as passport details and preferences.
+ * Normal user who logs in to book flights and manage their trips.
+ * We need this class to store extra travel information, like passport numbers, that a standard 'User' doesn't have.
  */
 public class Passenger extends User {
     private String passportNumber;
@@ -12,16 +12,16 @@ public class Passenger extends User {
     private boolean whatsappOptIn;
 
     /**
-     * Registers a new passenger with comprehensive personal and travel details.
-     * Inherits base authentication properties and automatically assigns the PASSENGER role.
+     * Creates a new passenger account.
+     * We automatically set their role to 'PASSENGER' so they only see customer menus, not admin menus.
      *
-     * @param userId         unique identifier for the customer
-     * @param fullName       complete legal name
-     * @param email          primary contact email address
-     * @param passwordHash   secured hash of the login password
-     * @param phone          primary contact phone number
-     * @param passportNumber official travel document identifier
-     * @param nationality    country of citizenship
+     * @param userId         unique database ID for the customer
+     * @param fullName       their real name, matching their passport
+     * @param email          email address for logging in and getting tickets
+     * @param passwordHash   encrypted version of their password
+     * @param phone          contact phone number
+     * @param passportNumber travel document ID required for international flights
+     * @param nationality    country they are a citizen of
      */
     public Passenger(int userId, String fullName, String email, String passwordHash, String phone, String passportNumber, String nationality) {
         super(userId, fullName, email, passwordHash, phone, Role.PASSENGER);
@@ -39,8 +39,8 @@ public class Passenger extends User {
     public void setWhatsappOptIn(boolean whatsappOptIn) { this.whatsappOptIn = whatsappOptIn; }
 
     /**
-     * Renders the personalized passenger portal to the console.
-     * Displays profile summary and interactive menu options for booking management.
+     * Shows the main menu screen specifically designed for customers.
+     * It overrides the basic User dashboard to display options like viewing their own bookings instead of system tools.
      */
     @Override
     public void displayDashboard() {

@@ -1,8 +1,8 @@
 package com.airline.skybooker.exception;
 
 /**
- * Indicates a critical failure in establishing or maintaining a session with the persistent data store.
- * Generally raised when connection pools are exhausted or the database server is unreachable.
+ * Thrown when the application cannot talk to the database.
+ * This might happen if the internet is down or the database server is turned off.
  */
 public class DatabaseConnectionException extends AirlineSystemException {
     /**

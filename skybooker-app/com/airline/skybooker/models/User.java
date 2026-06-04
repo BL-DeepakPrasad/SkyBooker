@@ -4,9 +4,8 @@ import java.time.LocalDateTime;
 import com.airline.skybooker.enums.Role;
 
 /**
- * Foundational abstraction for all authenticated entities interacting with the platform.
- * Centralizes common identity attributes, contact information, and role-based access.
- * Demonstrates OOAD Inheritance and Abstraction.
+ * Base profile for anyone who logs into the system (passengers, admins, airline staff).
+ * We need this class so we don't have to rewrite the code for basic things like passwords, emails, and names in every single user type.
  */
 public abstract class User {
     protected int userId;
@@ -19,15 +18,15 @@ public abstract class User {
     protected LocalDateTime createdAt;
 
     /**
-     * Bootstraps common profile attributes for a newly authenticated entity.
-     * Records the creation timestamp and activates the profile.
+     * Sets up the common account details that every person needs to log in.
+     * It automatically marks the account as active and records the exact time it was created.
      *
-     * @param userId       unique system identifier for the entity
-     * @param fullName     complete legal name
-     * @param email        primary contact and login email address
-     * @param passwordHash secured hash for authentication checks
-     * @param phone        primary contact phone number
-     * @param role         authorization level defining system permissions
+     * @param userId       unique ID number in the database
+     * @param fullName     the person's real name
+     * @param email        email address used for logging in
+     * @param passwordHash scrambled password for security
+     * @param phone        contact phone number
+     * @param role         what type of user this is (determines what they are allowed to do)
      */
     public User(int userId, String fullName, String email, String passwordHash, String phone, Role role) {
         this.userId = userId;
@@ -40,7 +39,6 @@ public abstract class User {
         this.createdAt = LocalDateTime.now();
     }
 
-    // Getters
     public int getUserId() { return userId; }
     public String getFullName() { return fullName; }
     public String getEmail() { return email; }
@@ -55,8 +53,8 @@ public abstract class User {
     public void setActive(boolean active) { this.isActive = active; }
 
     /**
-     * Renders role-specific interfaces and operational menus.
-     * Must be implemented by concrete subclasses to provide tailored dashboard views.
+     * Shows a customized menu based on who is logged in.
+     * Because this is abstract, every specific user type (like Passenger or Admin) must provide their own version of this menu.
      */
     public abstract void displayDashboard();
 }

@@ -1,8 +1,8 @@
 package com.airline.skybooker.enums;
 
 /**
- * Classifies the physical orientation of a passenger seat within the aircraft cabin layout.
- * Impacts pricing calculations and customer allocation preferences.
+ * Represents where a seat is located in a row.
+ * It exists to help users pick their preferred seat and to calculate extra fees for better seats.
  */
 public enum SeatType {
     WINDOW,

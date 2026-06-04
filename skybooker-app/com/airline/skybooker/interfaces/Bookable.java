@@ -1,7 +1,8 @@
 package com.airline.skybooker.interfaces;
 
 /**
- * Contract for entities that undergo a reservation lifecycle.
+ * An interface for things that can be booked.
+ * It exists to make sure anything that can be reserved has a standard way to confirm it.
  */
 public interface Bookable {
     /**

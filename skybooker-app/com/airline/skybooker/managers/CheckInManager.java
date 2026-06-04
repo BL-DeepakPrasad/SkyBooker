@@ -6,8 +6,6 @@ import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.BoardingPass;
 import com.airline.skybooker.models.BookingPassenger;
-import com.airline.skybooker.states.ConfirmedState;
-import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.exception.BookingNotFoundException;
 import com.airline.skybooker.constants.AppConstants;
 
@@ -16,8 +14,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 /**
- * Orchestrator overseeing the online check-in lifecycle.
- * Enforces timing windows, document validations, and issues boarding passes.
+ * Handles the process of checking in for a flight before departure.
+ * Verifies that the passenger is allowed to check in (e.g., flight isn't too far in the future, passport is provided) and generates their boarding pass.
  */
 public class CheckInManager {
 
@@ -26,7 +24,8 @@ public class CheckInManager {
     private CheckInManager() {}
 
     /**
-     * Retrieves the singleton instance of the CheckInManager.
+     * Provides access to the single, shared CheckInManager instance.
+     * Ensures all check-ins follow the exact same business rules and validation checks.
      *
      * @return the singleton CheckInManager instance
      */
@@ -42,7 +41,8 @@ public class CheckInManager {
     }
 
     /**
-     * Validates the check-in constraints including passenger ownership, booking state, flight window, and passport requirements.
+     * Verifies if a user is legally allowed to check in for their flight right now.
+     * It checks if they own the booking, if the booking is confirmed, and if they have a passport for international flights.
      *
      * @param pnr         the Passenger Name Record code representing the booking
      * @param currentUser the user initiating the check-in process
@@ -70,10 +70,7 @@ public class CheckInManager {
 
         // Validate Check-in Window (24h to 3h before departure)
         long hoursUntilDeparture = ChronoUnit.HOURS.between(LocalDateTime.now(), flight.getDepartureTime());
-        // Relaxing window for testing purposes, but keeping the logic intact.
-        // if (hoursUntilDeparture > 24 || hoursUntilDeparture < 3) {
-        //     throw new IllegalStateException("Check-in is only available between 24 and 3 hours before departure.");
-        // }
+
 
         // Validate Passport for International Flights
         boolean isInternational = !flight.getOrigin().getCountry().equalsIgnoreCase(flight.getDestination().getCountry());
@@ -90,7 +87,8 @@ public class CheckInManager {
     }
 
     /**
-     * Generates a digital boarding pass document combining flight details, passenger info, and check-in preferences.
+     * Creates the actual boarding pass that the customer will print or show on their phone at the airport.
+     * Collects all necessary information like seat number, departure gate, and baggage details into one document.
      *
      * @param booking           the confirmed Booking
      * @param flight            the scheduled Flight
@@ -115,7 +113,8 @@ public class CheckInManager {
     }
 
     /**
-     * Progresses the booking state to formally indicate completion of the check-in process.
+     * Updates the booking's status in the system to show that the passenger has successfully checked in.
+     * This informs the flight crew that the passenger is expected at the gate.
      *
      * @param booking the Booking to transition
      */

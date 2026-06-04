@@ -9,22 +9,26 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Orchestrator for managing airport geographic data, indexing, and lookup operations.
- * Maintains in-memory caches for fast retrieval by IATA code and city.
+ * In-memory repository for airport data.
+ * Centralizes airport lookups and searches to avoid repeated database hits during flight scheduling and booking flows.
+ * Indexes airports by IATA code and city for quick access to alternatives.
  */
 public class AirportManager {
     private static AirportManager instance;
     private final Map<String, Airport> airportCache = new ConcurrentHashMap<>();
     private final Map<String, List<Airport>> cityIndex = new ConcurrentHashMap<>();
+    private final AtomicInteger idGenerator = new AtomicInteger(100);
 
     private AirportManager() {
         initializeMockData();
     }
 
     /**
-     * Retrieves the singleton instance of the AirportManager.
+     * Provides access to the single, shared AirportManager instance.
+     * Ensures all parts of the application read from the same in-memory cache.
      *
      * @return the singleton AirportManager instance
      */
@@ -37,20 +41,20 @@ public class AirportManager {
 
     private void initializeMockData() {
         Airport del = new Airport.Builder()
-            .setAirportId(1).setName("Indira Gandhi International").setIataCode("DEL").setCity("New Delhi").setCountry("India")
+            .setAirportId(idGenerator.incrementAndGet()).setName("Indira Gandhi International").setIataCode("DEL").setCity("New Delhi").setCountry("India")
             .setTimezone("Asia/Kolkata").setTerminals("T1, T2, T3").setFacilities("Lounges, Duty Free, Transit Hotel")
             .setContactDetails("info@newdelhiairport.in").build();
         
         Airport bom = new Airport.Builder()
-            .setAirportId(2).setName("Chhatrapati Shivaji Maharaj").setIataCode("BOM").setCity("Mumbai").setCountry("India")
+            .setAirportId(idGenerator.incrementAndGet()).setName("Chhatrapati Shivaji Maharaj").setIataCode("BOM").setCity("Mumbai").setCountry("India")
             .setTimezone("Asia/Kolkata").setTerminals("T1, T2").build();
         
         Airport blr = new Airport.Builder()
-            .setAirportId(3).setName("Kempegowda International").setIataCode("BLR").setCity("Bangalore").setCountry("India")
+            .setAirportId(idGenerator.incrementAndGet()).setName("Kempegowda International").setIataCode("BLR").setCity("Bangalore").setCountry("India")
             .setTimezone("Asia/Kolkata").build();
         
         Airport jfk = new Airport.Builder()
-            .setAirportId(4).setName("John F. Kennedy International").setIataCode("JFK").setCity("New York").setCountry("USA")
+            .setAirportId(idGenerator.incrementAndGet()).setName("John F. Kennedy International").setIataCode("JFK").setCity("New York").setCountry("USA")
             .setTimezone("America/New_York").setTerminals("T1, T4, T5, T7, T8").build();
 
         addAirport(del);
@@ -60,9 +64,10 @@ public class AirportManager {
     }
 
     /**
-     * Registers a new airport instance within the cache and city-based search index.
+     * Adds an airport to the local cache and search indexes.
+     * Keeps the system's airport list up-to-date for flight route planning.
      *
-     * @param airport the constructed Airport object to register
+     * @param airport the constructed Airport object to store
      */
     public void addAirport(Airport airport) {
         airportCache.put(airport.getIataCode().toUpperCase(), airport);
@@ -71,7 +76,8 @@ public class AirportManager {
     }
 
     /**
-     * Constructs and persists a new airport record using the provided configuration parameters.
+     * Validates and saves a newly configured airport into the system.
+     * Primarily used by admin tools when the airline expands its operational network to new destinations.
      *
      * @param name           the full official name of the airport
      * @param iata           the unique 3-letter IATA code
@@ -81,10 +87,15 @@ public class AirportManager {
      * @param terminals      the available terminals as a comma-separated string
      * @param facilities     the list of facilities provided by the airport
      * @param contactDetails the primary contact email or phone number
+     * @throws IllegalArgumentException if the IATA code is already registered
      */
     public void createAirport(String name, String iata, String city, String country, String timezone, String terminals, String facilities, String contactDetails) {
+        if (getAirportByCode(iata).isPresent()) {
+            throw new IllegalArgumentException("Airport with IATA code " + iata + " already exists.");
+        }
+        
         Airport newAirport = new Airport.Builder()
-            .setAirportId((int)(Math.random() * 10000))
+            .setAirportId(idGenerator.incrementAndGet())
             .setName(name).setIataCode(iata).setCity(city).setCountry(country)
             .setTimezone(timezone).setTerminals(terminals).setFacilities(facilities)
             .setContactDetails(contactDetails).build();
@@ -92,7 +103,8 @@ public class AirportManager {
     }
 
     /**
-     * Modifies the operational terminals and facilities for an existing airport identified by its IATA code.
+     * Updates physical infrastructure details like terminals and facilities for an airport.
+     * Allows admins to reflect real-world changes, such as terminal renovations or newly added lounges.
      *
      * @param iata       the 3-letter IATA code of the airport to update
      * @param terminals  the updated list of operational terminals, or null if unchanged
@@ -111,7 +123,8 @@ public class AirportManager {
     }
 
     /**
-     * Switches the active operational state of an airport based on its IATA code.
+     * Activates or deactivates an airport for future bookings.
+     * Used to temporarily halt operations at a location due to geopolitical events, severe weather, or runway maintenance.
      *
      * @param iata the 3-letter IATA code of the target airport
      * @return true if the airport is now active, false if suspended
@@ -129,7 +142,8 @@ public class AirportManager {
     }
 
     /**
-     * Retrieves an airport record based on its unique IATA identifier.
+     * Looks up an airport directly by its IATA code.
+     * Used across the system whenever an origin or destination needs to be resolved into full airport details.
      *
      * @param code the exact 3-letter IATA code
      * @return an Optional containing the matched Airport, or empty if not found
@@ -139,17 +153,18 @@ public class AirportManager {
     }
 
     /**
-     * Fetches the complete collection of registered airports in the system.
+     * Returns all registered airports currently loaded in memory.
+     * Useful for populating dropdown menus or maps on the frontend.
      *
-     * @return a newly constructed list containing all active and inactive airports
+     * @return a list containing all active and inactive airports
      */
     public List<Airport> getAllAirports() {
         return new ArrayList<>(airportCache.values());
     }
 
     /**
-     * Scans the airport registry for matches against IATA code, city, or airport name.
-     * Case-insensitive partial matching is applied.
+     * Finds airports matching a user's search string.
+     * Powers the autocomplete features in the booking search bar by checking codes, cities, and names.
      *
      * @param query the search string to match against airport fields
      * @return a filtered list of airports fulfilling the search criteria
@@ -164,7 +179,8 @@ public class AirportManager {
     }
 
     /**
-     * Recommends nearby alternative airports operating within the same metropolitan area.
+     * Finds nearby airports located in the same city.
+     * Helps customers find cheaper or more convenient flights when their primary airport choice is unavailable or too expensive.
      *
      * @param iataCode the IATA code of the base airport
      * @return a list of alternative airports in the same city, excluding the base airport

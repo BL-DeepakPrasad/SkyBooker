@@ -8,17 +8,18 @@ import java.util.Optional;
 import java.util.Scanner;
 
 /**
- * Command-line interface for administrator management of airport records.
- * Facilitates adding, updating, searching, and toggling the operational status of airports.
+ * Provides a text-based menu for admins to manage airports in the system.
+ * This class handles all user inputs for airport-related tasks like adding new airports,
+ * updating their details, or marking them as inactive if they shut down.
  */
 public class AdminAirportUI {
     private final Scanner scanner;
     private final AirportManager airportManager;
 
     /**
-     * Constructs the airport administration interface with the provided input scanner.
+     * Sets up the admin airport menu using a Scanner for reading user input.
      *
-     * @param scanner the input reader for capturing administrator commands
+     * @param scanner reads text typed by the admin in the console
      */
     public AdminAirportUI(Scanner scanner) {
         this.scanner = scanner;
@@ -26,8 +27,8 @@ public class AdminAirportUI {
     }
 
     /**
-     * Initiates the main interactive loop for airport administration.
-     * Presents available management options and routes to the appropriate handler.
+     * Shows the main airport management menu and keeps it running in a loop.
+     * Based on what the admin types, it calls the correct method to handle the chosen task.
      */
     public void startAirportFlow() {
         while (true) {
@@ -60,8 +61,8 @@ public class AdminAirportUI {
     }
 
     /**
-     * Prompts the administrator for new airport details and persists the record.
-     * Captures essential data including IATA code, location, timezone, and facilities.
+     * Asks the admin step-by-step for the details needed to create a new airport.
+     * Once all details are gathered, it saves the new airport to the system.
      */
     private void handleAddAirport() {
         System.out.println("\n--- ADD NEW AIRPORT ---");
@@ -98,8 +99,8 @@ public class AdminAirportUI {
     }
 
     /**
-     * Gathers updated terminal or facility information for an existing airport and applies changes.
-     * Looks up the target airport by IATA code before executing the update.
+     * Lets the admin change specific details of an existing airport, like adding new terminals.
+     * It asks for the airport's IATA code first to ensure we update the correct one.
      */
     private void handleUpdateAirport() {
         System.out.print("Enter IATA Code of Airport to edit: ");
@@ -126,8 +127,8 @@ public class AdminAirportUI {
     }
 
     /**
-     * Switches the operational status of a specified airport between active and inactive.
-     * Prevents operations on unrecognized IATA codes.
+     * Marks an airport as either active or inactive. 
+     * This is useful if an airport temporarily closes or reopens, preventing flights from being scheduled there.
      */
     private void handleToggleStatus() {
         System.out.print("Enter IATA Code of Airport to toggle: ");
@@ -148,7 +149,7 @@ public class AdminAirportUI {
     }
 
     /**
-     * Retrieves and displays the complete registry of all airports.
+     * Prints out a list of every airport currently stored in the system.
      */
     private void handleListAll() {
         System.out.println("\n--- GLOBAL AIRPORT REGISTRY ---");
@@ -158,7 +159,8 @@ public class AdminAirportUI {
     }
 
     /**
-     * Queries the airport registry by code, city, or name and presents the matching results.
+     * Searches for airports matching a specific keyword (like "London" or "JFK").
+     * This helps admins quickly find airports without scrolling through the entire list.
      */
     private void handleSearchAirports() {
         System.out.println("\n--- ADVANCED AIRPORT SEARCH ---");

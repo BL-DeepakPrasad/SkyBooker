@@ -14,8 +14,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 
 /**
- * Data aggregator for system-wide platform analytics and reporting.
- * Processes operational data from bookings, flights, and user activities.
+ * Generates business reports and statistics for the airline's management dashboard.
+ * Calculates metrics like total revenue, cancellation rates, and peak booking times to help executives make data-driven decisions.
  */
 public class AnalyticsManager {
 
@@ -24,7 +24,8 @@ public class AnalyticsManager {
     private AnalyticsManager() {}
 
     /**
-     * Retrieves the singleton instance of the AnalyticsManager.
+     * Provides access to the single, shared AnalyticsManager instance.
+     * Guarantees that reporting components use the same data aggregator.
      *
      * @return the singleton AnalyticsManager instance
      */
@@ -40,9 +41,10 @@ public class AnalyticsManager {
     }
 
 
-    // 13.1 Booking Reports
+    
     /**
-     * Aggregates the total revenue generated from all confirmed bookings.
+     * Calculates the total money earned from all successful bookings.
+     * Gives the business an overview of overall financial performance.
      *
      * @return the sum of total fares across all confirmed bookings
      */
@@ -54,11 +56,14 @@ public class AnalyticsManager {
     }
 
     /**
-     * Computes the average revenue amount per confirmed booking.
+     * Calculates the average amount spent per confirmed booking.
+     * Helps marketing teams understand typical customer spending habits.
      *
      * @return the average booking fare, or 0.0 if no confirmed bookings exist
      */
     public double calculateAverageBookingValue() {
+
+
         return BookingManager.getInstance().getAllBookings().stream()
                 .filter(b -> b.getStatus().equals("CONFIRMED"))
                 .mapToDouble(Booking::getTotalFare)
@@ -67,7 +72,8 @@ public class AnalyticsManager {
     }
 
     /**
-     * Calculates the percentage of processed bookings that resulted in cancellations.
+     * Calculates what percentage of processed bookings were eventually canceled and refunded.
+     * A high cancellation rate might indicate customer dissatisfaction or flexible booking policies being exploited.
      *
      * @return the cancellation rate as a percentage (0.0 to 100.0)
      */
@@ -83,7 +89,8 @@ public class AnalyticsManager {
     }
 
     /**
-     * Counts the total number of bookings initiated on the current system date.
+     * Counts how many bookings were made today.
+     * Used for daily operational monitoring and detecting sudden drops in system usage.
      *
      * @return the number of bookings registered today
      */
@@ -95,7 +102,7 @@ public class AnalyticsManager {
     }
 
     /**
-     * Computes the total confirmed revenue accumulated within a specified date boundary.
+     * Calculates the total revenue earned during a specific time frame, like a holiday weekend or marketing campaign.
      *
      * @param start the inclusive start date of the reporting period
      * @param end   the inclusive end date of the reporting period
@@ -110,7 +117,8 @@ public class AnalyticsManager {
     }
 
     /**
-     * Groups and counts bookings partitioned by origin and destination IATA route combinations.
+     * Counts how many bookings were made for each specific origin-to-destination flight route.
+     * Helps the airline decide which routes need more planes and which routes should be discontinued.
      *
      * @return a map associating each route (e.g., "DEL-BOM") with its total booking count
      */
@@ -126,7 +134,8 @@ public class AnalyticsManager {
     }
 
     /**
-     * Calculates the success ratio of all attempted payment transactions.
+     * Calculates the percentage of payment attempts that were successful.
+     * A sudden drop might indicate an issue with the third-party payment gateway.
      *
      * @return the percentage of successful payments, or 100.0 if no transactions exist
      */
@@ -141,7 +150,8 @@ public class AnalyticsManager {
 
     //  Flight Performance Reports
     /**
-     * Aggregates confirmed booking revenue partitioned by the operating airline.
+     * Calculates the total revenue earned by each individual airline operating on the platform.
+     * Useful for distributing payouts in a multi-airline booking system.
      *
      * @return a map linking each airline name to its total generated revenue
      */
@@ -161,7 +171,8 @@ public class AnalyticsManager {
     }
 
     /**
-     * Computes the percentage of occupied seats against total capacity for all registered flights.
+     * Calculates the percentage of seats sold for every flight.
+     * Helps determine if flights are flying mostly empty or are fully booked.
      *
      * @return a map linking flight numbers to their respective occupancy rates (0.0 to 100.0)
      */
@@ -174,7 +185,8 @@ public class AnalyticsManager {
     }
 
     /**
-     * Identifies booking frequency partitioned by the hour of the day to detect peak periods.
+     * Groups booking counts by the hour of the day they were made.
+     * Helps IT teams know when to schedule server maintenance (during quiet hours) and when to scale up servers (during peak hours).
      *
      * @return a map associating the hour of day (0-23) with its booking count
      */
@@ -189,7 +201,8 @@ public class AnalyticsManager {
 
     // Passenger Analytics
     /**
-     * Analyzes user nationality distribution among registered passenger profiles.
+     * Groups the platform's passengers by their nationality.
+     * Allows the airline to tailor marketing campaigns to specific countries.
      *
      * @return a map linking nationalities to their respective passenger counts
      */
@@ -204,7 +217,8 @@ public class AnalyticsManager {
     }
 
     /**
-     * Calculates the number of unique passengers possessing more than one booking record.
+     * Counts how many unique users have booked more than one flight.
+     * Acts as an indicator of customer loyalty and satisfaction.
      *
      * @return the count of repeat customers
      */
@@ -218,14 +232,19 @@ public class AnalyticsManager {
     }
 
     /**
-     * Evaluates the cumulative confirmed revenue contributed by a specific user.
+     * Calculates the total amount of money a specific customer has spent on completed or upcoming flights.
+     * Used to identify high-value VIP customers for special perks and loyalty rewards.
      *
      * @param userId the unique identifier of the target user
      * @return the total revenue generated by the user's confirmed bookings
      */
     public double getCustomerLifetimeValue(int userId) {
         return BookingManager.getInstance().getAllBookings().stream()
-                .filter(b -> b.getUserId() == userId && b.getStatus().equals("CONFIRMED"))
+                .filter(b -> b.getUserId() == userId)
+                .filter(b -> {
+                    String s = b.getStatus();
+                    return s.equals("CONFIRMED") || s.equals("CHECKED_IN") || s.equals("BOARDING") || s.equals("COMPLETED");
+                })
                 .mapToDouble(Booking::getTotalFare)
                 .sum();
     }

@@ -1,8 +1,8 @@
 package com.airline.skybooker.exception;
 
 /**
- * Core foundational exception handling unexpected environmental or business rule violations.
- * Establishes a unified catch boundary for all internally derived application faults.
+ * A general error for the SkyBooker application.
+ * All other custom errors in this application are based on this one.
  */
 public class AirlineSystemException extends RuntimeException {
 

@@ -27,8 +27,8 @@ import com.airline.skybooker.exception.PaymentFailureException;
 import com.airline.skybooker.constants.AppConstants;
 
 /**
- * Orchestrator handling the lifecycle of flight bookings, from initialization through payment and cancellation.
- * Interacts with seat services and payment gateways to ensure transactional integrity.
+ * Stores and manages all the flight bookings in the system.
+ * Acts as the central database for creating new bookings and finding existing ones by ID or by the user who made them.
  */
 public class BookingManager {
 
@@ -42,7 +42,8 @@ public class BookingManager {
     }
 
     /**
-     * Retrieves the singleton instance of the BookingManager.
+     * Provides access to the single, shared BookingManager instance.
+     * Ensures all new bookings are saved into the same central list.
      *
      * @return the singleton BookingManager instance
      */
@@ -58,7 +59,8 @@ public class BookingManager {
     }
 
     /**
-     * Initializes a new booking record mapped to a specific user and flight combination.
+     * Creates a brand new, empty booking for a user on a specific flight.
+     * The booking starts in a "PENDING" state until the user adds passengers and pays.
      *
      * @param userId   the unique identifier of the user initiating the booking
      * @param flightId the unique identifier of the target flight
@@ -73,7 +75,8 @@ public class BookingManager {
     }
 
     /**
-     * Fetches a booking entity using its unique booking identifier.
+     * Finds a specific booking using its unique booking ID (e.g., "BKG-A1B2C3D4").
+     * Used when a customer wants to view or manage an upcoming trip.
      *
      * @param bookingId the unique string ID of the booking
      * @return an Optional containing the corresponding Booking, or empty if not found
@@ -83,7 +86,8 @@ public class BookingManager {
     }
 
     /**
-     * Retrieves the complete in-memory registry of all bookings.
+     * Returns a list of every single booking ever made in the system.
+     * Primarily used by the AnalyticsManager to calculate total revenue and other reports.
      *
      * @return a list containing all active and inactive booking records
      */
@@ -92,7 +96,8 @@ public class BookingManager {
     }
 
     /**
-     * Filters and retrieves all booking records associated with a specific user profile.
+     * Finds all bookings made by a specific customer.
+     * Used to populate the "My Trips" or "Booking History" page on the user's dashboard.
      *
      * @param userId the unique identifier of the user
      * @return a list of bookings linked to the provided user ID
@@ -103,11 +108,12 @@ public class BookingManager {
                 .collect(Collectors.toList());
     }
 
-    // Cancellation and Payment methods have been moved to BookingOrchestratorService 
+    // Cancellation and Payment methods have been moved to BookingService 
     // to strictly enforce the Single Responsibility Principle.
 
     /**
-     * Updates personal details and preferences for a specific passenger within an active booking.
+     * Updates the name, passport, or meal preference for a passenger on an existing booking.
+     * Helpful if a customer made a typo during checkout or decided they want an in-flight meal later.
      *
      * @param booking        the target Booking object
      * @param passengerIndex the zero-based index of the passenger
@@ -126,7 +132,8 @@ public class BookingManager {
     }
 
     /**
-     * Attempts to reallocate a passenger to a new seat, releasing the old seat upon success.
+     * Moves a passenger from their current seat to a new one on the plane.
+     * Safely releases their old seat so someone else can buy it, and locks the new seat for them.
      *
      * @param booking        the target Booking
      * @param flight         the Flight containing the seat map
@@ -153,5 +160,5 @@ public class BookingManager {
         return false;
     }
 
-    // ProcessPaymentAndConfirm moved to BookingOrchestratorService to enforce SRP
+    // ProcessPaymentAndConfirm moved to BookingService to enforce SRP
 }

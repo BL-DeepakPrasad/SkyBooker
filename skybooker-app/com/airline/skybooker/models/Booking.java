@@ -9,9 +9,9 @@ import com.airline.skybooker.interfaces.Cancellable;
 import java.time.LocalDateTime;
 
 /**
- * Flight reservation for one or more passengers.
- * Orchestrates the booking lifecycle using the State Pattern, managing transitions 
- * from initialization through payment and final confirmation or cancellation.
+ * Record of a customer buying tickets for a specific flight.
+ * We need this class to track the entire process of a purchase, from the moment they click "Book" to when they actually pay and get confirmed.
+ * It uses the "State Pattern" to ensure a booking moves correctly step-by-step (e.g., you can't be 'Confirmed' before you are 'Paid').
  */
 public class Booking implements Comparable<Booking>, Bookable, Cancellable {
     private String bookingId;
@@ -30,12 +30,12 @@ public class Booking implements Comparable<Booking>, Bookable, Cancellable {
     private Payable payable;
 
     /**
-     * Initializes a new booking session for a user on a specific flight.
-     * Generates a unique PNR and sets the initial state to Initiated.
+     * Starts a brand new booking when a user decides to buy a ticket.
+     * We give it a random PNR (booking reference) and set its initial state to "Initiated" so the system knows payment hasn't happened yet.
      *
-     * @param bookingId unique identifier for the booking system
-     * @param userId    ID of the user making the reservation
-     * @param flightId  ID of the selected flight
+     * @param bookingId unique ID for the booking database
+     * @param userId    ID of the person buying the ticket
+     * @param flightId  ID of the flight they want to get on
      */
     public Booking(String bookingId, int userId, int flightId) {
         this.bookingId = bookingId;
@@ -53,8 +53,8 @@ public class Booking implements Comparable<Booking>, Bookable, Cancellable {
 
     // State Pattern Delegation Methods
     /**
-     * Triggers the transition to the next logical state in the booking lifecycle.
-     * Delegation is handled by the current BookingState implementation.
+     * Moves the booking forward to the next logical step.
+     * Instead of a messy block of if/else statements, the current state object itself decides what the "next" state should be.
      */
     public void nextState() {
         currentState.nextState(this);
@@ -81,11 +81,11 @@ public class Booking implements Comparable<Booking>, Bookable, Cancellable {
     }
 
     /**
-     * Compares this booking with another to establish processing priority.
-     * Priority bookings (e.g., EXPRESS) are processed first, followed by timestamp ordering.
+     * Compares this booking against another one to decide which should be processed first.
+     * We need this so that VIP/Express bookings skip the line, while normal bookings are handled in the order they were created.
      *
      * @param other the booking to compare against
-     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than the specified object
+     * @return a negative number if this booking goes first, positive if it goes after, or zero if they are tied
      */
     @Override
     public int compareTo(Booking other) {
@@ -99,7 +99,6 @@ public class Booking implements Comparable<Booking>, Bookable, Cancellable {
         return Long.compare(this.timestamp, other.timestamp);
     }
 
-    // Getters and Setters
     public String getBookingId() { return bookingId; }
     public int getUserId() { return userId; }
     public int getFlightId() { return flightId; }

@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Centralized diagnostic component for persisting application exceptions to a local file system.
- * Isolates error auditing logic from business services to ensure consistent trace capture.
+ * A tool to save application errors into a file.
+ * It exists to help developers track down and fix bugs when something goes wrong.
  */
 public class ErrorLogger {
 

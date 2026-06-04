@@ -1,8 +1,8 @@
 package com.airline.skybooker.exception;
 
 /**
- * Signals a concurrency collision or availability fault during inventory allocation.
- * Triggered when multiple threads attempt to mutate identical seating resources simultaneously.
+ * Thrown when a seat cannot be reserved.
+ * This usually happens if someone else just booked the same seat a moment ago.
  */
 public class SeatLockException extends AirlineSystemException {
     public SeatLockException(String message) {

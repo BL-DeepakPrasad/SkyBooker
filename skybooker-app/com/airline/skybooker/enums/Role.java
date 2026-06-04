@@ -1,8 +1,8 @@
 package com.airline.skybooker.enums;
 
 /**
- * Establishes authorization domains within the application boundary.
- * Determines feature accessibility, administrative rights, and workflow constraints per user.
+ * Represents the type of user logged into the system.
+ * It exists to control what different people (like passengers vs. staff) are allowed to do.
  */
 public enum Role {
     PASSENGER,

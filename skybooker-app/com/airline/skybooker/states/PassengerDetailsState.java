@@ -3,8 +3,8 @@ package com.airline.skybooker.states;
 import com.airline.skybooker.models.Booking;
 
 /**
- * Represents the data collection phase where demographic and personal traveler information is actively captured.
- * Allows transition into inventory selection once mandatory identity fields are populated.
+ * Represents a booking where the user has entered passenger names but hasn't picked seats yet.
+ * It exists as a stepping stone before seat selection and payment.
  */
 public class PassengerDetailsState implements BookingState {
 

@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Orchestrator responsible for routing notifications across various communication channels.
- * Implements a Strategy pattern to dynamically select channels like Email, SMS, or WhatsApp.
+ * Handles sending all messages and alerts to customers.
+ * It automatically chooses the best way to contact a user—like sending an email for a long receipt, or an SMS/WhatsApp for a quick flight delay warning.
  */
 public class NotificationManager {
 
@@ -31,7 +31,8 @@ public class NotificationManager {
     }
 
     /**
-     * Retrieves the singleton instance of the NotificationManager.
+     * Provides access to the single, shared NotificationManager instance.
+     * Ensures all messages go through the same centralized system to avoid spamming the user.
      *
      * @return the singleton NotificationManager instance
      */
@@ -47,7 +48,7 @@ public class NotificationManager {
     }
 
     /**
-     * Internal strategy to broadcast a formatted message across all active user-enabled channels.
+     * Sends a simple text message to the user through all of their preferred contact methods (Email, SMS, and optionally WhatsApp).
      *
      * @param user    the target User entity receiving the message
      * @param message the plain text payload to be transmitted
@@ -69,7 +70,8 @@ public class NotificationManager {
     }
 
     /**
-     * Constructs and delivers comprehensive booking confirmation details, including e-tickets.
+     * Sends the customer their ticket right after they finish paying for a flight.
+     * Sends a detailed receipt to their email and a quick summary to their phone.
      *
      * @param user    the user who owns the booking
      * @param booking the confirmed Booking object
@@ -93,7 +95,7 @@ public class NotificationManager {
     }
 
     /**
-     * Broadcasts critical real-time alerts regarding operational disruptions like delays or cancellations.
+     * Warns a customer immediately if something goes wrong with their upcoming flight, like a delay or a gate change.
      *
      * @param user      the target User entity
      * @param flight    the affected Flight
@@ -106,7 +108,7 @@ public class NotificationManager {
     }
     
     /**
-     * Triggers time-sensitive reminders advising users on impending check-in or boarding deadlines.
+     * Reminds a customer to check in for their flight when the 24-hour window opens, or warns them that boarding is starting soon.
      *
      * @param user         the target User entity
      * @param booking      the associated Booking
@@ -118,7 +120,7 @@ public class NotificationManager {
     }
 
     /**
-     * Communicates the progressive stages of a refund process across different channels.
+     * Keeps the customer updated when they cancel a flight and are waiting for their money back.
      *
      * @param user    the target User entity receiving the refund
      * @param booking the cancelled or modified Booking
@@ -137,7 +139,7 @@ public class NotificationManager {
     }
 
     /**
-     * Delivers a digital boarding pass document directly to the passenger's registered email address.
+     * Emails the final digital boarding pass to the passenger after they successfully complete the online check-in process.
      *
      * @param user the target User entity
      * @param pass the constructed BoardingPass object

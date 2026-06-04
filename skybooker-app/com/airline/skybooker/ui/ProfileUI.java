@@ -4,25 +4,25 @@ import com.airline.skybooker.models.Passenger;
 import java.util.Scanner;
 
 /**
- * Command-line interface for managing and updating passenger profiles.
- * Facilitates the viewing and modification of personal details and notification preferences.
+ * Provides a menu where passengers can view and change their account details.
+ * This includes things like their phone number, passport details, or turning on WhatsApp alerts.
  */
 public class ProfileUI {
     private final Scanner scanner;
 
     /**
-     * Constructs the profile management interface with the provided input scanner.
+     * Sets up the profile menu using a Scanner for reading user input.
      *
-     * @param scanner the input reader for capturing passenger inputs
+     * @param scanner reads text typed by the user in the console
      */
     public ProfileUI(Scanner scanner) {
         this.scanner = scanner;
     }
 
     /**
-     * Displays the passenger's current profile details and presents options for inline modifications.
+     * Prints out all the personal info saved for the user and lets them change specific details one by one.
      *
-     * @param passenger the authenticated passenger whose profile is being viewed
+     * @param passenger the user looking at their profile
      */
     public void handleViewProfile(Passenger passenger) {
         System.out.println("\n============================================");
@@ -64,9 +64,10 @@ public class ProfileUI {
     }
 
     /**
-     * Prompts the passenger to update their contact information and travel documents through an interactive wizard.
+     * A quick wizard that asks the user if they want to update their phone, passport, or nationality.
+     * Leaving a field blank keeps the old information.
      *
-     * @param passenger the authenticated passenger updating their details
+     * @param passenger the user updating their details
      */
     public void handleProfileUpdate(Passenger passenger) {
         System.out.println("\n--- UPDATE PROFILE ---");

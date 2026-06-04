@@ -21,8 +21,9 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
- * Command-line interface for querying and filtering available flights.
- * Handles auto-suggestions, price calendars, and routing into the booking flow.
+ * Helps users search for flights to their destination.
+ * It provides a list of available flights, lets users filter by price or airline, 
+ * and shows tips like alternative nearby airports or cheaper dates to fly.
  */
 public class FlightSearchUI {
     private final Scanner scanner;
@@ -36,10 +37,10 @@ public class FlightSearchUI {
     private Map<Integer, Flight> flightDisplayMap = new HashMap<>();
 
     /**
-     * Constructs the flight search interface with necessary dependencies.
+     * Sets up the flight search screen.
      *
-     * @param scanner the input reader for capturing search criteria
-     * @param bookingUI the interface to transition into when booking a selected flight
+     * @param scanner reads text typed by the user in the console
+     * @param bookingUI the screen we jump to if the user decides to book a flight they found
      */
     public FlightSearchUI(Scanner scanner, BookingUI bookingUI) {
         this.scanner = scanner;
@@ -51,7 +52,8 @@ public class FlightSearchUI {
     }
 
     /**
-     * Initiates the flight discovery process. Gathers trip requirements, performs searches, and lists results.
+     * Asks the user where they want to go and searches the system for matching flights.
+     * It then shows the results so the user can choose one to book.
      */
     public void startSearchFlow() {
         flightDisplayCounter = 1;
@@ -66,19 +68,6 @@ public class FlightSearchUI {
             String tripChoice = scanner.nextLine().trim();
             TripType tripType = tripChoice.equals("2") ? TripType.ROUND_TRIP : TripType.ONE_WAY;
 
-            System.out.println("\n[Auto-Suggest] Type a city or airport name to search (or press Enter if you know the code): ");
-            String query = scanner.nextLine().trim();
-            if (!query.isEmpty()) {
-                List<Airport> suggestions = airportManager.searchAirports(query);
-                if (suggestions.isEmpty()) {
-                    System.out.println("No airports found matching '" + query + "'.");
-                } else {
-                    System.out.println("Suggested Airports:");
-                    for (Airport a : suggestions) {
-                        System.out.println("- " + a);
-                    }
-                }
-            }
 
             String origin = getValidAirportCode("Enter Origin IATA Code (e.g. DEL): ");
             suggestAlternatives(origin);
@@ -147,19 +136,20 @@ public class FlightSearchUI {
     }
 
     /**
-     * Prompts the user for a valid IATA airport code.
+     * Asks the user to type in a 3-letter airport code (like JFK or DEL) and checks if it's valid.
      *
-     * @param prompt the message displayed to the user
-     * @return the validated, upper-case IATA code
+     * @param prompt the text asking the user for input
+     * @return the correctly formatted airport code
      */
     private String getValidAirportCode(String prompt) {
         return InputReader.readString(scanner, "\n" + prompt, ValidationUtils::validateAirportCode).toUpperCase();
     }
 
     /**
-     * Presents search results with pagination and offers dynamic filtering options.
+     * Shows a list of flights a few at a time so the screen doesn't get cluttered.
+     * It also asks if the user wants to hide expensive flights or filter by a specific airline.
      *
-     * @param flights the collection of flights to display and potentially filter
+     * @param flights the list of flights we found for the user's route
      */
     private void displayAndFilter(List<Flight> flights) {
         int pageSize = 3;
@@ -210,7 +200,8 @@ public class FlightSearchUI {
         }
     }
     /**
-     * Generates a simulated flexible-date price calendar centered around the average fare.
+     * Shows estimated prices for the days before and after the chosen date.
+     * This helps users save money if their travel dates are flexible.
      */
     private void showPriceCalendar(String origin, String destination) {
         double avgFare = flightManager.getAverageFare(origin, destination);
@@ -227,12 +218,13 @@ public class FlightSearchUI {
     }
 
     /**
-     * Looks up and displays nearby alternative airports for a given IATA code.
+     * Suggests other airports in the same city.
+     * For example, if a user searches for Heathrow (LHR), it might suggest Gatwick (LGW) as an option.
      */
     private void suggestAlternatives(String iataCode) {
         List<Airport> alternatives = airportManager.getAlternativeAirports(iataCode);
         if (!alternatives.isEmpty()) {
-            System.out.println("  [Tip] Alternative nearby airports in the same city: ");
+            System.out.println(" [Tip] Alternative nearby airports in the same city: ");
             for (Airport a : alternatives) {
                 System.out.println("   -> " + a.getIataCode() + " (" + a.getName() + ")");
             }

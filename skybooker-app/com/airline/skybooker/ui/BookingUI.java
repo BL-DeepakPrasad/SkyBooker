@@ -22,8 +22,8 @@ import com.airline.skybooker.utils.ErrorLogger;
 import java.util.Scanner;
 
 /**
- * Command-line interface for creating and completing new flight reservations.
- * Guides the user through passenger entry, seat selection, and payment processing.
+ * Walks a user through the entire process of booking a new flight.
+ * This includes asking for passenger names, picking seats on the plane, and paying for the ticket.
  */
 public class BookingUI {
     private final BookingManager bookingManager;
@@ -33,10 +33,10 @@ public class BookingUI {
     private final Scanner scanner;
 
     /**
-     * Constructs the booking interface with required input and seat allocation dependencies.
+     * Sets up the flight booking menu using a Scanner for reading user input.
      *
-     * @param scanner the input reader for capturing user commands
-     * @param seatService the service responsible for seat validation and assignment
+     * @param scanner reads text typed by the user in the console
+     * @param seatService used to show the seat map and check if chosen seats are available
      */
     public BookingUI(Scanner scanner, SeatService seatService) {
         this.scanner = scanner;
@@ -47,11 +47,12 @@ public class BookingUI {
     }
 
     /**
-     * Orchestrates the multi-step booking process for a selected flight.
-     * Captures passenger details, applies business rules, and initiates seat selection.
+     * Starts the step-by-step wizard to book a flight. 
+     * It asks how many people are flying, collects their details, checks rules (like infants needing an adult), 
+     * and lets them pick seats.
      *
-     * @param passenger the authenticated passenger initiating the booking
-     * @param flight the chosen flight to book
+     * @param passenger the person logged into the app making the booking
+     * @param flight the flight they want to buy tickets for
      */
     public void startBookingFlow(Passenger passenger, Flight flight) {
         System.out.println("\n[Rule Check] Validating flight departure time...");
@@ -149,10 +150,11 @@ public class BookingUI {
     }
 
     /**
-     * Calculates the dynamic fare and presents payment options to finalize the booking transaction.
+     * Figures out the final price of the tickets and asks the user how they want to pay.
+     * If the payment works, the booking is confirmed and an e-ticket is generated.
      *
-     * @param booking the booking record in progress
-     * @param flight the flight being booked
+     * @param booking the unconfirmed reservation we are trying to pay for
+     * @param flight the flight we are booking
      */
     private void handlePaymentPhase(Booking booking, Flight flight) {
         System.out.println("\n[UPGRADE OPPORTUNITY]");

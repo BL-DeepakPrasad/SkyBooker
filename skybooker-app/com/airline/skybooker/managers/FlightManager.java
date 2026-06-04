@@ -18,13 +18,9 @@ import com.airline.skybooker.enums.FlightStatus;
 import com.airline.skybooker.managers.AirportManager;
 
 /**
- * The FlightManager acts as a centralized service for managing flight inventories,
- * search operations, and route indexing.
- * <p>
- * It follows the Singleton design pattern to ensure a single instance is utilized
- * across the application. It heavily utilizes the Java Streams API for data manipulation
- * and ConcurrentHashMap for thread-safe caching.
- * </p>
+ * Manages the airline's entire schedule of flights.
+ * Allows users to search for flights, admins to add new routes, and the system to update flight statuses (like delays or gate changes).
+ * Uses a caching mechanism to speed up common searches (e.g., Delhi to Mumbai).
  */
 public class FlightManager implements Searchable {
 
@@ -79,7 +75,7 @@ public class FlightManager implements Searchable {
                 .setOrigin(del)
                 .setDestination(bom)
                 .setBasePrice(120.50)
-                .setTotalCapacity(60)
+                .setTotalCapacity(120)
                 .setAvailableSeats(50)
                 .setBaggageRules("1 Cabin (7kg), 1 Checked (15kg)")
                 .setCancellationPolicy("Free cancellation up to 24 hrs before departure.")
@@ -92,7 +88,7 @@ public class FlightManager implements Searchable {
                 .setOrigin(del)
                 .setDestination(bom)
                 .setBasePrice(95.00)
-                .setTotalCapacity(60)
+                .setTotalCapacity(120)
                 .setAvailableSeats(10)
                 .setBaggageRules("1 Cabin (7kg) only. Checked bag extra.")
                 .setCancellationPolicy("Non-refundable. Date change fee applies.")
@@ -105,7 +101,7 @@ public class FlightManager implements Searchable {
                 .setOrigin(bom)
                 .setDestination(blr)
                 .setBasePrice(150.00)
-                .setTotalCapacity(60)
+                .setTotalCapacity(120)
                 .setAvailableSeats(5)
                 .setBaggageRules("1 Cabin (7kg), 2 Checked (20kg total)")
                 .setCancellationPolicy("Free cancellation up to 48 hrs before departure.")
@@ -113,13 +109,14 @@ public class FlightManager implements Searchable {
 
         this.searchCache = new ConcurrentHashMap<>();
         this.routeIndex = flightDatabase.stream().collect(
-            Collectors.groupingBy(f -> f.getOrigin().getIataCode().toUpperCase() + "-" + f.getDestination().getIataCode().toUpperCase())
+            Collectors.groupingBy(f ->
+                    f.getOrigin().getIataCode().toUpperCase() + "-" + f.getDestination().getIataCode().toUpperCase())
         );
     }
 
     /**
-     * Retrieves the globally unique instance of the FlightManager.
-     * Utilizes double-checked locking for thread safety and performance optimization.
+     * Provides access to the single, shared FlightManager instance.
+     * Ensures all flight searches and updates happen on the same master list of flights.
      *
      * @return the {@link FlightManager} instance
      */
@@ -135,10 +132,9 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Searches for available one-way flights between two designated airports.
-     * This method utilizes caching to bypass expensive stream operations on identical queries.
-     * If the cache misses, it queries the route index, filters by availability,
-     * and sorts the result by base price.
+     * Finds available one-way flights between two cities.
+     * Checks a temporary memory cache first to make the search lightning-fast for popular routes.
+     * Automatically hides flights that are fully booked or canceled.
      *
      * @param originCode      the IATA code of the departure airport
      * @param destinationCode the IATA code of the arrival airport
@@ -152,7 +148,7 @@ public class FlightManager implements Searchable {
         if (searchCache.containsKey(cacheKey)) {
             System.out.println("[CACHE HIT] Returning results from cache.");
             List<Flight> cachedResults = searchCache.get(cacheKey).stream()
-                    .filter(f -> f.getAvailableSeats() > 0 && f.getFlightStatus() != com.airline.skybooker.enums.FlightStatus.CANCELLED)
+                    .filter(f -> f.getAvailableSeats() > 0 && f.getFlightStatus() != FlightStatus.CANCELLED)
                     .collect(Collectors.toList());
             if (cachedResults.isEmpty()) {
                 throw new FlightNotFoundException(originCode, destinationCode);
@@ -164,7 +160,7 @@ public class FlightManager implements Searchable {
 
         List<Flight> results = indexedFlights
                 .stream()
-                .filter(f -> f.getAvailableSeats() > 0 && f.getFlightStatus() != com.airline.skybooker.enums.FlightStatus.CANCELLED)
+                .filter(f -> f.getAvailableSeats() > 0 && f.getFlightStatus() != FlightStatus.CANCELLED)
                 .sorted(Comparator.comparingDouble(Flight::getBasePrice))
                 .collect(Collectors.toList());
 
@@ -177,38 +173,40 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Groups and retrieves all scheduled flights managed by a specific airline.
+     * Finds all flights operated by a specific airline company.
+     * Useful for airline portals where staff only want to see their own planes.
      *
      * @param airlineId the unique identifier of the target airline
      * @return a list of associated {@link Flight} instances
      */
     @Override
     public List<Flight> getFlightsByAirline(int airlineId) {
-        Map<Integer, List<Flight>> groupedFlights =
-                flightDatabase
-                        .stream()
-                        .collect(Collectors
-                                .groupingBy(f -> f.getAirline().getAirlineId()));
-
-        return groupedFlights.getOrDefault(airlineId, Collections.emptyList());
+        return flightDatabase.stream()
+                .filter(flight -> flight.getAirline().getAirlineId() == airlineId)
+                .collect(Collectors.toList());
     }
 
     /**
-     * Calculates the mean base fare for a given route using Stream aggregations.
+     * Calculates the average ticket price for a specific route.
+     * Helps marketing teams decide if prices are too high or too low compared to competitors.
      *
      * @param originCode      the departure airport IATA code
      * @param destinationCode the arrival airport IATA code
      * @return the average base price, or 0.0 if the route does not exist
      */
     public double getAverageFare(String originCode, String destinationCode) {
-        String routeKey = originCode.toUpperCase() + "-" + destinationCode.toUpperCase();
-        List<Flight> indexedFlights = routeIndex.getOrDefault(routeKey, Collections.emptyList());
-        return indexedFlights.stream()
-                .collect(Collectors.averagingDouble(Flight::getBasePrice));
+        String routeKey = originCode.toUpperCase() + "-" + destinationCode.toUpperCase(); //DEL-BOM
+
+        return routeIndex.getOrDefault(routeKey, Collections.emptyList())
+                .stream()
+                .mapToDouble(Flight::getBasePrice)
+                .average()
+                .orElse(0.0);
     }
 
     /**
-     * Identifies the absolute most economical active flight for a route.
+     * Finds the absolute cheapest available flight between two airports.
+     * Powers the "Best Price Guarantee" banner on the homepage.
      *
      * @param originCode      the departure airport IATA code
      * @param destinationCode the arrival airport IATA code
@@ -216,14 +214,29 @@ public class FlightManager implements Searchable {
      */
     public Optional<Flight> getCheapestFlight(String originCode, String destinationCode) {
         String routeKey = originCode.toUpperCase() + "-" + destinationCode.toUpperCase();
-        List<Flight> indexedFlights = routeIndex.getOrDefault(routeKey, Collections.emptyList());
-        return indexedFlights.stream()
-                .filter(f -> f.getAvailableSeats() > 0)
-                .collect(Collectors.minBy(Comparator.comparingDouble(Flight::getBasePrice)));
+
+        List<Flight> flights = routeIndex.getOrDefault(routeKey, Collections.emptyList());
+
+        Flight cheapestFlight = null;
+
+        for (Flight flight : flights) {
+
+            if (flight.getAvailableSeats() > 0) {
+
+                if (cheapestFlight == null ||
+                        flight.getBasePrice() < cheapestFlight.getBasePrice()) {
+
+                    cheapestFlight = flight;
+                }
+            }
+        }
+
+        return Optional.ofNullable(cheapestFlight);
     }
 
     /**
-     * Retrieves a specific flight based on its designated alphanumeric flight number.
+     * Looks up a flight using its public flight number (e.g., "AI-101").
+     * Used when a passenger wants to check the status of their specific flight.
      *
      * @param flightNumber the flight code string (e.g., "AI-101")
      * @return an Optional containing the matched Flight, or empty if not found
@@ -235,7 +248,8 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Fetches a flight using its internal unique numeric identifier.
+     * Finds a flight using its internal database ID.
+     * Primarily used behind the scenes to link a booking to a flight.
      *
      * @param flightId the primary key identifying the flight
      * @return an Optional containing the corresponding Flight, or empty if no match exists
@@ -247,8 +261,10 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Registers a new dynamically created flight into the system.
-     * Updates the route index and clears the cache to ensure consistency.
+     * Adds a newly created flight into the system's schedule.
+     * Also updates the search indexes and clears the cache so customers can immediately book the new flight.
+     *
+     * @param flight the Flight object to add
      */
     public synchronized void addFlight(Flight flight) {
         flightDatabase.add(flight);
@@ -263,7 +279,8 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Fetches a full snapshot of the current flight database.
+     * Returns the complete list of all flights in the system.
+     * Used by administrators for system-wide reporting.
      *
      * @return a list containing all scheduled flights
      */
@@ -272,7 +289,8 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Validates parameters and synthesizes a new Flight schedule, including route setup and seat layout initialization.
+     * Builds and schedules a brand new flight from scratch.
+     * Typically called by airline planners when opening up a new travel route for the season.
      *
      * @param airlineName  the name of the operating airline
      * @param airlineCode  the short airline IATA designator
@@ -323,7 +341,8 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Delays or reschedules a flight by adjusting its departure date relative to the current time.
+     * Changes the scheduled departure date of a flight.
+     * Used to handle major delays or operational rescheduling.
      *
      * @param flightNum the flight identifier
      * @param daysDelay the number of days to offset the departure from today
@@ -336,7 +355,8 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Adjusts the baseline fare price for an existing scheduled flight.
+     * Manually overrides the base ticket price of a flight.
+     * Used by pricing managers for flash sales or manual corrections.
      *
      * @param flightNum the flight identifier
      * @param newFare   the updated base fare amount
@@ -349,7 +369,8 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Modifies the base price of a flight proportionally according to demand algorithms.
+     * Increases or decreases the price of a flight by a certain percentage.
+     * Used by the system's automated pricing algorithm to raise prices as the plane fills up.
      *
      * @param flightNum  the flight identifier
      * @param percentage the percentage multiplier to apply (e.g., 10.0 for a 10% increase)
@@ -362,7 +383,8 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Transitions a flight's operational status and orchestrates alert broadcasts for severe disruptions.
+     * Changes the real-time status of a flight (like "DELAYED" or "CANCELLED") and alerts passengers.
+     * Crucial for keeping customers informed during bad weather or mechanical issues.
      *
      * @param flightNum the flight identifier
      * @param status    the new operational state (e.g., DELAYED, CANCELLED)
@@ -386,7 +408,8 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Changes the assigned departure terminal gate and alerts impacted passengers.
+     * Updates the physical departure gate for a flight and immediately notifies passengers.
+     * Ensures people don't miss their flight by waiting at the wrong terminal.
      *
      * @param flightNum the flight identifier
      * @param newGate   the new gate string identifier (e.g., "G2B")
@@ -407,7 +430,8 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Filters the flight database applying predicates for airline, route, and status sequentially.
+     * Searches the flight database using multiple specific filters at once (airline, route, and status).
+     * Powers the advanced search panel used by administrators and customer support agents.
      *
      * @param airlineCode an optional airline code to filter by, or empty to ignore
      * @param route       an optional route pattern to match, or empty to ignore
@@ -427,7 +451,8 @@ public class FlightManager implements Searchable {
     }
 
     /**
-     * Clears the search cache.
+     * Empties the temporary memory used for fast searches.
+     * Necessary whenever flight details change, so customers don't see outdated prices or availability.
      */
     public synchronized void clearCache() {
         searchCache.clear();

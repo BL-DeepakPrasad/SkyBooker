@@ -10,8 +10,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Orchestrator for aircraft seating assignments, handling concurrent inventory allocation and visualization.
- * Ensures thread-safe mutations against the underlying seat repository during high-concurrency reservation scenarios.
+ * Manages aircraft seating.
+ * This service tracks which seats are available, locked, or booked, and ensures
+ * two people cannot book the same seat at the same time.
  */
 public class SeatService {
     // Represents a database repository mapping flights to their seats
@@ -25,25 +26,31 @@ public class SeatService {
     }
 
     private void initializeMockSeats(String flightNumber) {
-        List<Seat> seats = new ArrayList<>();
-        seats.add(new Seat("1A", SeatType.WINDOW));  
-        seats.add(new Seat("1B", SeatType.MIDDLE)); 
-        seats.add(new Seat("1C", SeatType.AISLE));  
-        seats.add(new Seat("1D", SeatType.AISLE));  
-        seats.add(new Seat("1E", SeatType.MIDDLE)); 
-        seats.add(new Seat("1F", SeatType.WINDOW)); 
+        com.airline.skybooker.models.Flight flight = com.airline.skybooker.managers.FlightManager.getInstance().getFlightByNumber(flightNumber).orElse(null);
         
-        // Let's pretend 1A is already booked on all flights
-        seats.get(0).setBooked(true);
-
-        flightSeats.put(flightNumber, seats);
+        if (flight != null) {
+            int capacity = flight.getTotalCapacity();
+            int available = flight.getAvailableSeats();
+            initializeAircraftLayout(flightNumber, capacity);
+            
+            List<Seat> seats = flightSeats.get(flightNumber);
+            int seatsToBook = capacity - available;
+            
+            // Randomly book seats so the seat map looks realistic, but for simplicity we'll just book the first N seats.
+            for (int i = 0; i < seatsToBook && i < seats.size(); i++) {
+                seats.get(i).setBooked(true);
+            }
+        } else {
+            initializeAircraftLayout(flightNumber, 120); 
+        }
     }
 
     /**
-     * Provisions a structured seating topology based on overall capacity constraints.
+     * Generates a basic seat layout for a flight.
+     * This prepares the flight so users can view and pick seats.
      * 
-     * @param flightNumber The unique identifier for the targeted flight
-     * @param totalSeats   The maximum passenger capacity to model
+     * @param flightNumber the flight to set up
+     * @param totalSeats   how many total seats the plane has
      */
     public void initializeAircraftLayout(String flightNumber, int totalSeats) {
         List<Seat> seats = new ArrayList<>();
@@ -68,9 +75,10 @@ public class SeatService {
     }
 
     /**
-     * Renders an interactive console visualization detailing current seating availability, locks, and finalized bookings.
+     * Prints a visual layout of the airplane seats to the console.
+     * This helps the user pick an available seat.
      * 
-     * @param flightNumber The unique flight identifier queried for layout visualization
+     * @param flightNumber the flight to display
      */
     public void displaySeatMap(String flightNumber) {
         List<Seat> seats = flightSeats.get(flightNumber);
@@ -89,12 +97,13 @@ public class SeatService {
     }
 
     /**
-     * Acquires a temporary reservation mutex on a specific seat to prevent simultaneous selection by other threads.
+     * Temporarily reserves a seat for a user who is in the process of paying.
+     * This stops someone else from taking the seat right before checkout.
      * 
-     * @param flightNumber The unique flight identifier
-     * @param seatNumber   The specific seat coordinate requested (e.g., "1A")
-     * @return true if the mutex is successfully acquired
-     * @throws SeatLockException if the seat is already finalized, currently locked, or non-existent
+     * @param flightNumber the flight number
+     * @param seatNumber   the seat (like "1A")
+     * @return true if the seat was successfully locked
+     * @throws SeatLockException if the seat is already taken or doesn't exist
      */
     public boolean lockSeat(String flightNumber, String seatNumber) throws SeatLockException {
         List<Seat> seats = flightSeats.get(flightNumber);
@@ -120,10 +129,10 @@ public class SeatService {
     }
 
     /**
-     * Finalizes the state of a previously locked seat, converting it to a permanent booked status post-transaction.
+     * Permanently marks a locked seat as booked after a successful payment.
      * 
-     * @param flightNumber The associated flight identifier
-     * @param seatNumber   The seat coordinate to confirm
+     * @param flightNumber the flight number
+     * @param seatNumber   the seat to confirm
      */
     public void confirmSeat(String flightNumber, String seatNumber) {
         List<Seat> seats = flightSeats.get(flightNumber);
@@ -141,10 +150,11 @@ public class SeatService {
     }
 
     /**
-     * Revokes any temporary locks or bookings on a seat, restoring its state to globally available inventory.
+     * Frees a seat up for anyone to book again.
+     * Used when a payment fails or a booking is cancelled.
      * 
-     * @param flightNumber The associated flight identifier
-     * @param seatNumber   The seat coordinate to free
+     * @param flightNumber the flight number
+     * @param seatNumber   the seat to free up
      */
     public void releaseSeat(String flightNumber, String seatNumber) {
         List<Seat> seats = flightSeats.get(flightNumber);
@@ -162,11 +172,11 @@ public class SeatService {
     }
 
     /**
-     * Evaluates whether a requested seat coordinate exists within the aircraft layout and is currently unbooked.
+     * Checks if a seat is valid and available to be selected.
      * 
-     * @param flightNumber The associated flight identifier
-     * @param seatNumber   The specific seat coordinate to inspect
-     * @return true if the seat exists and is available for selection, false otherwise
+     * @param flightNumber the flight number
+     * @param seatNumber   the seat to check
+     * @return true if the seat exists and is available
      */
     public boolean isValidSeat(String flightNumber, String seatNumber) {
         List<Seat> seats = flightSeats.get(flightNumber);

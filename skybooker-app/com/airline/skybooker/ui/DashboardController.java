@@ -8,8 +8,9 @@ import com.airline.skybooker.managers.PriorityBookingManager;
 import java.util.Scanner;
 
 /**
- * Acts as the Front Controller for authenticated users.
- * Routes dashboard selections to the appropriate domain-specific UI module.
+ * The main menu that appears after a user logs in.
+ * It checks whether the user is a normal passenger, a staff member, or an admin, 
+ * and shows them the correct options for their role.
  */
 public class DashboardController {
     
@@ -22,24 +23,27 @@ public class DashboardController {
     private final AdminAnalyticsUI adminAnalyticsUI;
     private final CheckInUI checkInUI;
     private final AdminUserUI adminUserUI;
+    private final StaffOperationsUI staffOperationsUI;
 
     /**
-     * Constructs the dashboard controller with all available UI modules.
+     * Sets up the dashboard by collecting all the different menus the user might need to visit.
      *
-     * @param scanner the input reader for capturing user selections
-     * @param profileUI the UI for profile management
-     * @param bookingManagementUI the UI for managing existing bookings
-     * @param searchUI the UI for searching and discovering flights
-     * @param adminFlightUI the UI for administrator flight operations
-     * @param adminAirportUI the UI for administrator airport operations
-     * @param adminAnalyticsUI the UI for platform reporting
-     * @param checkInUI the UI for the web check-in process
-     * @param adminUserUI the UI for administrator user management
+     * @param scanner reads text typed by the user in the console
+     * @param profileUI menu for editing user profiles
+     * @param bookingManagementUI menu for managing booked tickets
+     * @param searchUI menu for finding new flights
+     * @param adminFlightUI menu for admins to manage flights
+     * @param adminAirportUI menu for admins to manage airports
+     * @param adminAnalyticsUI menu for admins to see reports
+     * @param checkInUI menu for checking in to a flight
+     * @param adminUserUI menu for admins to manage users
+     * @param staffOperationsUI menu for staff to see flight details
      */
     public DashboardController(Scanner scanner, ProfileUI profileUI, BookingManagementUI bookingManagementUI, 
                                FlightSearchUI searchUI, AdminFlightUI adminFlightUI, 
                                AdminAirportUI adminAirportUI, AdminAnalyticsUI adminAnalyticsUI,
-                               CheckInUI checkInUI, AdminUserUI adminUserUI) {
+                               CheckInUI checkInUI, AdminUserUI adminUserUI,
+                               StaffOperationsUI staffOperationsUI) {
         this.scanner = scanner;
         this.profileUI = profileUI;
         this.bookingManagementUI = bookingManagementUI;
@@ -49,12 +53,14 @@ public class DashboardController {
         this.adminAnalyticsUI = adminAnalyticsUI;
         this.checkInUI = checkInUI;
         this.adminUserUI = adminUserUI;
+        this.staffOperationsUI = staffOperationsUI;
     }
 
     /**
-     * Initiates the main interactive dashboard loop for the authenticated user, displaying available features based on their role.
+     * Keeps showing the main menu to the user until they decide to log out.
+     * The menu choices look different depending on whether the user is a passenger or an admin.
      *
-     * @param user the currently logged-in user
+     * @param user the person currently logged into the app
      */
     public void startLoop(User user) {
         boolean running = true;
@@ -79,11 +85,11 @@ public class DashboardController {
     }
 
     /**
-     * Evaluates the user's menu selection and routes control to the appropriate UI handler.
+     * Takes the number the user typed in the menu and sends them to the correct screen.
      *
-     * @param choice the string input representing the menu selection
-     * @param user the currently logged-in user
-     * @return true to continue the dashboard loop, false to exit/logout
+     * @param choice the number chosen from the menu
+     * @param user the person making the choice
+     * @return true if the menu should stay open, false if the user wants to log out
      */
     private boolean routeChoice(String choice, User user) {
         boolean isPassenger = user instanceof Passenger;
@@ -98,12 +104,14 @@ public class DashboardController {
                 return true;
             case "2":
                 if (isPassenger) bookingManagementUI.displayMyBookings(passenger);
+                else if (isStaff) staffOperationsUI.handleViewManifest();
                 else if (isAdmin) adminUserUI.startUserManagementFlow();
                 else System.out.println("Feature coming soon!");
                 return true;
             case "3":
                 if (isPassenger) profileUI.handleProfileUpdate(passenger);
-                else if (isAdmin) System.out.println("View Bookings coming soon!");
+                else if (isStaff) staffOperationsUI.handleCrewSchedules();
+                else if (isAdmin) bookingManagementUI.displayAllSystemBookings((Admin) user);
                 else System.out.println("Feature coming soon!");
                 return true;
             case "4":

@@ -1,8 +1,8 @@
 package com.airline.skybooker.models;
 
 /**
- * Individual traveler details associated with a specific flight booking.
- * Maintains state regarding seating, baggage allowances, and add-on services.
+ * Details of a specific person traveling on a ticket.
+ * We need this class because one booking can have multiple people (e.g., a family of four), and each person has their own specific seat, passport, and baggage.
  */
 public class BookingPassenger {
     private String fullName;
@@ -15,12 +15,12 @@ public class BookingPassenger {
     private double farePaid;
 
     /**
-     * Initializes a traveler profile for a booking.
-     * Applies default standard baggage weight and initializes add-ons to false.
+     * Creates a record for a person on the flight.
+     * We give everyone a standard 15kg baggage allowance by default, which can be changed later if they buy extra bags.
      *
-     * @param fullName       complete legal name matching the travel document
-     * @param passportNumber unique identifier of the travel document
-     * @param ageCategory    classification (e.g., Adult, Child, Infant) for fare calculation
+     * @param fullName       the passenger's full name, exactly as it appears on their ID
+     * @param passportNumber their passport or ID number
+     * @param ageCategory    whether they are an Adult, Child, or Infant (used to calculate ticket prices)
      */
     public BookingPassenger(String fullName, String passportNumber, String ageCategory) {
         this.fullName = fullName;

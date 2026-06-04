@@ -5,8 +5,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 /**
- * Static validation engine asserting structural and domain compliance for raw inputs.
- * Employs fail-fast mechanisms throwing IllegalArgumentException upon detecting malformed data.
+ * A tool that checks if data like dates, emails, and phone numbers are in the right format.
+ * It exists to stop bad data from entering the system and breaking things later on.
  */
 public class ValidationUtils {
 
@@ -17,8 +17,8 @@ public class ValidationUtils {
      * @throws IllegalArgumentException if the sequence violates length or character constraints
      */
     public static void validateAirportCode(String code) {
-        if (code == null || !code.matches("^[A-Z]{3}$")) {
-            throw new IllegalArgumentException("Invalid airport code format. Must be exactly 3 uppercase letters (e.g., DEL, BOM).");
+        if (code == null || !code.matches("^[a-zA-Z]{3}$")) {
+            throw new IllegalArgumentException("Invalid airport code format. Must be exactly 3 letters (e.g., DEL, BOM).");
         }
     }
 

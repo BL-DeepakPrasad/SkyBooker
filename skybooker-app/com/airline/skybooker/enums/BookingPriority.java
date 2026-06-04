@@ -1,8 +1,8 @@
 package com.airline.skybooker.enums;
 
 /**
- * Categorizes reservation precedence to dictate processing order within concurrent queues.
- * Determines queue prioritization strategies for backend confirmation workflows.
+ * Represents how fast a booking should be processed.
+ * It exists to let some users pay extra to jump ahead in the booking queue.
  */
 public enum BookingPriority {
     EXPRESS, // Processed First

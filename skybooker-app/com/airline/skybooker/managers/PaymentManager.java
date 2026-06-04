@@ -5,8 +5,8 @@ import com.airline.skybooker.exception.NetworkTimeoutException;
 import com.airline.skybooker.exception.PaymentFailureException;
 
 /**
- * Gateway orchestrator handling financial transactions and refund routing.
- * Ensures stateful tracking of successful and failed payment operations.
+ * Handles all money coming in and going out of the system.
+ * Connects to different payment methods (like Credit Cards or UPI) to process ticket purchases and issue refunds for canceled flights.
  */
 public class PaymentManager {
 
@@ -17,7 +17,8 @@ public class PaymentManager {
     private PaymentManager() {}
 
     /**
-     * Retrieves the singleton instance of the PaymentManager.
+     * Provides access to the single, shared PaymentManager instance.
+     * Keeps a running tally of successful and failed transactions across the entire app.
      *
      * @return the singleton PaymentManager instance
      */
@@ -33,8 +34,8 @@ public class PaymentManager {
     }
 
     /**
-     * Executes a payment transaction using the provided payment strategy.
-     * Includes simulated network latency and failure scenarios.
+     * Attempts to charge the customer's chosen payment method for their flight.
+     * Simulates real-world problems like bad internet connections or declined cards so the app can practice handling errors.
      *
      * @param strategy the payment method abstraction (e.g., Credit Card, UPI)
      * @param amount   the total fiat value to be processed
@@ -69,7 +70,8 @@ public class PaymentManager {
     }
 
     /**
-     * Re-routes a refund transaction through the original payment strategy utilized during booking.
+     * Sends money back to the customer using the exact same method they used to pay.
+     * Used when a customer cancels their booking or if the airline cancels the flight.
      *
      * @param strategy the original payment method utilized
      * @param amount   the value to be refunded to the customer
@@ -91,6 +93,15 @@ public class PaymentManager {
         return success;
     }
     
+    /**
+     * Returns the total number of successful payments and refunds processed.
+     * @return successful transaction count
+     */
     public int getSuccessfulTransactions() { return successfulTransactions; }
+
+    /**
+     * Returns the total number of failed payment attempts (e.g., declined cards or timeouts).
+     * @return failed transaction count
+     */
     public int getFailedTransactions() { return failedTransactions; }
 }

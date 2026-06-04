@@ -5,8 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * Immutable ticket artifact for a confirmed passenger flight.
- * Encapsulates necessary travel details required for flight boarding and gate validation.
+ * Digital ticket that a passenger uses to get on the plane.
+ * We need this class so we can bundle all the final travel details together—like the assigned seat, gate, and barcode—after a booking is confirmed.
+ * It is mostly unchangeable (immutable) because once a boarding pass is issued, the details shouldn't be randomly edited.
  */
 public class BoardingPass {
 
@@ -22,18 +23,18 @@ public class BoardingPass {
     private final boolean specialAssistance;
 
     /**
-     * Constructs a boarding pass with complete passenger and flight itinerary details.
+     * Creates a new boarding pass containing everything the gate agent needs to verify the passenger.
      *
-     * @param pnr               Passenger Name Record identifying the booking
-     * @param passengerName     full name of the traveling passenger
-     * @param flightNumber      alphanumeric identifier of the scheduled flight
-     * @param origin            departure airport name or code
-     * @param destination       arrival airport name or code
-     * @param departureTime     formatted string of the scheduled departure time
-     * @param seatNumber        assigned physical seat within the aircraft
-     * @param gate              departure terminal gate assignment
-     * @param baggageAllowance  permitted baggage limit (e.g., "15kg Cabin, 25kg Check-in")
-     * @param specialAssistance true if the passenger requires wheelchair or medical support
+     * @param pnr               the booking reference code (Passenger Name Record)
+     * @param passengerName     full name of the traveler
+     * @param flightNumber      the ID of the specific flight
+     * @param origin            where the flight takes off from
+     * @param destination       where the flight lands
+     * @param departureTime     when the flight is scheduled to leave
+     * @param seatNumber        the physical seat they will sit in
+     * @param gate              the airport terminal gate they need to go to
+     * @param baggageAllowance  rules about how many bags they can bring
+     * @param specialAssistance true if they need extra help, like a wheelchair
      */
     public BoardingPass(String pnr, String passengerName, String flightNumber, String origin, 
                         String destination, String departureTime, String seatNumber, String gate,
@@ -51,10 +52,10 @@ public class BoardingPass {
     }
 
     /**
-     * Generates a simulated ASCII barcode representation for scanning purposes.
-     * Embeds the PNR and flight number for automated validation.
+     * Creates a fake barcode made of text lines to simulate what a real scanner would read.
+     * In a real app, this would generate an actual image file (like a QR code), but we use text here to keep it simple.
      *
-     * @return multiline string representing a scannable barcode layout
+     * @return a text-based barcode
      */
     public String generateBarcode() {
         return "||| || ||| | ||| || ||| || ||| | ||||\n" +
@@ -62,10 +63,10 @@ public class BoardingPass {
     }
 
     /**
-     * Composes the full boarding pass layout into a printable ASCII format.
-     * Organizes itinerary details, seat assignment, and barcode into a structured ticket.
+     * Lays out the boarding pass into a neat, boxy text format that looks like a real ticket printed on paper.
+     * Useful for showing the ticket directly in the console.
      *
-     * @return the formatted boarding pass string
+     * @return the ticket styled as a string block
      */
     public String getFormattedPass() {
         StringBuilder sb = new StringBuilder();
@@ -84,8 +85,8 @@ public class BoardingPass {
     }
 
     /**
-     * Exports the formatted boarding pass to a local text file.
-     * Uses the PNR code as the filename prefix for easy retrieval.
+     * Saves the text-formatted boarding pass into a real file on the computer.
+     * This mimics the feature where users click "Download Boarding Pass" on an airline website.
      */
     public void downloadToFile() {
         String filename = pnr + "_BoardingPass.txt";

@@ -14,7 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Centralized security gateway for user registration, role provisioning, and session authentication.
+ * Manages user accounts, logins, and role-based permissions (like Admin or Passenger).
+ * Centralizes all security features to ensure users can only access their own data and features they are authorized for.
  */
 public class AuthenticationManager {
 
@@ -30,10 +31,12 @@ public class AuthenticationManager {
         this.idGenerator = new AtomicInteger(1000);
         initializeMockAdmin();
         initializeMockPassenger();
+        initializeMockStaff();
     }
 
     /**
-     * Retrieves the singleton instance of the AuthenticationManager.
+     * Provides access to the single, shared AuthenticationManager instance.
+     * Ensures the entire application checks against the same user database when authenticating actions.
      *
      * @return the singleton AuthenticationManager instance
      */
@@ -56,8 +59,17 @@ public class AuthenticationManager {
         registerPassenger("Test Passenger", "user@skybooker.com", "user123", "1234567890", "TEST1234", "Indian");
     }
 
+    private void initializeMockStaff() {
+        int id = idGenerator.incrementAndGet();
+        String hash = PasswordUtils.hashPassword("staff123");
+        AirlineStaff s = new AirlineStaff(id, "Test Staff", "staff@skybooker.com", hash, "1234567890");
+        userDatabase.put(id, s);
+        emailToIdMap.put("staff@skybooker.com", id);
+    }
+
     /**
-     * Provisions a new passenger account in the system if the provided email is unique.
+     * Creates a new customer account so they can book flights and view their travel history.
+     * Checks if the email is already in use to prevent duplicate accounts.
      *
      * @param fullName       the passenger's full legal name
      * @param email          the passenger's contact email address, utilized for login
@@ -88,7 +100,8 @@ public class AuthenticationManager {
     }
 
     /**
-     * Authenticates a user credential set against the registered profiles and initiates a session.
+     * Checks a user's email and password to securely log them into the system.
+     * If successful, it remembers the user so they don't have to log in repeatedly during their session.
      *
      * @param email    the user's registered email address
      * @param password the user's raw password
@@ -111,7 +124,8 @@ public class AuthenticationManager {
     }
 
     /**
-     * Fetches a user profile corresponding to the exact user identifier.
+     * Finds a specific user using their internal system ID number.
+     * Used internally by other parts of the system, like when linking a booking to the user who made it.
      *
      * @param userId the unique identifier of the user
      * @return an Optional containing the matched User, or empty if not found
@@ -121,7 +135,8 @@ public class AuthenticationManager {
     }
 
     /**
-     * Retrieves the complete catalog of registered users across all roles.
+     * Returns a list of everyone registered in the system, including admins and staff.
+     * Used by administrators to view and manage user accounts.
      *
      * @return a list encompassing all User profiles within the system
      */
@@ -130,7 +145,8 @@ public class AuthenticationManager {
     }
 
     /**
-     * Looks up a user account employing their registered email address.
+     * Looks up a user account by their email address.
+     * Helpful for features like password resets or checking if an email is already taken.
      *
      * @param email the user's email address
      * @return an Optional containing the corresponding User, or empty if no match exists
@@ -141,7 +157,8 @@ public class AuthenticationManager {
     }
 
     /**
-     * Modifies the operational activity status of a specific user account.
+     * Suspends or reactivates a user's account.
+     * Used by administrators to ban users who violate terms of service, preventing them from logging in.
      *
      * @param userId   the unique identifier of the user
      * @param isActive the desired active state (true for active, false for suspended)
@@ -157,7 +174,8 @@ public class AuthenticationManager {
     }
 
     /**
-     * Upgrades a standard passenger account to an airline staff role, retaining their core profile data.
+     * Upgrades a regular passenger to an employee role.
+     * Used when the airline hires someone and needs to grant them staff privileges (like accessing the check-in desk system).
      *
      * @param userId the unique identifier of the passenger to promote
      * @return true if the promotion was successful, false if the user was not found or is not a Passenger
@@ -180,14 +198,16 @@ public class AuthenticationManager {
     }
 
     /**
-     * Terminates the currently active user authentication session.
+     * Clears the current user from memory, securely ending their session.
+     * Prevents others from using their account if they step away from a shared computer.
      */
     public void logout() {
         this.currentUser = null;
     }
 
     /**
-     * Retrieves the user profile currently bound to the active session.
+     * Identifies exactly who is currently interacting with the application.
+     * Crucial for determining if the current user has permission to view a specific booking or page.
      *
      * @return an Optional containing the active User, or empty if no user is logged in
      */

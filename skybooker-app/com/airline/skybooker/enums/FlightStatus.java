@@ -1,8 +1,8 @@
 package com.airline.skybooker.enums;
 
 /**
- * Represents the operational lifecycle phase of an individual scheduled flight.
- * Determines passenger eligibility for boarding, modifications, and compensation.
+ * Represents the current state of a flight.
+ * It exists so users and staff know if a flight is on time, delayed, or cancelled.
  */
 public enum FlightStatus {
     SCHEDULED,

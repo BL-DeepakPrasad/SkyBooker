@@ -6,8 +6,9 @@ import com.airline.skybooker.enums.BookingPriority;
 import com.airline.skybooker.constants.AppConstants;
 
 /**
- * Centralized business logic component for dynamically determining pricing, surcharges, and penalties.
- * Enforces the Single Responsibility Principle by decoupling financial rule evaluation from core reservation flows.
+ * Calculates the total cost of a booking.
+ * It exists to keep all pricing rules, discounts, taxes, and fees in one place, 
+ * separate from the actual booking and payment processes.
  */
 public class FareCalculatorService {
 
@@ -16,10 +17,10 @@ public class FareCalculatorService {
     private FareCalculatorService() {}
 
     /**
-     * Retrieves the singleton instance of the FareCalculatorService.
-     * Guaranteed to return a single, thread-safe instance across the application lifecycle.
+     * Gets the single, shared instance of this service.
+     * This ensures everyone in the system gets exactly the same fare calculations.
      *
-     * @return the singleton instance of the FareCalculatorService
+     * @return the FareCalculatorService instance
      */
     public static FareCalculatorService getInstance() {
         if (instance == null) {
@@ -33,14 +34,15 @@ public class FareCalculatorService {
     }
 
     /**
-     * Computes the total transaction cost by aggregating base fares, priority surcharges, taxes, and promotional deductions.
+     * Calculates how much the customer needs to pay.
+     * It adds up the base price, seat upgrades, taxes, and applies any discounts.
      * 
-     * @param booking    The reservation context containing passenger details and selected add-ons
-     * @param baseFare   The standard ticket price per seat before modifications
-     * @param isExpress  Flag dictating whether to apply expedited processing fees
-     * @param promoCode  The optional coupon code to evaluate for discounts
-     * @param isDomestic Flag indicating if regional taxation rules apply
-     * @return The final aggregated price to be charged to the customer
+     * @param booking    the booking containing passengers
+     * @param baseFare   the starting price of the ticket
+     * @param isExpress  whether the user chose faster processing
+     * @param promoCode  a discount code, if any
+     * @param isDomestic whether the flight is within the same country (affects taxes)
+     * @return the final total amount to charge
      */
     public double calculateFinalFare(Booking booking, double baseFare, boolean isExpress, String promoCode, boolean isDomestic) {
         double totalPassengerFare = 0.0;
@@ -102,14 +104,15 @@ public class FareCalculatorService {
     }
 
     /**
-     * Constructs a detailed textual invoice outlining all applied charges, discounts, and taxes per passenger.
+     * Creates a text receipt showing a detailed breakdown of all charges.
+     * This helps the customer understand exactly what they are paying for.
      * 
-     * @param booking    The reservation context containing passenger details
-     * @param baseFare   The standard ticket price per seat
-     * @param isExpress  Flag indicating expedited service inclusion
-     * @param promoCode  The applied promotional coupon, if any
-     * @param isDomestic Flag indicating if domestic taxes apply
-     * @return A formatted string detailing the exact financial breakdown
+     * @param booking    the booking containing passengers
+     * @param baseFare   the starting price of the ticket
+     * @param isExpress  whether the user chose faster processing
+     * @param promoCode  a discount code, if any
+     * @param isDomestic whether the flight is within the same country
+     * @return a printable string containing the receipt
      */
     public String getFareBreakdown(Booking booking, double baseFare, boolean isExpress, String promoCode, boolean isDomestic) {
         StringBuilder sb = new StringBuilder();
@@ -189,10 +192,11 @@ public class FareCalculatorService {
     }
 
     /**
-     * Determines the eligible refund value and applies standard cancellation penalties based on the initial transaction amount.
+     * Figures out how much money to give back and how much to keep as a fee when a ticket is cancelled.
+     * This enforces the airline's cancellation policy.
      * 
-     * @param totalFarePaid The originally settled transaction amount
-     * @return A double array where index 0 contains the final refundable value and index 1 contains the deducted penalty
+     * @param totalFarePaid the total amount the customer originally paid
+     * @return an array with two values: [amount to refund, amount kept as penalty]
      */
     public double[] calculateRefundAndPenalty(double totalFarePaid) {
         double penalty = totalFarePaid * AppConstants.CANCELLATION_PENALTY_RATE;

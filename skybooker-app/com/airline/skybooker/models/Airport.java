@@ -1,8 +1,8 @@
 package com.airline.skybooker.models;
 
 /**
- * Geographical airport within the system.
- * Encapsulates the airport's location data and standard aviation codes.
+ * Physical location where flights take off and land.
+ * We need this class so flights have specific origins and destinations, allowing the system to calculate routes and display location details to passengers.
  */
 public class Airport {
     private int airportId;
@@ -22,7 +22,8 @@ public class Airport {
     private String contactDetails = "N/A";
 
     /**
-     * Private constructor for Builder pattern.
+     * Internal constructor used by the Builder to create an Airport object.
+     * We use a builder pattern here because airports have many optional properties (like facilities or multiple terminals), making a normal constructor too messy.
      */
     private Airport(Builder builder) {
         this.airportId = builder.airportId;
@@ -40,57 +41,17 @@ public class Airport {
         this.contactDetails = builder.contactDetails;
     }
 
-    /**
-     * Gets the unique identifier of the airport.
-     *
-     * @return the airport ID
-     */
     public int getAirportId() { return airportId; }
-
-    /**
-     * Gets the full name of the airport.
-     *
-     * @return the airport name
-     */
     public String getName() { return name; }
-
-    /**
-     * Gets the IATA code of the airport.
-     *
-     * @return the 3-character IATA code
-     */
     public String getIataCode() { return iataCode; }
-
-    /**
-     * Gets the ICAO code of the airport.
-     *
-     * @return the 4-character ICAO code
-     */
     public String getIcaoCode() { return icaoCode; }
-
-    /**
-     * Sets the ICAO code for the airport.
-     *
-     * @param icaoCode the 4-character ICAO code
-     */
     public void setIcaoCode(String icaoCode) { this.icaoCode = icaoCode; }
-
-    /**
-     * Gets the city served by the airport.
-     *
-     * @return the city name
-     */
     public String getCity() { return city; }
-
-    /**
-     * Gets the country where the airport is located.
-     *
-     * @return the country name
-     */
     public String getCountry() { return country; }
 
     /**
-     * Sets the geographical coordinates of the airport.
+     * Updates the exact map coordinates of the airport.
+     * Helpful if we want to show a map view or calculate actual flight distances later.
      *
      * @param latitude  the latitude coordinate
      * @param longitude the longitude coordinate
@@ -100,18 +61,7 @@ public class Airport {
         this.longitude = longitude;
     }
 
-    /**
-     * Gets the timezone of the airport.
-     *
-     * @return the timezone identifier
-     */
     public String getTimezone() { return timezone; }
-
-    /**
-     * Sets the timezone of the airport.
-     *
-     * @param timezone the timezone identifier
-     */
     public void setTimezone(String timezone) { this.timezone = timezone; }
 
     public boolean isActive() { return isActive; }
@@ -127,10 +77,10 @@ public class Airport {
     public void setContactDetails(String contactDetails) { this.contactDetails = contactDetails; }
 
     /**
-     * Aggregates and formats the complete airport profile for display purposes.
-     * Includes geographical data, operational status, and available facilities.
+     * Combines all important airport information into a single, easy-to-read block of text.
+     * Used mainly to show detailed airport info to an admin or a curious passenger.
      *
-     * @return formatted multi-line string containing airport details
+     * @return formatted text block with the airport's location, status, and amenities
      */
     public String getFullDetails() {
         return String.format("Airport: %s (%s)%nCity: %s, %s%nTimezone: %s%nTerminals: %s%nFacilities: %s%nContact: %s%nStatus: %s",
@@ -147,7 +97,8 @@ public class Airport {
     }
 
     /**
-     * Builder class for constructing Airport objects.
+     * Helper tool to construct Airport objects step-by-step.
+     * Allows setting only the fields you know about without worrying about the order of arguments.
      */
     public static class Builder {
         private int airportId;

@@ -11,30 +11,40 @@ import com.airline.skybooker.models.BoardingPass;
 import com.airline.skybooker.exception.BookingNotFoundException;
 import com.airline.skybooker.utils.ErrorLogger;
 
+import com.airline.skybooker.managers.BookingManager;
+import com.airline.skybooker.services.SeatService;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
- * Command-line interface for the web check-in workflow.
- * Verifies booking eligibility, confirms seats, and generates boarding passes.
+ * Provides a menu for passengers to check in for their flight online.
+ * This class lets users pick their final seats, add baggage info, and get their boarding passes.
  */
 public class CheckInUI {
 
     private final Scanner scanner;
     private final CheckInManager checkInManager;
 
+    private final SeatService seatService;
+
     /**
-     * Constructs the check-in interface with the provided input scanner.
+     * Sets up the check-in menu using a Scanner for reading user input.
      *
-     * @param scanner the input reader for capturing passenger check-in details
+     * @param scanner     reads text typed by the user in the console
+     * @param seatService helps finalize or change the user's seat before they get their boarding pass
      */
-    public CheckInUI(Scanner scanner) {
+    public CheckInUI(Scanner scanner, SeatService seatService) {
         this.scanner = scanner;
         this.checkInManager = CheckInManager.getInstance();
+        this.seatService = seatService;
     }
 
     /**
-     * Initiates the check-in sequence.
-     * Validates the user's booking via PNR and coordinates the generation of boarding documents.
+     * Starts the step-by-step check-in process.
+     * It asks for the booking number (PNR), lets users change seats if they want, 
+     * and prints out their official boarding passes.
      */
     public void startCheckInFlow() {
         System.out.println("\n=== WEB CHECK-IN ===");
@@ -62,18 +72,27 @@ public class CheckInUI {
 
             System.out.println("\n[3/3] Seat Confirmation & Boarding Passes");
             
-            java.util.List<BoardingPass> passes = new java.util.ArrayList<>();
+           List<BoardingPass> passes = new ArrayList<>();
             
-            for (com.airline.skybooker.models.BookingPassenger bp : booking.getPassengers()) {
+            for (int i = 0; i < booking.getPassengers().size(); i++) {
+                com.airline.skybooker.models.BookingPassenger bp = booking.getPassengers().get(i);
                 System.out.println("\nPassenger: " + bp.getFullName());
                 System.out.println("Currently assigned seat: " + bp.getSeatNumber());
                 System.out.print("Would you like to keep this seat? (y/n): ");
                 String keepSeat = scanner.nextLine().trim();
 
                 if (keepSeat.equalsIgnoreCase("n")) {
-                    System.out.println("Seat change requested. Note: Changing seats via Web UI is mocked here.");
+                    System.out.println("Seat change requested.");
+                    seatService.displaySeatMap(flight.getFlightNumber());
                     System.out.print("Enter new seat (e.g. 14B): ");
-                    bp.setSeatNumber(scanner.nextLine().trim());
+                    String newSeat = scanner.nextLine().trim().toUpperCase();
+                    
+                    boolean success = BookingManager.getInstance().changePassengerSeat(booking, flight, i, newSeat, seatService);
+                    if (!success) {
+                        System.out.println("Could not change seat to " + newSeat + ". Keeping original seat " + bp.getSeatNumber());
+                    } else {
+                        System.out.println("Seat successfully changed to " + newSeat);
+                    }
                 }
 
                 String baggageInfo = bp.getBaggageWeight() > 0 ? bp.getBaggageWeight() + " kg" : "None";

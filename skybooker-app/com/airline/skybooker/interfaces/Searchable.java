@@ -4,9 +4,8 @@ import com.airline.skybooker.models.Flight;
 import java.util.List;
 
 /**
- * Defines the contract for services that support searching for flight data.
- * Implementations of this interface should provide mechanisms to retrieve
- * flights based on various filtering parameters such as route or airline.
+ * An interface for searching things, like flights.
+ * It exists so that any class dealing with finding flights has standard methods to use.
  */
 public interface Searchable {
 

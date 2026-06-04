@@ -3,8 +3,8 @@ package com.airline.skybooker.states;
 import com.airline.skybooker.models.Booking;
 
 /**
- * Represents a terminal phase where the reservation is permanently voided.
- * Prevents further state advancement or redundant termination attempts.
+ * Represents a booking that has been permanently cancelled.
+ * It exists to stop any further changes to a booking once it is cancelled.
  */
 public class CancelledState implements BookingState {
 

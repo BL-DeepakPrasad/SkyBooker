@@ -1,8 +1,8 @@
 package com.airline.skybooker.models;
 
 /**
- * Registered aviation carrier operating flights within the platform.
- * Encapsulates brand identity, international aviation codes, and operational contact data.
+ * Company that actually owns and operates the flights (like Delta or Emirates).
+ * We need this class to group flights by their airline and easily display the airline's logo or contact info to passengers when they book.
  */
 public class Airline {
     private int airlineId;
@@ -16,13 +16,13 @@ public class Airline {
     private boolean isActive;
 
     /**
-     * Constructs a new Airline with the required basic information.
-     * The airline is marked as active by default.
+     * Creates a new airline record in the system.
+     * New airlines are marked as active right away so they can immediately start offering flights.
      *
-     * @param airlineId the unique identifier for the airline
-     * @param name      the full name of the airline
-     * @param iataCode  the 2-character IATA code
-     * @param icaoCode  the 3-character ICAO code
+     * @param airlineId unique database ID for the airline
+     * @param name      full company name (e.g., "Emirates Airlines")
+     * @param iataCode  the 2-letter code you see on tickets (like "EK")
+     * @param icaoCode  the 3-letter code used by air traffic control
      */
     public Airline(int airlineId, String name, String iataCode, String icaoCode) {
         this.airlineId = airlineId;
@@ -32,70 +32,32 @@ public class Airline {
         this.isActive = true;
     }
 
-    /**
-     * Gets the unique identifier of the airline.
-     *
-     * @return the airline ID
-     */
     public int getAirlineId() { return airlineId; }
-
-    /**
-     * Gets the full name of the airline.
-     *
-     * @return the airline name
-     */
     public String getName() { return name; }
-
-    /**
-     * Gets the IATA code of the airline.
-     *
-     * @return the 2-character IATA code
-     */
     public String getIataCode() { return iataCode; }
-
-    /**
-     * Gets the ICAO code of the airline.
-     *
-     * @return the 3-character ICAO code
-     */
     public String getIcaoCode() { return icaoCode; }
 
-    /**
-     * Sets the URL to the airline's logo image.
-     *
-     * @param logoUrl the URL string
-     */
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
-
-    /**
-     * Sets the country of origin for the airline.
-     *
-     * @param country the country name
-     */
     public void setCountry(String country) { this.country = country; }
 
     /**
-     * Sets the primary contact details for the airline.
+     * Updates both email and phone at once so we don't end up with mismatched contact info if only one setter gets called.
      *
-     * @param email the contact email address
-     * @param phone the contact phone number
+     * @param email customer support email
+     * @param phone customer support phone number
      */
     public void setContactDetails(String email, String phone) {
         this.contactEmail = email;
         this.contactPhone = phone;
     }
 
-    /**
-     * Checks if the airline is currently active and operating.
-     *
-     * @return true if active, false otherwise
-     */
     public boolean isActive() { return isActive; }
 
     /**
-     * Sets the operational status of the airline.
+     * Turns an airline's operations on or off. 
+     * Useful if an airline goes out of business or gets suspended, so we don't have to delete their historical data from the database.
      *
-     * @param active true to mark as active, false to mark as inactive
+     * @param active true if the airline is currently operating, false otherwise
      */
     public void setActive(boolean active) { isActive = active; }
 

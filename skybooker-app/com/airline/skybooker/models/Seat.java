@@ -3,9 +3,8 @@ package com.airline.skybooker.models;
 import com.airline.skybooker.enums.SeatType;
 
 /**
- * Physical seating assignment on an aircraft.
- * Tracks reservation status and pricing tier via the seat type.
- * Designed to easily map to a persistent JPA Entity in enterprise frameworks.
+ * Individual physical seat on a plane.
+ * We need this class so passengers can pick specific spots (like '12A'), and so the system can lock a seat while someone is typing in their credit card to prevent double-booking.
  */
 public class Seat {
     private String seatNumber;
@@ -14,11 +13,11 @@ public class Seat {
     private SeatType type;
 
     /**
-     * Instantiates a new seat configuration for a flight layout.
-     * Initializes the seat as unoccupied and unlocked.
+     * Creates a new seat when the system is building a plane's layout.
+     * New seats are empty (unbooked) and available (unlocked) by default.
      *
-     * @param seatNumber alphanumeric identifier (e.g., "12A")
-     * @param type       classification of the seat dictating cost and features
+     * @param seatNumber the label on the physical chair (e.g., "12A")
+     * @param type       the class of the seat (e.g., Economy, Business) which changes the price
      */
     public Seat(String seatNumber, SeatType type) {
         this.seatNumber = seatNumber;

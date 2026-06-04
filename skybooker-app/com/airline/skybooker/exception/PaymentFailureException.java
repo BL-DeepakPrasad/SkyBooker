@@ -1,8 +1,7 @@
 package com.airline.skybooker.exception;
 
 /**
- * Represents a declined or failed financial transaction during the checkout pipeline.
- * Wraps integration errors from payment gateways or inadequate fund responses.
+ * Thrown when a user's payment is declined or fails for any reason.
  */
 public class PaymentFailureException extends AirlineSystemException {
     /**

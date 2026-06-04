@@ -3,28 +3,29 @@ package com.airline.skybooker.models;
 import com.airline.skybooker.enums.Role;
 
 /**
- * Authorized personnel operating on behalf of a specific airline.
- * Provides access to operational controls like flight management and manifests.
+ * Employee of a specific airline using the platform.
+ * This class exists to give airline workers special permissions to manage their own flights and passengers, without giving them full system admin rights.
+ * It extends the base User class because a staff member is still a user who logs into the system.
  */
 public class AirlineStaff extends User {
 
     /**
-     * Initializes a new airline staff member with basic credentials.
-     * Assigns the AIRLINE_STAFF role for operational access.
+     * Creates a new staff account with their personal and login details.
+     * We automatically assign the AIRLINE_STAFF role so the system knows to grant them access to airline-specific tools.
      *
-     * @param userId       unique identifier for the staff member
-     * @param fullName     complete legal name
-     * @param email        primary contact email address
-     * @param passwordHash secured hash of the login password
-     * @param phone        primary contact phone number
+     * @param userId       unique ID number for the employee
+     * @param fullName     their full real name
+     * @param email        email address used for logging in
+     * @param passwordHash scrambled version of their password for security
+     * @param phone        contact phone number
      */
     public AirlineStaff(int userId, String fullName, String email, String passwordHash, String phone) {
         super(userId, fullName, email, passwordHash, phone, Role.AIRLINE_STAFF);
     }
 
     /**
-     * Renders the airline staff dashboard interface to the console.
-     * Exposes operational tools for managing flights, manifests, and schedules.
+     * Shows the staff-specific menu on the screen.
+     * We override this method from the User class to display options relevant only to airline workers, like viewing passenger manifests.
      */
     @Override
     public void displayDashboard() {

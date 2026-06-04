@@ -16,9 +16,9 @@ import com.airline.skybooker.states.RefundedState;
 import com.airline.skybooker.constants.AppConstants;
 
 /**
- * Service dedicated to orchestrating the complex business workflows of flight bookings.
- * Enforces the Single Responsibility Principle by decoupling payment processing, seat locking, 
- * and notifications from the basic data management of bookings.
+ * Manages the flight booking process.
+ * This service coordinates seat selection, calculating fares, taking payments, and notifying the user.
+ * It exists to keep all the steps required for a booking in one place.
  */
 public class BookingService {
 
@@ -27,10 +27,10 @@ public class BookingService {
     private BookingService() {}
 
     /**
-     * Retrieves the singleton instance of the BookingService.
-     * Guaranteed to return a single, thread-safe instance across the application lifecycle.
+     * Gets the single, shared instance of this service.
+     * We use a singleton so the entire application shares the same booking service.
      *
-     * @return the singleton instance of the BookingService
+     * @return the BookingService instance
      */
     public static BookingService getInstance() {
         if (instance == null) {
@@ -44,19 +44,19 @@ public class BookingService {
     }
 
     /**
-     * Orchestrates the final phase of booking, handling seat locks, fare finalization, payment processing, and confirmation signaling.
-     * Coordinates interactions between SeatService, FareCalculatorService, PaymentManager, and NotificationManager.
+     * Completes a booking by locking the seats, calculating the final price, taking payment, and sending a confirmation.
+     * This method exists to safely handle the transition from "selecting a flight" to "having a confirmed ticket".
      * 
-     * @param booking     the pending Booking to finalize
-     * @param flight      the selected Flight instance
-     * @param isExpress   flag indicating if express or premium processing is requested
-     * @param payable     the payment method abstraction providing payment details
-     * @param seatService the service handling seat reservation locks
-     * @param promoCode   an optional promotional code for fare discounts
-     * @return true if the payment succeeds and booking is confirmed, false otherwise
-     * @throws SeatLockException       if requested seats become unavailable during the lock phase
-     * @throws NetworkTimeoutException if the external payment gateway experiences a timeout
-     * @throws PaymentFailureException if the payment transaction is declined or fails
+     * @param booking     the booking to finalize
+     * @param flight      the chosen flight
+     * @param isExpress   whether the user chose faster processing
+     * @param payable     the payment details
+     * @param seatService the service to lock and confirm seats
+     * @param promoCode   a discount code, if any
+     * @return true if payment succeeds and booking is confirmed, false otherwise
+     * @throws SeatLockException       if someone else took the seats while we were booking
+     * @throws NetworkTimeoutException if the payment gateway takes too long
+     * @throws PaymentFailureException if the payment is rejected
      */
     public boolean processPaymentAndConfirm(Booking booking, Flight flight, 
                                             boolean isExpress, Payable payable, 
@@ -117,12 +117,12 @@ public class BookingService {
     }
 
     /**
-     * Cancels an active booking, computes penalty fees, processes refunds, and releases allocated seats.
-     * Triggers the refund notification lifecycle for the primary user.
+     * Cancels an entire booking, calculates the refund and penalty, and frees up the seats.
+     * This exists so users can change their minds and the airline can resell the seats.
      * 
-     * @param booking     the target Booking to completely cancel
-     * @param flight      the associated Flight object containing the seats
-     * @param seatService the service responsible for releasing seat allocations
+     * @param booking     the booking to cancel
+     * @param flight      the flight the booking was for
+     * @param seatService the service used to free the seats
      */
     public void cancelBooking(Booking booking, Flight flight, SeatService seatService) {
         if (booking.getStatus().equals(AppConstants.STATUS_CONFIRMED)) {
@@ -161,13 +161,13 @@ public class BookingService {
     }
 
     /**
-     * Processes a partial cancellation for a specific passenger within a booking, adjusting total fares and releasing their specific seat.
-     * Retains the primary booking for the remaining passengers.
+     * Cancels the ticket for a single passenger in a group booking.
+     * It frees up just their seat and refunds their portion of the fare, so the rest of the group can still fly.
      * 
-     * @param booking        the Booking containing the passenger to be removed
-     * @param flight         the associated Flight object
-     * @param passengerIndex the zero-based index of the passenger in the booking's passenger list
-     * @param seatService    the service handling seat releases
+     * @param booking        the booking containing the passenger
+     * @param flight         the flight they were on
+     * @param passengerIndex the position of the passenger in the booking's list
+     * @param seatService    the service used to free the passenger's seat
      */
     public void cancelSpecificPassenger(Booking booking, Flight flight, int passengerIndex, SeatService seatService) {
         if (passengerIndex < 0 || passengerIndex >= booking.getPassengers().size()) return;

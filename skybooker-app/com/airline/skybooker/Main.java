@@ -4,6 +4,7 @@ import com.airline.skybooker.managers.AuthenticationManager;
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.ui.AuthUI;
+import com.airline.skybooker.ui.StaffOperationsUI;
 import com.airline.skybooker.ui.ProfileUI;
 import com.airline.skybooker.ui.FlightSearchUI;
 import com.airline.skybooker.ui.BookingUI;
@@ -20,8 +21,9 @@ import com.airline.skybooker.utils.ErrorLogger;
 import java.util.Scanner;
 
 /**
- * Primary bootstrapping entry point for the SkyBooker application layer.
- * Implements the Front Controller design pattern to intercept and route user interactions to specialized UI controllers, preserving Single Responsibility Principle (SRP) throughout the architectural boundary.
+ * Starts the SkyBooker application.
+ * This class acts as the main hub, setting up all the user interfaces (UIs) and services 
+ * so the app can talk to the user and handle their requests.
  */
 public class Main {
     private final Scanner scanner;
@@ -33,7 +35,7 @@ public class Main {
     private final DashboardController dashboardController;
 
     /**
-     * Initializes core infrastructure components and binds UI controllers to their required business services.
+     * Prepares all the tools, screens, and services the app needs to run.
      */
     public Main() {
         this.scanner = new Scanner(System.in);
@@ -48,30 +50,19 @@ public class Main {
         AdminFlightUI adminFlightUI = new AdminFlightUI(scanner, seatService);
         AdminAirportUI adminAirportUI = new AdminAirportUI(scanner);
         AdminAnalyticsUI adminAnalyticsUI = new AdminAnalyticsUI(scanner);
-        CheckInUI checkInUI = new CheckInUI(scanner);
+        CheckInUI checkInUI = new CheckInUI(scanner, seatService);
         AdminUserUI adminUserUI = new AdminUserUI(scanner);
+        StaffOperationsUI staffOperationsUI = new StaffOperationsUI(scanner);
         
-        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI, adminFlightUI, adminAirportUI, adminAnalyticsUI, checkInUI, adminUserUI);
+        this.dashboardController = new DashboardController(scanner, profileUI, bookingManagementUI, searchUI, adminFlightUI, adminAirportUI, adminAnalyticsUI, checkInUI, adminUserUI, staffOperationsUI);
     }
 
     /**
-     * Initializes the interactive application loop.
-     * Evaluates initial hardware and database readiness before entering the primary authentication and routing cycles.
+     * Starts the main menu loop.
+     * It handles logging in users and showing them the right dashboard depending on if they are logged in or a guest.
      */
     public void start() {
         System.out.println("=== WELCOME TO SKYBOOKER ===");
-        
-        // Simulate Database Connection Attempt (5% chance of failure)
-        try {
-            if (Math.random() < 0.05) {
-                throw new DatabaseConnectionException("Failed to connect to primary RDS cluster.");
-            }
-            System.out.println("[SYSTEM] Database connected successfully.");
-        } catch (DatabaseConnectionException e) {
-            System.out.println("[SYSTEM FATAL] Cannot boot application: " + e.getMessage());
-            ErrorLogger.logError(e);
-            return;
-        }
         
         while (true) {
             // authentication
@@ -94,9 +85,9 @@ public class Main {
     }
 
     /**
-     * Standard Java entry method allocating the process context and triggering the primary initialization sequence.
+     * The very first code that runs when you launch the application.
      * 
-     * @param args Command-line arguments supplied by the runtime environment
+     * @param args command-line arguments (not used here)
      */
     public static void main(String[] args) {
         Main app = new Main();

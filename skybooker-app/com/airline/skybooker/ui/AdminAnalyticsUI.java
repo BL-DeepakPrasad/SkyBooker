@@ -7,8 +7,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 /**
- * Command-line interface for platform analytics and reporting.
- * Provides administrators with access to booking trends, flight performance, and passenger metrics.
+ * Provides a menu for admins to view charts and data about the system's performance.
+ * This class lets admins check how many bookings are made, see which flights are full, 
+ * and understand who their typical passengers are.
  */
 public class AdminAnalyticsUI {
 
@@ -16,9 +17,9 @@ public class AdminAnalyticsUI {
     private final AnalyticsManager analyticsManager;
 
     /**
-     * Constructs the analytics interface with the provided input scanner.
+     * Sets up the analytics menu using a Scanner for reading user input.
      *
-     * @param scanner the input reader for capturing administrator commands
+     * @param scanner reads text typed by the admin in the console
      */
     public AdminAnalyticsUI(Scanner scanner) {
         this.scanner = scanner;
@@ -26,8 +27,8 @@ public class AdminAnalyticsUI {
     }
 
     /**
-     * Initiates the main interactive loop for accessing analytics reports.
-     * Presents categories of available reports and routes to the appropriate handler.
+     * Shows the main analytics menu and keeps it running in a loop.
+     * Directs the admin to specific report categories based on their choice.
      */
     public void startAnalyticsFlow() {
         boolean running = true;
@@ -60,7 +61,7 @@ public class AdminAnalyticsUI {
     }
 
     /**
-     * Presents booking-related reports including revenue, cancellation rates, and trends.
+     * Shows detailed stats related to bookings, like total money earned or how many flights get cancelled.
      */
     private void handleBookingReports() {
         System.out.println("\n--- 13.1 Booking Reports ---");
@@ -106,7 +107,7 @@ public class AdminAnalyticsUI {
     }
 
     /**
-     * Presents flight-related performance metrics such as occupancy rates and airline revenue.
+     * Shows stats about how well flights are doing, such as how full they are or when most people book.
      */
     private void handleFlightPerformanceReports() {
         System.out.println("\n--- 13.2 Flight Performance Reports ---");
@@ -134,7 +135,7 @@ public class AdminAnalyticsUI {
     }
 
     /**
-     * Presents passenger demographics and customer lifetime value metrics.
+     * Shows info about the people flying, like where they are from or how often they fly with us.
      */
     private void handlePassengerAnalytics() {
         System.out.println("\n--- 13.3 Passenger Analytics ---");

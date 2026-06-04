@@ -3,8 +3,8 @@ package com.airline.skybooker.states;
 import com.airline.skybooker.models.Booking;
 
 /**
- * Denotes an intermediate hold phase awaiting financial authorization from external gateway integrations.
- * Triggers automated inventory release if the authorization sequence expires or fails.
+ * Represents a booking waiting for the bank or credit card to approve the charge.
+ * It exists to put the booking on hold so the seats aren't given away while the user is paying.
  */
 public class PaymentPendingState implements BookingState {
 

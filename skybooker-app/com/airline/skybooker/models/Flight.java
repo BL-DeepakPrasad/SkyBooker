@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 import com.airline.skybooker.enums.FlightStatus;
 
 /**
- * Scheduled commercial flight operating between origin and destination airports.
- * Central domain entity managing dynamic seat availability, tiered pricing, and flight status lifecycle.
- * Implements {@link Comparable} to enable default ascending sort by base price.
+ * Scheduled trip a plane makes from one airport to another.
+ * This is the central piece of data in the system. We use it to keep track of available seats, ticket prices, departure times, and rules for passengers.
+ * By implementing 'Comparable', the system can easily sort lists of flights by price from lowest to highest.
  */
 public class Flight implements Comparable<Flight> {
     private int flightId;
@@ -24,9 +24,10 @@ public class Flight implements Comparable<Flight> {
     private FlightStatus flightStatus;
     private String amenities;
     private String departureGate;
+    private java.util.List<String> assignedCrew;
 
     /**
-     * Private constructor used by the Builder.
+     * Internal constructor used by the Builder to create a complete Flight object.
      */
     private Flight(Builder builder) {
         this.flightId = builder.flightId;
@@ -44,11 +45,12 @@ public class Flight implements Comparable<Flight> {
         this.amenities = builder.amenities != null ? builder.amenities : "Standard";
         this.departureTime = builder.departureTime != null ? builder.departureTime : LocalDateTime.now().plusDays(1);
         this.departureGate = builder.departureGate != null ? builder.departureGate : "TBD";
+        this.assignedCrew = new java.util.ArrayList<>();
     }
 
     /**
-     * Fluent interface for constructing complex Flight instances.
-     * Enforces required attributes and assigns safe defaults for optional fields.
+     * Helper tool for constructing complex Flight objects step-by-step.
+     * Flights have many attributes (some required, some optional). A builder prevents the code from having constructors with 15 confusing arguments.
      */
     public static class Builder {
         private int flightId;
@@ -149,51 +151,19 @@ public class Flight implements Comparable<Flight> {
         }
     }
 
-    /**
-     * Gets the unique identifier for the flight.
-     *
-     * @return the flight ID
-     */
     public int getFlightId() { return flightId; }
-
-    /**
-     * Gets the airline operating the flight.
-     *
-     * @return the {@link Airline} instance
-     */
     public Airline getAirline() { return airline; }
-
-    /**
-     * Gets the origin airport of the flight.
-     *
-     * @return the {@link Airport} instance
-     */
     public Airport getOrigin() { return origin; }
-
-    /**
-     * Gets the destination airport of the flight.
-     *
-     * @return the {@link Airport} instance
-     */
     public Airport getDestination() { return destination; }
-
-    /**
-     * Gets the base ticket price.
-     *
-     * @return the base price
-     */
     public double getBasePrice() { return basePrice; }
-
-    /**
-     * Gets the current count of available seats.
-     *
-     * @return the number of seats available
-     */
     public int getAvailableSeats() { return availableSeats; }
     public int getTotalCapacity() { return totalCapacity; }
     
     /**
-     * Calculates the current occupancy rate.
+     * Calculates what percentage of the plane is currently full.
+     * Useful for deciding when to raise ticket prices or apply discounts.
+     * 
+     * @return the percentage of booked seats
      */
     public double getOccupancyRate() {
         if (totalCapacity == 0) return 0.0;
@@ -201,11 +171,6 @@ public class Flight implements Comparable<Flight> {
         return ((double) booked / totalCapacity) * 100.0;
     }
 
-    /**
-     * Gets the alphanumeric flight number.
-     *
-     * @return the flight number
-     */
     public String getFlightNumber() { return flightNumber; }
     public String getAircraftType() { return aircraftType; }
     public FlightStatus getFlightStatus() { return flightStatus; }
@@ -214,8 +179,8 @@ public class Flight implements Comparable<Flight> {
     public LocalDateTime getDepartureTime() { return departureTime; }
 
     /**
-     * Decrements the available seat count by one in a thread-safe manner.
-     * This method must be synchronized to prevent race conditions during concurrent bookings.
+     * Reduces the number of available seats by one.
+     * The 'synchronized' keyword ensures that if two people click "Book" at the exact same millisecond, the system won't mistakenly double-book the same seat.
      */
     public synchronized void decrementSeats() { this.availableSeats--; }
     
@@ -226,20 +191,27 @@ public class Flight implements Comparable<Flight> {
     public void setDepartureGate(String gate) { this.departureGate = gate; }
     
     /**
-     * Modifies the base fare dynamically.
-     * @param percentage Increase or decrease percentage (e.g., 20.0 for +20%)
+     * Changes the base ticket price by a certain percentage.
+     * Often used by airline managers to increase prices as the flight fills up, or drop them if it's empty.
+     *
+     * @param percentage amount to shift the price (e.g., 20.0 to increase by 20%, -10.0 to decrease by 10%)
      */
     public void applyDynamicPricing(double percentage) {
         double multiplier = 1.0 + (percentage / 100.0);
         this.basePrice = this.basePrice * multiplier;
     }
     
+    // Crew management
+    public java.util.List<String> getAssignedCrew() { return new java.util.ArrayList<>(assignedCrew); }
+    public void addCrewMember(String memberName) { this.assignedCrew.add(memberName); }
+    public void removeCrewMember(String memberName) { this.assignedCrew.remove(memberName); }
+    
     /**
-     * Compares this flight with another flight based on the base price.
+     * Compares this flight's price against another flight's price.
+     * Required by the Comparable interface so Java knows how to sort lists of flights automatically.
      *
-     * @param other the other flight to be compared
-     * @return a negative integer, zero, or a positive integer as this flight's price
-     *         is less than, equal to, or greater than the specified flight's price
+     * @param other the flight we are comparing against
+     * @return negative if this flight is cheaper, positive if more expensive, zero if equal
      */
     @Override
     public int compareTo(Flight other) {
@@ -253,10 +225,10 @@ public class Flight implements Comparable<Flight> {
     }
 
     /**
-     * Returns a beautifully formatted string containing the full itinerary,
-     * baggage rules, and cancellation policies (UC 4).
+     * Builds a clean text layout of the flight's policies, times, and destinations.
+     * Used mainly to show the passenger a summary before they finalize payment.
      *
-     * @return formatted flight details
+     * @return organized text block describing the flight rules
      */
     public String getFullDetails() {
         return "\n============================================\n" +

@@ -13,8 +13,8 @@ import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.BookingPassenger;
 
 /**
- * Command-line interface for passengers to manage their existing bookings.
- * Handles cancellations, seat modifications, and passenger detail updates.
+ * Provides a menu for passengers to view and manage flights they have already booked.
+ * Users can cancel tickets, change their seats, or update their personal details here.
  */
 public class BookingManagementUI {
     private final BookingManager bookingManager;
@@ -22,10 +22,10 @@ public class BookingManagementUI {
     private final SeatService seatService;
 
     /**
-     * Constructs the booking management interface with necessary services.
+     * Sets up the booking management menu using a Scanner for reading user input.
      *
-     * @param scanner the input reader for capturing user commands
-     * @param seatService the service handling seat reassignment operations
+     * @param scanner reads text typed by the user in the console
+     * @param seatService helps free up or assign new seats when a booking is modified
      */
     public BookingManagementUI(Scanner scanner, SeatService seatService) {
         this.scanner = scanner;
@@ -34,10 +34,53 @@ public class BookingManagementUI {
     }
 
     /**
-     * Retrieves and displays all bookings associated with the given passenger.
-     * Allows selection of a specific booking for further management.
+     * Shows every single booking made in the entire system.
+     * This is an admin-only feature to help manage or troubleshoot user bookings.
      *
-     * @param passenger the authenticated passenger whose bookings to display
+     * @param admin the admin user currently logged in
+     */
+    public void displayAllSystemBookings(com.airline.skybooker.models.Admin admin) {
+        System.out.println("\n============================================");
+        System.out.println("            ALL SYSTEM BOOKINGS             ");
+        System.out.println("============================================");
+
+        List<Booking> allBookings = bookingManager.getAllBookings();
+
+        if (allBookings.isEmpty()) {
+            System.out.println("There are no bookings in the system.");
+            System.out.println("Press Enter to return to Dashboard...");
+            scanner.nextLine();
+            return;
+        }
+
+        for (int i = 0; i < allBookings.size(); i++) {
+            Booking b = allBookings.get(i);
+            String pnr = b.getPnrCode() != null ? b.getPnrCode() : "PENDING";
+            System.out.println((i + 1) + ". [PNR: " + pnr + "] UserID: " + b.getUserId() + " | FlightID: " + b.getFlightId() + " | Status: " + b.getStatus());
+        }
+
+        System.out.print("\nEnter a booking number to manage (or press Enter to go back): ");
+        String input = scanner.nextLine().trim();
+
+        if (!input.isEmpty()) {
+            try {
+                int index = Integer.parseInt(input) - 1;
+                if (index >= 0 && index < allBookings.size()) {
+                    manageSingleBooking(allBookings.get(index));
+                } else {
+                    System.out.println("Invalid selection.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input.");
+            }
+        }
+    }
+
+    /**
+     * Prints a list of only the bookings that belong to the currently logged-in passenger.
+     * The user can then pick one to view or change.
+     *
+     * @param passenger the user who wants to see their bookings
      */
     public void displayMyBookings(Passenger passenger) {
         System.out.println("\n============================================");
@@ -77,9 +120,10 @@ public class BookingManagementUI {
     }
 
     /**
-     * Presents options to modify a selected booking, checking operational rules before applying changes.
+     * Shows a detailed view of a single booking and lets the user make changes if it isn't already cancelled.
+     * Options include cancelling the whole trip, just one passenger, or picking a new seat.
      *
-     * @param booking the target booking record to manage
+     * @param booking the specific ticket reservation we are looking at
      */
     private void manageSingleBooking(Booking booking) {
         Flight flight = FlightManager.getInstance().getFlightById(booking.getFlightId()).orElse(null);
@@ -147,7 +191,7 @@ public class BookingManagementUI {
     }
 
     /**
-     * Executes a partial cancellation for a specific passenger within a larger booking itinerary.
+     * Cancels the ticket for just one person in a group booking, without affecting the others.
      */
     private void handlePartialCancellation(Booking booking, Flight flight, List<BookingPassenger> passengers) {
         System.out.print("Enter passenger number from the list above (e.g. 1): ");
@@ -165,7 +209,7 @@ public class BookingManagementUI {
     }
 
     /**
-     * Collects updated personal information or meal preferences for a specific passenger on the booking.
+     * Asks the user for new details, like fixing a misspelled name or adding a meal, and updates the passenger.
      */
     private void handleEditPassenger(Booking booking, List<BookingPassenger> passengers) {
         System.out.print("Enter passenger number from the list above (e.g. 1): ");
@@ -190,7 +234,7 @@ public class BookingManagementUI {
     }
 
     /**
-     * Orchestrates a seat reassignment by presenting the current map and updating the passenger record.
+     * Shows the available seats on the plane and lets a passenger pick a new one, freeing up their old seat.
      */
     private void handleChangeSeat(Booking booking, Flight flight, List<BookingPassenger> passengers) {
         System.out.print("Enter passenger number from the list above (e.g. 1): ");

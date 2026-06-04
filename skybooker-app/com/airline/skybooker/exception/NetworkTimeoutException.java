@@ -1,8 +1,7 @@
 package com.airline.skybooker.exception;
 
 /**
- * Denotes a latency breach when interfacing with external or distributed subsystems.
- * Utilized by components requiring synchronous responses within a predefined time-to-live threshold.
+ * Thrown when a remote service (like a payment gateway) takes too long to respond.
  */
 public class NetworkTimeoutException extends AirlineSystemException {
     /**

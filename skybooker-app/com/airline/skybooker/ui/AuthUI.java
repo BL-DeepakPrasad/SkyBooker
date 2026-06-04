@@ -6,17 +6,18 @@ import com.airline.skybooker.utils.InputReader;
 import java.util.Scanner;
 
 /**
- * Command-line interface for user authentication and registration workflows.
- * Guides users through login, signup, or continuing as a guest.
+ * Handles the first menu that users see when they open the application.
+ * It lets users log into their existing account, create a new one, 
+ * or just browse as a guest without signing up.
  */
 public class AuthUI {
     private final AuthenticationManager authManager;
     private final Scanner scanner;
 
     /**
-     * Constructs the authentication interface with the provided input scanner.
+     * Sets up the authentication menu using a Scanner for reading user input.
      *
-     * @param scanner the input reader for capturing user credentials
+     * @param scanner reads text typed by the user in the console
      */
     public AuthUI(Scanner scanner) {
         this.scanner = scanner;
@@ -24,9 +25,9 @@ public class AuthUI {
     }
 
     /**
-     * Displays the initial authentication menu and loops until a valid session is established or the user exits.
+     * Shows the login and registration menu and keeps asking until the user logs in, signs up, or leaves.
      *
-     * @return true if the application should proceed, false if the user chose to exit
+     * @return true if the user decides to enter the app, false if they decide to exit completely
      */
     public boolean displayAuthMenu() {
         while (authManager.getCurrentUser().isEmpty()) {
@@ -51,7 +52,8 @@ public class AuthUI {
     }
 
     /**
-     * Prompts for login credentials and delegates authentication to the underlying manager.
+     * Asks the user for their email and password, then checks if they match an existing account.
+     * If they match, the user is logged in.
      */
     private void handleLogin() {
         System.out.print("Email: ");
@@ -67,7 +69,8 @@ public class AuthUI {
     }
 
     /**
-     * Gathers and validates required details to register a new passenger account.
+     * Asks a new user for their personal details like name, email, and password to create an account.
+     * It ensures everything is formatted correctly before saving.
      */
     private void handleRegistration() {
         try {

@@ -9,17 +9,18 @@ import java.util.Optional;
 import java.util.List;
 
 /**
- * Command-line interface for administrator oversight of user accounts.
- * Manages user roles, operational statuses, and account retrieval.
+ * Provides a menu for admins to manage all user accounts in the system.
+ * This class allows admins to see all users, suspend accounts if there are issues,
+ * and promote a regular passenger to a staff member.
  */
 public class AdminUserUI {
     private final Scanner scanner;
     private final AuthenticationManager authManager;
 
     /**
-     * Constructs the user administration interface with the provided input scanner.
+     * Sets up the user management menu using a Scanner for reading user input.
      *
-     * @param scanner the input reader for capturing administrator commands
+     * @param scanner reads text typed by the admin in the console
      */
     public AdminUserUI(Scanner scanner) {
         this.scanner = scanner;
@@ -27,7 +28,8 @@ public class AdminUserUI {
     }
 
     /**
-     * Initiates the main interactive loop for user management operations.
+     * Shows the main user management menu and keeps it running in a loop.
+     * Directs the admin to specific tasks based on what they type.
      */
     public void startUserManagementFlow() {
         while (true) {
@@ -57,7 +59,8 @@ public class AdminUserUI {
     }
 
     /**
-     * Retrieves and lists summaries of all registered users in the system.
+     * Prints a short summary of every user registered in the system.
+     * This helps the admin quickly see who is on the platform.
      */
     private void handleViewAllUsers() {
         List<User> users = authManager.getAllUsers();
@@ -68,7 +71,8 @@ public class AdminUserUI {
     }
 
     /**
-     * Looks up a specific user account using their registered email address.
+     * Asks the admin for an email address and searches for the matching user account.
+     * This is an easy way to locate a specific person's profile.
      */
     private void handleSearchUser() {
         System.out.print("\nEnter Email to Search: ");
@@ -84,7 +88,8 @@ public class AdminUserUI {
     }
 
     /**
-     * Switches a specified user account's operational state between active and suspended.
+     * Suspends or activates a user's account. 
+     * Suspending prevents the user from logging in, which is useful if they break the rules.
      */
     private void handleToggleStatus() {
         System.out.print("\nEnter User ID to modify status: ");
@@ -105,7 +110,8 @@ public class AdminUserUI {
     }
 
     /**
-     * Upgrades a standard passenger account to an airline staff role with elevated privileges.
+     * Upgrades a normal passenger account so they become airline staff.
+     * Staff members have extra permissions like managing flights.
      */
     private void handlePromoteUser() {
         System.out.print("\nEnter Passenger ID to Promote: ");
@@ -129,9 +135,9 @@ public class AdminUserUI {
     }
 
     /**
-     * Formats and prints essential account details for a given user.
+     * Prints a quick one-line summary of a user's details, such as their ID, name, role, and status.
      *
-     * @param u the user domain model to summarize
+     * @param u the user we want to print details for
      */
     private void printUserSummary(User u) {
         String type = u.getClass().getSimpleName();

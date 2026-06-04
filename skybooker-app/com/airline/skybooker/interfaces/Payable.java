@@ -1,7 +1,8 @@
 package com.airline.skybooker.interfaces;
 
 /**
- * Financial operations contract for processing transactions and issuing refunds.
+ * An interface for payment methods.
+ * It ensures every payment type (credit card, UPI, etc.) can process payments and issue refunds.
  */
 public interface Payable {
     /**

@@ -4,8 +4,8 @@ import java.util.Scanner;
 import java.util.function.Consumer;
 
 /**
- * Command-line input adapter ensuring standardized and resilient user data extraction.
- * Employs functional validation boundaries to eliminate malformed input propagation.
+ * A helper to get user input from the console.
+ * It makes sure the application doesn't crash if the user types the wrong input.
  */
 public class InputReader {
 

@@ -3,8 +3,8 @@ package com.airline.skybooker.states;
 import com.airline.skybooker.models.Booking;
 
 /**
- * Contract for the State Design Pattern orchestrating the reservation lifecycle.
- * Dictates allowable transitions and cancellation behaviors based on the current context phase.
+ * Defines the rules for a booking's lifecycle (like moving from 'Pending' to 'Confirmed').
+ * It exists to make sure a booking can only move to valid states and can be cancelled properly.
  */
 public interface BookingState {
     

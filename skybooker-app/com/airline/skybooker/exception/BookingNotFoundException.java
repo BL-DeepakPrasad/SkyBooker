@@ -1,8 +1,8 @@
 package com.airline.skybooker.exception;
 
 /**
- * Signals that a requested reservation entity could not be located within the active persistence store.
- * Triggered during PNR lookup or post-booking retrieval attempts.
+ * Thrown when the system cannot find a specific booking.
+ * Usually happens if the user enters a wrong booking ID or PNR code.
  */
 public class BookingNotFoundException extends AirlineSystemException {
     /**
