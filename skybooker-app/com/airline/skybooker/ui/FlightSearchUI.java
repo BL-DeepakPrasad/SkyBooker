@@ -204,17 +204,22 @@ public class FlightSearchUI {
      * This helps users save money if their travel dates are flexible.
      */
     private void showPriceCalendar(String origin, String destination) {
-        double avgFare = flightManager.getAverageFare(origin, destination);
-        if (avgFare == 0.0) return;
+        java.util.Optional<Flight> cheapestOpt = flightManager.getCheapestFlight(origin, destination);
+        if (!cheapestOpt.isPresent()) return;
+        
+        Flight cheapestFlight = cheapestOpt.get();
+        double cheapestFare = cheapestFlight.getBasePrice();
+        java.time.LocalDate baseDate = cheapestFlight.getDepartureTime().toLocalDate();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd");
 
         System.out.println("\n[Price Trend Calendar for " + origin + " -> " + destination + "]");
-        System.out.printf("  -3 Days: INR %.2f%n", avgFare * 1.15);
-        System.out.printf("  -2 Days: INR %.2f%n", avgFare * 1.05);
-        System.out.printf("  -1 Day : INR %.2f%n", avgFare * 0.90);
-        System.out.printf("   Target: INR %.2f  <-- Current Average%n", avgFare);
-        System.out.printf("  +1 Day : INR %.2f%n", avgFare * 0.85);
-        System.out.printf("  +2 Days: INR %.2f%n", avgFare * 0.95);
-        System.out.printf("  +3 Days: INR %.2f%n", avgFare * 1.10);
+        System.out.printf("  %s (-3 Days): INR %.2f%n", baseDate.minusDays(3).format(formatter), cheapestFare * 1.15);
+        System.out.printf("  %s (-2 Days): INR %.2f%n", baseDate.minusDays(2).format(formatter), cheapestFare * 1.05);
+        System.out.printf("  %s (-1 Day ): INR %.2f%n", baseDate.minusDays(1).format(formatter), cheapestFare * 0.90);
+        System.out.printf("  %s (Target) : INR %.2f  <-- Current Cheapest%n", baseDate.format(formatter), cheapestFare);
+        System.out.printf("  %s (+1 Day ): INR %.2f%n", baseDate.plusDays(1).format(formatter), cheapestFare * 0.85);
+        System.out.printf("  %s (+2 Days): INR %.2f%n", baseDate.plusDays(2).format(formatter), cheapestFare * 0.95);
+        System.out.printf("  %s (+3 Days): INR %.2f%n", baseDate.plusDays(3).format(formatter), cheapestFare * 1.10);
     }
 
     /**

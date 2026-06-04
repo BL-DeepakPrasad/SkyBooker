@@ -41,6 +41,7 @@ public class FareCalculatorService {
      * @param baseFare   the starting price of the ticket
      * @param isExpress  whether the user chose faster processing
      * @param promoCode  a discount code, if any
+     */
     public double calculateFinalFare(Booking booking, double baseFare, boolean isExpress, String promoCode) {
         double totalPassengerFare = 0.0;
         
@@ -106,6 +107,7 @@ public class FareCalculatorService {
      * @param baseFare   the starting price of the ticket
      * @param isExpress  whether the user chose faster processing
      * @param promoCode  a discount code, if any
+     */
     public String getFareBreakdown(Booking booking, double baseFare, boolean isExpress, String promoCode) {
         StringBuilder sb = new StringBuilder();
         sb.append("\n============================================\n");

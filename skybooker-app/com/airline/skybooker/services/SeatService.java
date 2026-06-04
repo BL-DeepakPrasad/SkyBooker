@@ -53,24 +53,25 @@ public class SeatService {
      * @param totalSeats   how many total seats the plane has
      */
     public void initializeAircraftLayout(String flightNumber, int totalSeats) {
-        List<Seat> seats = new ArrayList<>();
-        int rows = totalSeats / 6;
-        if (rows == 0 && totalSeats > 0) rows = 1;
+        List<Seat> seats = new ArrayList<>(totalSeats);
 
-        for (int i = 1; i <= rows; i++) {
-            seats.add(new Seat(i + "A", SeatType.WINDOW));
-            if (seats.size() >= totalSeats) break;
-            seats.add(new Seat(i + "B", SeatType.MIDDLE));
-            if (seats.size() >= totalSeats) break;
-            seats.add(new Seat(i + "C", SeatType.AISLE));
-            if (seats.size() >= totalSeats) break;
-            seats.add(new Seat(i + "D", SeatType.AISLE));
-            if (seats.size() >= totalSeats) break;
-            seats.add(new Seat(i + "E", SeatType.MIDDLE));
-            if (seats.size() >= totalSeats) break;
-            seats.add(new Seat(i + "F", SeatType.WINDOW));
-            if (seats.size() >= totalSeats) break;
+        SeatType[] seatTypes = {
+                SeatType.WINDOW,
+                SeatType.MIDDLE,
+                SeatType.AISLE,
+                SeatType.AISLE,
+                SeatType.MIDDLE,
+                SeatType.WINDOW
+        };
+
+        for (int seatNumber = 0; seatNumber < totalSeats; seatNumber++) {
+            int row = (seatNumber / 6) + 1;
+            char seatLetter = (char) ('A' + (seatNumber % 6));
+
+            seats.add(new Seat(row + String.valueOf(seatLetter),
+                    seatTypes[seatNumber % 6]));
         }
+
         flightSeats.put(flightNumber, seats);
     }
 

@@ -7,7 +7,7 @@ package com.airline.skybooker.models;
 public class BookingPassenger {
     private String fullName;
     private String passportNumber;
-    private String ageCategory; // Adult, Child, Infant
+    private final String ageCategory; // Adult, Child, Infant
     private String seatNumber;
     private double baggageWeight; // in kg
     private boolean mealUpgrade;

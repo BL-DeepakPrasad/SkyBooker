@@ -2,16 +2,11 @@ package com.airline.skybooker.managers;
 
 import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.Booking;
-import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.Passenger;
-
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
+
 
 /**
  * Generates business reports and statistics for the airline's management dashboard.

@@ -131,10 +131,10 @@ public class BookingUI {
         seatService.displaySeatMap(flight.getFlightNumber());
         
         for (int i = 0; i < numPassengers; i++) {
-            BookingPassenger bp = booking.getPassengers().get(i);
+            BookingPassenger bookingPassenger = booking.getPassengers().get(i);
             String seatNum;
             while (true) {
-                System.out.print("Enter Seat Number for " + bp.getFullName() + " (e.g. 1B): ");
+                System.out.print("Enter Seat Number for " + bookingPassenger.getFullName() + " (e.g. 1B): ");
                 seatNum = scanner.nextLine().trim().toUpperCase();
                 if (seatService.isValidSeat(flight.getFlightNumber(), seatNum)) {
                     break;
@@ -142,7 +142,7 @@ public class BookingUI {
                     System.out.println("Invalid or unavailable seat. Please try again.");
                 }
             }
-            bp.setSeatNumber(seatNum);
+            bookingPassenger.setSeatNumber(seatNum);
         }
 
         // Transition: INITIATED -> SEAT_SELECTED

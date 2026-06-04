@@ -2,7 +2,6 @@ package com.airline.skybooker.managers;
 
 import com.airline.skybooker.models.Booking;
 
-import java.net.PasswordAuthentication;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,20 +10,10 @@ import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.airline.skybooker.models.Flight;
-import com.airline.skybooker.interfaces.Payable;
 import com.airline.skybooker.services.SeatService;
-import com.airline.skybooker.services.FareCalculatorService;
-import com.airline.skybooker.enums.BookingPriority;
 import com.airline.skybooker.exception.SeatLockException;
-import com.airline.skybooker.states.RefundedState;
-import com.airline.skybooker.models.User;
-import com.airline.skybooker.managers.NotificationManager;
-import com.airline.skybooker.managers.AuthenticationManager;
-import com.airline.skybooker.managers.AuthenticationManager;
 import java.util.ArrayList;
-import com.airline.skybooker.exception.NetworkTimeoutException;
 import com.airline.skybooker.models.BookingPassenger;
-import com.airline.skybooker.exception.PaymentFailureException;
 import com.airline.skybooker.constants.AppConstants;
 
 /**

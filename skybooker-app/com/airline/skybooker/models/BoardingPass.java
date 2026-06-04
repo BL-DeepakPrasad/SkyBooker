@@ -16,6 +16,7 @@ public class BoardingPass {
     private final String flightNumber;
     private final String origin;
     private final String destination;
+    private final String departureDate;
     private final String departureTime;
     private final String seatNumber;
     private final String gate;
@@ -30,20 +31,22 @@ public class BoardingPass {
      * @param flightNumber      the ID of the specific flight
      * @param origin            where the flight takes off from
      * @param destination       where the flight lands
-     * @param departureTime     when the flight is scheduled to leave
+     * @param departureDate     when the flight is scheduled to leave (Date)
+     * @param departureTime     when the flight is scheduled to leave (Time)
      * @param seatNumber        the physical seat they will sit in
      * @param gate              the airport terminal gate they need to go to
      * @param baggageAllowance  rules about how many bags they can bring
      * @param specialAssistance true if they need extra help, like a wheelchair
      */
     public BoardingPass(String pnr, String passengerName, String flightNumber, String origin, 
-                        String destination, String departureTime, String seatNumber, String gate,
+                        String destination, String departureDate, String departureTime, String seatNumber, String gate,
                         String baggageAllowance, boolean specialAssistance) {
         this.pnr = pnr;
         this.passengerName = passengerName;
         this.flightNumber = flightNumber;
         this.origin = origin;
         this.destination = destination;
+        this.departureDate = departureDate;
         this.departureTime = departureTime;
         this.seatNumber = seatNumber;
         this.gate = gate;
@@ -66,7 +69,8 @@ public class BoardingPass {
         sb.append(String.format("PASSENGER: %-20s PNR: %s%n", passengerName, pnr));
         sb.append(String.format("FLIGHT: %-23s GATE: %s%n", flightNumber, gate));
         sb.append(String.format("FROM: %-25s TO: %s%n", origin, destination));
-        sb.append(String.format("DEPARTURE: %-20s SEAT: %s%n", departureTime, seatNumber));
+        sb.append(String.format("DATE: %-25s TIME: %s%n", departureDate, departureTime));
+        sb.append(String.format("SEAT: %-25s GATE: %s%n", seatNumber, gate));
         sb.append(String.format("BAGGAGE: %-22s ASSISTANCE: %s%n", baggageAllowance, specialAssistance ? "Yes" : "No"));
         sb.append("--------------------------------------------------\n");
         sb.append("==================================================\n");

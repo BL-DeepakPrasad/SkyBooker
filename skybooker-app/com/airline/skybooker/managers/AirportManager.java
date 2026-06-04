@@ -18,7 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class AirportManager {
     private static AirportManager instance;
-    private final Map<String, Airport> airportCache = new ConcurrentHashMap<>();
+    // Simulated in-memory database of airports, keyed by IATA code for O(1) lookups.
+    private final Map<String, Airport> airportDatabase = new ConcurrentHashMap<>();
     private final Map<String, List<Airport>> cityIndex = new ConcurrentHashMap<>();
     private final AtomicInteger idGenerator = new AtomicInteger(100);
 
@@ -70,9 +71,13 @@ public class AirportManager {
      * @param airport the constructed Airport object to store
      */
     public void addAirport(Airport airport) {
-        airportCache.put(airport.getIataCode().toUpperCase(), airport);
+
+        String iataCode = airport.getIataCode().toUpperCase();
+        airportDatabase.put(iataCode, airport);
+
         // Add to city index for O(1) alternative airport lookups
-        cityIndex.computeIfAbsent(airport.getCity().toLowerCase(), k -> new ArrayList<>()).add(airport);
+        String cityKey = airport.getCity().toLowerCase();
+        cityIndex.computeIfAbsent(cityKey, k -> new ArrayList<>()).add(airport);
     }
 
     /**
@@ -96,9 +101,16 @@ public class AirportManager {
         
         Airport newAirport = new Airport.Builder()
             .setAirportId(idGenerator.incrementAndGet())
-            .setName(name).setIataCode(iata).setCity(city).setCountry(country)
-            .setTimezone(timezone).setTerminals(terminals).setFacilities(facilities)
-            .setContactDetails(contactDetails).build();
+            .setName(name)
+            .setIataCode(iata)
+            .setCity(city)
+            .setCountry(country)
+            .setTimezone(timezone)
+            .setTerminals(terminals)
+            .setFacilities(facilities)
+            .setContactDetails(contactDetails)
+            .build();
+
         addAirport(newAirport);
     }
 
@@ -113,6 +125,7 @@ public class AirportManager {
      */
     public void updateAirport(String iata, String terminals, String facilities) {
         Optional<Airport> opt = getAirportByCode(iata);
+        
         if (opt.isPresent()) {
             Airport airport = opt.get();
             if (terminals != null && !terminals.isEmpty()) airport.setTerminals(terminals);
@@ -149,7 +162,7 @@ public class AirportManager {
      * @return an Optional containing the matched Airport, or empty if not found
      */
     public Optional<Airport> getAirportByCode(String code) {
-        return Optional.ofNullable(airportCache.get(code.toUpperCase()));
+        return Optional.ofNullable(airportDatabase.get(code.toUpperCase()));
     }
 
     /**
@@ -159,19 +172,19 @@ public class AirportManager {
      * @return a list containing all active and inactive airports
      */
     public List<Airport> getAllAirports() {
-        return new ArrayList<>(airportCache.values());
+        return new ArrayList<>(airportDatabase.values());
     }
 
     /**
      * Finds airports matching a user's search string.
-     * Powers the autocomplete features in the booking search bar by checking codes, cities, and names.
+     * booking search bar by checking codes, cities, and names.
      *
      * @param query the search string to match against airport fields
      * @return a filtered list of airports fulfilling the search criteria
      */
     public List<Airport> searchAirports(String query) {
         String lowerQuery = query.toLowerCase();
-        return airportCache.values().stream()
+        return airportDatabase.values().stream()
                 .filter(a -> a.getIataCode().toLowerCase().contains(lowerQuery) || 
                              a.getCity().toLowerCase().contains(lowerQuery) || 
                              a.getName().toLowerCase().contains(lowerQuery))
@@ -186,10 +199,10 @@ public class AirportManager {
      * @return a list of alternative airports in the same city, excluding the base airport
      */
     public List<Airport> getAlternativeAirports(String iataCode) {
-        Optional<Airport> opt = getAirportByCode(iataCode);
-        if (!opt.isPresent()) return Collections.emptyList();
+        Optional<Airport> optionalAirport = getAirportByCode(iataCode);
+        if (optionalAirport.isEmpty()) return Collections.emptyList();
         
-        Airport original = opt.get();
+        Airport original = optionalAirport.get();
         List<Airport> inCity = cityIndex.getOrDefault(original.getCity().toLowerCase(), Collections.emptyList());
         
         return inCity.stream()

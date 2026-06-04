@@ -1,6 +1,10 @@
 package com.airline.skybooker.models;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.airline.skybooker.enums.FlightStatus;
 
 /**
@@ -24,7 +28,7 @@ public class Flight implements Comparable<Flight> {
     private FlightStatus flightStatus;
     private String amenities;
     private String departureGate;
-    private java.util.List<String> assignedCrew;
+    private List<String> assignedCrew;
 
     /**
      * Internal constructor used by the Builder to create a complete Flight object.
@@ -45,7 +49,7 @@ public class Flight implements Comparable<Flight> {
         this.amenities = builder.amenities != null ? builder.amenities : "Standard";
         this.departureTime = builder.departureTime != null ? builder.departureTime : LocalDateTime.now().plusDays(1);
         this.departureGate = builder.departureGate != null ? builder.departureGate : "TBD";
-        this.assignedCrew = new java.util.ArrayList<>();
+        this.assignedCrew = new ArrayList<>();
     }
 
     /**
@@ -192,8 +196,7 @@ public class Flight implements Comparable<Flight> {
     
     /**
      * Changes the base ticket price by a certain percentage.
-     * Often used by airline managers to increase prices as the flight fills up, or drop them if it's empty.
-     *
+     * 
      * @param percentage amount to shift the price (e.g., 20.0 to increase by 20%, -10.0 to decrease by 10%)
      */
     public void applyDynamicPricing(double percentage) {
@@ -202,7 +205,7 @@ public class Flight implements Comparable<Flight> {
     }
     
     // Crew management
-    public java.util.List<String> getAssignedCrew() { return new java.util.ArrayList<>(assignedCrew); }
+    public List<String> getAssignedCrew() { return new ArrayList<>(assignedCrew); }
     public void addCrewMember(String memberName) { this.assignedCrew.add(memberName); }
     public void removeCrewMember(String memberName) { this.assignedCrew.remove(memberName); }
     
@@ -219,8 +222,10 @@ public class Flight implements Comparable<Flight> {
     }
 
     public String toString() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         return airline.getName() + " " + flightNumber + " | " +
                 origin.getIataCode() + " -> " + destination.getIataCode() +
+                " | Time: " + departureTime.format(formatter) +
                 " | Price: INR " + basePrice + " | Seats: " + availableSeats;
     }
 
@@ -237,7 +242,7 @@ public class Flight implements Comparable<Flight> {
                "Flight: " + airline.getName() + " (" + flightNumber + ")\n" +
                "Origin: " + origin.getName() + " (" + origin.getIataCode() + ")\n" +
                "Destination: " + destination.getName() + " (" + destination.getIataCode() + ")\n" +
-               "Departure: " + departureTime.toString().replace("T", " ") + "\n" +
+               "Departure: " + departureTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) + "\n" +
                "Base Fare: INR " + basePrice + "\n" +
                "Aircraft: " + aircraftType + " | Status: " + flightStatus + "\n" +
                "Amenities: " + amenities + "\n" +

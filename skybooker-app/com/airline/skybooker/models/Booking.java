@@ -22,7 +22,7 @@ public class Booking implements Comparable<Booking>, Bookable, Cancellable {
     private double totalFare;
     private String fareBreakdown;
     private LocalDateTime bookedAt;
-    private java.util.List<BookingPassenger> passengers;
+    private List<BookingPassenger> passengers;
     
     // State Pattern Context Variable
     private BookingState currentState;
@@ -40,7 +40,6 @@ public class Booking implements Comparable<Booking>, Bookable, Cancellable {
      */
     public Booking(String bookingId, int userId, int flightId) {
         this.bookingId = bookingId;
-        this.pnrCode = "PNR" + (int)(Math.random() * 10000);
         this.userId = userId;
         this.flightId = flightId;
         this.bookedAt = LocalDateTime.now();

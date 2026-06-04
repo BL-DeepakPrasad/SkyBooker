@@ -10,7 +10,7 @@ public class InitiatedState implements BookingState {
 
     @Override
     public void nextState(Booking booking) {
-        System.out.println("Passenger details captured. Transitioning to SEAT_SELECTED...");
+        System.out.println("Seats selected successfully. Transitioning booking status to SEAT_SELECTED...");
         booking.setState(new SeatSelectedState());
     }
 

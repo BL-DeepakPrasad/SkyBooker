@@ -74,7 +74,7 @@ public class FlightManager implements Searchable {
                 .setAirline(airIndia)
                 .setOrigin(del)
                 .setDestination(bom)
-                .setBasePrice(120.50)
+                .setBasePrice(1200)
                 .setTotalCapacity(120)
                 .setAvailableSeats(50)
                 .setBaggageRules("1 Cabin (7kg), 1 Checked (15kg)")
@@ -87,7 +87,7 @@ public class FlightManager implements Searchable {
                 .setAirline(indigo)
                 .setOrigin(del)
                 .setDestination(bom)
-                .setBasePrice(95.00)
+                .setBasePrice(9000)
                 .setTotalCapacity(120)
                 .setAvailableSeats(10)
                 .setBaggageRules("1 Cabin (7kg) only. Checked bag extra.")
@@ -143,8 +143,8 @@ public class FlightManager implements Searchable {
      */
     @Override
     public List<Flight> searchFlights(String originCode, String destinationCode) {
-        System.out.println(routeIndex);
-        System.out.println("search cache"+searchCache);
+//        System.out.println(routeIndex);
+//        System.out.println("search cache"+searchCache);
         String cacheKey = originCode.toUpperCase() + "-" + destinationCode.toUpperCase(); //DEL-BOM
 
         // search in the cache first

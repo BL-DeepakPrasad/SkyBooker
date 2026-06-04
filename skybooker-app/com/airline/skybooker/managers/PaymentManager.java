@@ -47,17 +47,6 @@ public class PaymentManager {
         if (strategy == null) {
             throw new IllegalArgumentException("Payment strategy cannot be null");
         }
-        
-        // Simulate Network Timeout (5% chance)
-        if (Math.random() < 0.05) {
-            throw new NetworkTimeoutException("Payment Gateway Timeout. Please try again.");
-        }
-        
-        // Simulate Hard Payment Failure (5% chance)
-        if (Math.random() < 0.05) {
-            failedTransactions++;
-            throw new PaymentFailureException("Transaction declined by bank.");
-        }
 
         System.out.println("[PAYMENT GATEWAY] Processing transaction of INR " + amount + "...");
         boolean success = strategy.processPayment(amount);
