@@ -11,6 +11,7 @@ import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.managers.NotificationManager;
 import com.airline.skybooker.managers.AuthenticationManager;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.time.LocalDateTime;
@@ -33,6 +34,8 @@ public class FlightManager implements Searchable {
      * The primary database mimicking persistent storage of all scheduled flights.
      */
     private List<Flight> flightDatabase;
+
+    private final AtomicInteger flightIdGenerator = new AtomicInteger(1000);
 
     /**
      * An in-memory cache to store frequent search queries for improved performance.
@@ -322,7 +325,7 @@ public class FlightManager implements Searchable {
         Airline airline = new Airline((int)(Math.random() * 10000), airlineName, airlineCode, airlineCode + "C");
 
         Flight newFlight = new Flight.Builder()
-                .setFlightId((int) (Math.random() * 10000))
+                .setFlightId(flightIdGenerator.incrementAndGet())
                 .setFlightNumber(flightNumber)
                 .setAirline(airline)
                 .setOrigin(origin)
@@ -354,7 +357,7 @@ public class FlightManager implements Searchable {
      */
     public void updateFlightDeparture(String flightNum, int daysDelay) {
         Flight f = getFlightByNumber(flightNum).orElseThrow(() -> new IllegalArgumentException("Flight not found"));
-        f.setDepartureTime(LocalDateTime.now().plusDays(daysDelay));
+        f.setDepartureTime(f.getDepartureTime().plusDays(daysDelay));
         clearCache();
     }
 

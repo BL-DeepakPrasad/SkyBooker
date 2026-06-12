@@ -16,6 +16,7 @@ import com.airline.skybooker.services.FareCalculatorService;
 import com.airline.skybooker.services.BookingService;
 import com.airline.skybooker.exception.SeatLockException;
 import com.airline.skybooker.exception.PaymentFailureException;
+import com.airline.skybooker.states.SeatSelectedState;
 import com.airline.skybooker.utils.ValidationUtils;
 import com.airline.skybooker.utils.InputReader;
 import com.airline.skybooker.utils.ErrorLogger;
@@ -146,7 +147,7 @@ public class BookingUI {
         }
 
         // Transition: INITIATED -> SEAT_SELECTED
-        booking.nextState();
+        booking.setState(new SeatSelectedState());
 
         handlePaymentPhase(booking, flight);
     }

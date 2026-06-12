@@ -2,6 +2,9 @@ package com.airline.skybooker.managers;
 
 import com.airline.skybooker.models.Booking;
 import com.airline.skybooker.enums.BookingPriority;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
 
 /**
@@ -64,7 +67,10 @@ public class PriorityBookingManager {
         long currentTime = System.currentTimeMillis();
         boolean reorderNeeded = false;
 
-        for (Booking b : bookingQueue) {
+        // Use a snapshot to avoid ConcurrentModificationException
+        List<Booking> snapshot = new ArrayList<>(bookingQueue);
+
+        for (Booking b : snapshot) {
             if (b.getPriority() == BookingPriority.REGULAR) {
                 long waitTime = currentTime - b.getTimestamp();
                 if (waitTime > MAX_WAIT_TIME_MS) {
@@ -75,11 +81,15 @@ public class PriorityBookingManager {
             }
         }
 
-        // If priorities changed, we must rebuild the queue to trigger sorting
         if (reorderNeeded) {
-            PriorityBlockingQueue<Booking> temp = new PriorityBlockingQueue<>(bookingQueue);
-            bookingQueue.clear();
-            bookingQueue.addAll(temp);
+            // Rebuild the queue in a thread-safe manner
+            PriorityBlockingQueue<Booking> newQueue = new PriorityBlockingQueue<>(snapshot.size());
+            newQueue.addAll(snapshot);
+            // Replace the reference (assumes bookingQueue is volatile or we synchronize)
+            synchronized (this) {
+                bookingQueue.clear();
+                bookingQueue.addAll(newQueue);
+            }
         }
     }
 

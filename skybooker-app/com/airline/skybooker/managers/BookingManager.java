@@ -59,8 +59,13 @@ public class BookingManager {
     public Booking initiateBooking(int userId, int flightId) {
         String bookingId = AppConstants.BOOKING_PREFIX + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         Booking booking = new Booking(bookingId, userId, flightId);
+
+        // Generate PNR immediately upon creation (not after payment)
+        String pnr = "PNR" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        booking.setPnrCode(pnr);
+
         bookingDatabase.put(bookingId, booking);
-        System.out.println("Booking " + bookingId + " created with status: " + booking.getStatus());
+        System.out.println("Booking " + bookingId + " created with status: " + booking.getStatus() + ", PNR: " + pnr);
         return booking;
     }
 

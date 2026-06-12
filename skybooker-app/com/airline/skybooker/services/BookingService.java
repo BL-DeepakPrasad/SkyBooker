@@ -12,6 +12,9 @@ import com.airline.skybooker.managers.AuthenticationManager;
 import com.airline.skybooker.exception.NetworkTimeoutException;
 import com.airline.skybooker.exception.PaymentFailureException;
 import com.airline.skybooker.exception.SeatLockException;
+import com.airline.skybooker.states.CancelledState;
+import com.airline.skybooker.states.ConfirmedState;
+import com.airline.skybooker.states.PaymentPendingState;
 import com.airline.skybooker.states.RefundedState;
 import com.airline.skybooker.constants.AppConstants;
 
@@ -69,7 +72,7 @@ public class BookingService {
         }
         
         // Transition: SEAT_SELECTED -> PAYMENT_PENDING
-        booking.nextState();
+        booking.setState(new PaymentPendingState());
         
         // 2. Calculate Final Fare & Priority via Service
         double finalAmount = FareCalculatorService.getInstance().calculateFinalFare(booking, flight.getBasePrice(), isExpress, promoCode);
@@ -88,11 +91,9 @@ public class BookingService {
                 bp.setFarePaid(finalAmount / booking.getPassengers().size());
             }
 
-            // Generate PNR upon successful payment
-            booking.setPnrCode("PNR" + (int)(Math.random() * 10000));
 
             // 4. Confirm Booking: PAYMENT_PENDING -> CONFIRMED
-            booking.nextState(); 
+            booking.setState(new ConfirmedState());
             
             // Notify passenger of confirmation
             User passenger = AuthenticationManager.getInstance().getCurrentUser().orElse(null);
@@ -122,39 +123,31 @@ public class BookingService {
      * @param seatService the service used to free the seats
      */
     public void cancelBooking(Booking booking, Flight flight, SeatService seatService) {
-        if (booking.getStatus().equals(AppConstants.STATUS_CONFIRMED)) {
-            System.out.println("\n[CANCELLATION] Processing cancellation for " + booking.getPnrCode());
-            
+        String status = booking.getStatus();
+
+
+        for (BookingPassenger bp : booking.getPassengers()) {
+            if (!bp.isCancelled() && bp.getSeatNumber() != null && !bp.getSeatNumber().isEmpty()) {
+                seatService.releaseSeat(flight.getFlightNumber(), bp.getSeatNumber());
+                bp.setCancelled(true);
+            }
+        }
+
+        if (status.equals("CONFIRMED")) {
+            // Process refund logic as before
             double[] refundData = FareCalculatorService.getInstance().calculateRefundAndPenalty(booking.getTotalFare());
             double refundAmount = refundData[0];
             double penalty = refundData[1];
-            
-            System.out.printf("[CANCELLATION] Total Fare: INR %.2f | Penalty: INR %.2f | Refund Amount: INR %.2f%n", 
-                                booking.getTotalFare(), penalty, refundAmount);
-            
+            System.out.printf("Refund: %.2f, Penalty: %.2f%n", refundAmount, penalty);
+
             if (booking.getPayable() != null) {
-                boolean refundSuccess = PaymentManager.getInstance().processRefund(booking.getPayable(), refundAmount);
-                if (refundSuccess) {
-                    booking.setState(new RefundedState());
-                    
-                    // Release all seats
-                    for (BookingPassenger bp : booking.getPassengers()) {
-                        if (!bp.isCancelled()) {
-                            seatService.releaseSeat(flight.getFlightNumber(), bp.getSeatNumber());
-                            bp.setCancelled(true);
-                        }
-                    }
-                    
-                    // Notify passenger of refund
-                    User passenger = AuthenticationManager.getInstance().getCurrentUser().orElse(null);
-                    if (passenger != null) {
-                        NotificationManager.getInstance().sendRefundLifecycle(passenger, booking, refundAmount);
-                    }
-                    return;
-                }
+                PaymentManager.getInstance().processRefund(booking.getPayable(), refundAmount);
             }
+            booking.setState(new RefundedState());
+        } else {
+            // For non-paid states, just mark as cancelled
+            booking.setState(new CancelledState());
         }
-        booking.cancel();
     }
 
     /**

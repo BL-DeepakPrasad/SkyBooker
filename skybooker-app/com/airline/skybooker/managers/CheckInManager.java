@@ -72,6 +72,13 @@ public class CheckInManager {
         // Validate Check-in Window (24h to 3h before departure)
         long hoursUntilDeparture = ChronoUnit.HOURS.between(LocalDateTime.now(), flight.getDepartureTime());
 
+        if (hoursUntilDeparture > 24) {
+            throw new IllegalStateException("Check-in opens only 24 hours before departure. Please come back later.");
+        }
+        if (hoursUntilDeparture < 3) {
+            throw new IllegalStateException("Check-in closed. Please proceed directly to the gate.");
+        }
+
         return booking;
     }
 
