@@ -77,18 +77,16 @@ public class AuthenticationManager {
      * @param phone          the passenger's contact phone number
      * @param passportNumber the international passport number
      * @param nationality    the passenger's country of citizenship
-     * @return true if the registration was successful, false if the email already exists
      */
-    public boolean registerPassenger(String fullName, String email, String password, String phone, String passportNumber, String nationality) {
+    public void registerPassenger(String fullName, String email, String password, String phone, String passportNumber, String nationality) {
         if (emailToIdMap.containsKey(email.toLowerCase())) {
-            return false; // Email exists
+            return; // Email exists
         }
         int id = idGenerator.incrementAndGet();
         String hash = PasswordUtils.hashPassword(password);
         Passenger p = new Passenger(id, fullName, email.toLowerCase(), hash, phone, passportNumber, nationality);
         userDatabase.put(id, p);
         emailToIdMap.put(email.toLowerCase(), id);
-        return true;
     }
 
     private void registerAdmin(String fullName, String email, String password) {

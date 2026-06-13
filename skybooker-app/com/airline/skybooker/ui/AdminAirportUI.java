@@ -159,7 +159,7 @@ public class AdminAirportUI {
     }
 
     /**
-     * Searches for airports matching a specific keyword (like "London" or "JFK").
+     * Searches for airports matching a specific keyword (like "Delhi" or "DEL").
      * This helps admins quickly find airports without scrolling through the entire list.
      */
     private void handleSearchAirports() {

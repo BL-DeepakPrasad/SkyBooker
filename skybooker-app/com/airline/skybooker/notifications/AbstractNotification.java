@@ -5,7 +5,6 @@ import com.airline.skybooker.models.Passenger;
 
 /**
  * Abstract base class for all notification strategies.
- * Satisfies polymorphic sending requirement.
  */
 public abstract class AbstractNotification {
     

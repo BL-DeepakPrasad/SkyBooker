@@ -7,7 +7,6 @@ package com.airline.skybooker.constants;
 public final class AppConstants {
     
     private AppConstants() {
-        // Prevent instantiation
     }
 
     // --- Booking Identifiers ---

@@ -15,8 +15,7 @@ import com.airline.skybooker.ui.AdminAirportUI;
 import com.airline.skybooker.ui.AdminAnalyticsUI;
 import com.airline.skybooker.ui.CheckInUI;
 import com.airline.skybooker.ui.AdminUserUI;
-import com.airline.skybooker.exception.DatabaseConnectionException;
-import com.airline.skybooker.utils.ErrorLogger;
+
 
 import java.util.Scanner;
 

@@ -136,7 +136,7 @@ public class FlightSearchUI {
     }
 
     /**
-     * Asks the user to type in a 3-letter airport code (like JFK or DEL) and checks if it's valid.
+     * Asks the user to type in a 3-letter airport code (like BOM or DEL) and checks if it's valid.
      *
      * @param prompt the text asking the user for input
      * @return the correctly formatted airport code

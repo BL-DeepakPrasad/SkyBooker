@@ -1,7 +1,7 @@
 package com.airline.skybooker.notifications;
 
 import com.airline.skybooker.models.User;
-import com.airline.skybooker.models.Passenger;
+
 
 public class EmailNotification extends AbstractNotification {
     

@@ -53,15 +53,12 @@ public class AirportManager {
         Airport blr = new Airport.Builder()
             .setAirportId(idGenerator.incrementAndGet()).setName("Kempegowda International").setIataCode("BLR").setCity("Bangalore").setCountry("India")
             .setTimezone("Asia/Kolkata").build();
-        
-        Airport jfk = new Airport.Builder()
-            .setAirportId(idGenerator.incrementAndGet()).setName("John F. Kennedy International").setIataCode("JFK").setCity("New York").setCountry("USA")
-            .setTimezone("America/New_York").setTerminals("T1, T4, T5, T7, T8").build();
+
 
         addAirport(del);
         addAirport(bom);
         addAirport(blr);
-        addAirport(jfk);
+
     }
 
     /**
