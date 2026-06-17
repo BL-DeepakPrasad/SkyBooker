@@ -54,7 +54,7 @@ public class PriorityBookingManager {
      * @param booking the Booking object to be added to the processing queue
      */
     public void enqueueBooking(Booking booking) {
-        applyAgingAlgorithm(); // 10.2 Prevent starvation before adding new items
+        applyAgingAlgorithm(); // Prevent starvation before adding new items
         bookingQueue.offer(booking);
         System.out.println("[QUEUE] Added " + booking.getPriority() + " booking to processing queue. Queue Size: " + bookingQueue.size());
     }

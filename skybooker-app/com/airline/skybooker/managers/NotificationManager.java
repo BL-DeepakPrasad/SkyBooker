@@ -5,7 +5,6 @@ import com.airline.skybooker.notifications.EmailNotification;
 import com.airline.skybooker.notifications.SMSNotification;
 
 import com.airline.skybooker.models.User;
-import com.airline.skybooker.models.Passenger;
 import com.airline.skybooker.models.Booking;
 import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.models.BoardingPass;

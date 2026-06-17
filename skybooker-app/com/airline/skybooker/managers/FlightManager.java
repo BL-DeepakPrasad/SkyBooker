@@ -8,15 +8,13 @@ import com.airline.skybooker.models.Flight;
 import com.airline.skybooker.services.SeatService;
 import com.airline.skybooker.models.User;
 import com.airline.skybooker.models.Passenger;
-import com.airline.skybooker.managers.NotificationManager;
-import com.airline.skybooker.managers.AuthenticationManager;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.time.LocalDateTime;
 import com.airline.skybooker.enums.FlightStatus;
-import com.airline.skybooker.managers.AirportManager;
+
 
 /**
  * Manages the airline's entire schedule of flights.
@@ -25,13 +23,11 @@ import com.airline.skybooker.managers.AirportManager;
  */
 public class FlightManager implements Searchable {
 
-    /**
-     * The volatile singleton instance ensuring thread-safe publication.
-     */
+    
     private static volatile FlightManager instance;
 
     /**
-     * The primary database mimicking persistent storage of all scheduled flights.
+     * The primary database mock storage of all scheduled flights.
      */
     private List<Flight> flightDatabase;
 
@@ -316,6 +312,7 @@ public class FlightManager implements Searchable {
     public void createFlight(String airlineName, String airlineCode, String flightNumber, String aircraftType, 
                              String originCode, String destCode, int capacity, double baseFare, 
                              String baggage, String cancelPolicy, String amenities, 
+                        
                              SeatService seatService) {
         
         AirportManager am = AirportManager.getInstance();

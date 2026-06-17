@@ -18,7 +18,7 @@ public class PaymentManager {
 
     /**
      * Provides access to the single, shared PaymentManager instance.
-     * Keeps a running tally of successful and failed transactions across the entire app.
+     * Keeps a running count of successful and failed transactions across the entire app.
      *
      * @return the singleton PaymentManager instance
      */
